@@ -342,4 +342,46 @@ export class TaskService {
       throw error;
     }
   }
+
+  /**
+   * Clear all tasks (for reset functionality)
+   */
+  static async clearAllTasks(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(TASKS_KEY);
+    } catch (error) {
+      console.error('Error clearing tasks:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reset all data (tasks, pet state, settings)
+   */
+  static async resetAllData(): Promise<void> {
+    try {
+      // Clear tasks
+      await this.clearAllTasks();
+      
+      // Reset pet state
+      await this.savePetState({
+        stageIndex: 0,
+        stageXP: 0,
+        lastCloseoutDayKey: ''
+      });
+      
+      // Reset settings to defaults
+      const defaultSettings: AppSettings = {
+        resetTime: { hour: 0, minute: 0 },
+        graceWindow: 60,
+        rolloverEnabled: true,
+        hapticsEnabled: true
+      };
+      await this.saveSettings(defaultSettings);
+      
+    } catch (error) {
+      console.error('Error resetting all data:', error);
+      throw error;
+    }
+  }
 }

@@ -69,10 +69,12 @@ export class DailyCloseoutService {
 
   /**
    * Force run daily closeout (for testing/manual trigger)
+   * Runs closeout for the previous day to avoid penalizing current day tasks
    */
   static async forceCloseout(): Promise<void> {
     const currentDayKey = getCurrentDayKey();
-    console.log(`Force running daily closeout for ${currentDayKey}`);
-    await TaskService.performDailyCloseout(currentDayKey);
+    const previousDayKey = getPreviousDayKey(currentDayKey);
+    console.log(`Force running daily closeout for ${previousDayKey}`);
+    await TaskService.performDailyCloseout(previousDayKey);
   }
 }
