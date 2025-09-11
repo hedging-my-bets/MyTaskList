@@ -19,7 +19,7 @@ export interface PetState {
   lastCloseoutDayKey: string;
 }
 
-export interface StageConfig {
+export interface StageForm {
   i: number;
   name: string;
   threshold: number;
@@ -27,7 +27,7 @@ export interface StageConfig {
 }
 
 export interface StageCfg {
-  stages: StageConfig[];
+  stages: StageForm[];
 }
 
 // Widget data for timeline entries
