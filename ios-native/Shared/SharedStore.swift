@@ -9,12 +9,34 @@ public struct TaskItem: Identifiable, Codable, Hashable {
     public var isCompleted: Bool
     public var completedAt: Date?
     public var snoozedUntil: Date?
+    public init(
+        id: UUID = UUID(),
+        title: String,
+        scheduledAt: DateComponents,
+        dayKey: String,
+        isCompleted: Bool,
+        completedAt: Date? = nil,
+        snoozedUntil: Date? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.scheduledAt = scheduledAt
+        self.dayKey = dayKey
+        self.isCompleted = isCompleted
+        self.completedAt = completedAt
+        self.snoozedUntil = snoozedUntil
+    }
 }
 
 public struct PetState: Codable, Hashable {
     public var stageIndex: Int
     public var stageXP: Int
     public var lastCloseoutDayKey: String
+    public init(stageIndex: Int, stageXP: Int, lastCloseoutDayKey: String) {
+        self.stageIndex = stageIndex
+        self.stageXP = stageXP
+        self.lastCloseoutDayKey = lastCloseoutDayKey
+    }
 }
 
 public struct AppState: Codable {
@@ -28,6 +50,29 @@ public struct AppState: Codable {
     public var rolloverEnabled: Bool
     public var graceMinutes: Int?
     public var resetTime: DateComponents?
+    public init(
+        schemaVersion: Int,
+        dayKey: String,
+        tasks: [TaskItem],
+        pet: PetState,
+        series: [TaskSeries],
+        overrides: [TaskInstanceOverride],
+        completions: [String: Set<UUID>],
+        rolloverEnabled: Bool,
+        graceMinutes: Int? = nil,
+        resetTime: DateComponents? = nil
+    ) {
+        self.schemaVersion = schemaVersion
+        self.dayKey = dayKey
+        self.tasks = tasks
+        self.pet = pet
+        self.series = series
+        self.overrides = overrides
+        self.completions = completions
+        self.rolloverEnabled = rolloverEnabled
+        self.graceMinutes = graceMinutes
+        self.resetTime = resetTime
+    }
 }
 
 public struct Stage: Codable, Equatable {
@@ -174,8 +219,8 @@ public func nextUncompletedTask(for tasks: [TaskItem], dayKey: String) -> TaskIt
         .first
 }
 
-extension Array {
-    subscript(safe index: Int) -> Element? {
+public extension Array {
+    public subscript(safe index: Int) -> Element? {
         (0..<count).contains(index) ? self[index] : nil
     }
 }
