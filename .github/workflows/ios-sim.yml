@@ -56,25 +56,35 @@ jobs:
             SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
           fi
 
-          if xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep -q "iPhone 15"; then
-            DEST="platform=iOS Simulator,name=iPhone 15"
+          # Concrete destination for tests: parse first available iOS Simulator with name and OS
+          FIRST_SIM_LINE="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/{print $2; exit}')"
+          # Example segment:  platform:iOS Simulator, id:AD… , OS:18.5, name:iPhone 15
+          SIM_NAME="$(printf "%s" "$FIRST_SIM_LINE" | sed -n 's/.*name:\([^,]*\).*/\1/p' | sed 's/^ *//;s/ *$//')"
+          SIM_OS="$(printf "%s" "$FIRST_SIM_LINE" | sed -n 's/.*OS:\([^,]*\).*/\1/p' | sed 's/^ *//;s/ *$//')"
+          if [ -n "$SIM_NAME" ] && [ -n "$SIM_OS" ]; then
+            DEST_TEST="platform=iOS Simulator,name=${SIM_NAME},OS=${SIM_OS}"
           else
-            DEST="generic/platform=iOS Simulator"
+            # Fallback to a common simulator name on runners
+            DEST_TEST="platform=iOS Simulator,name=iPhone 15"
           fi
 
+          # Generic destination is fine for plain builds
+          DEST_BUILD="generic/platform=iOS Simulator"
+
           echo "SCHEME=$SCHEME" | tee -a "$GITHUB_OUTPUT"
-          echo "DEST=$DEST" | tee -a "$GITHUB_OUTPUT"
+          echo "DEST_BUILD=$DEST_BUILD" | tee -a "$GITHUB_OUTPUT"
+          echo "DEST_TEST=$DEST_TEST" | tee -a "$GITHUB_OUTPUT"
 
       - name: Build (Simulator)
         run: |
           set -euxo pipefail
           echo "Using scheme: ${{ steps.resolve.outputs.SCHEME }}"
-          echo "Using destination: ${{ steps.resolve.outputs.DEST }}"
+          echo "Using destination: ${{ steps.resolve.outputs.DEST_BUILD }}"
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.resolve.outputs.SCHEME }}" \
             -sdk iphonesimulator \
-            -destination "${{ steps.resolve.outputs.DEST }}" \
+            -destination "${{ steps.resolve.outputs.DEST_BUILD }}" \
             build \
             -parallelizeTargets \
             -derivedDataPath "$PWD/DerivedData" \
@@ -86,7 +96,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.resolve.outputs.SCHEME }}" \
-            -destination "${{ steps.resolve.outputs.DEST }}" \
+            -destination "${{ steps.resolve.outputs.DEST_TEST }}" \
             test \
             -derivedDataPath "$PWD/DerivedData" \
             | tee test.log
