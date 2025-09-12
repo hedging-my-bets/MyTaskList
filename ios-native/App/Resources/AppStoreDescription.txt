@@ -1,0 +1,15 @@
+Watch your productivity pet evolve as you complete tasks!
+
+PetProgress turns daily task completion into an engaging pet evolution journey. From tiny tadpole to majestic gold creature through 20 unique stages, your pet grows with your productivity.
+
+KEY FEATURES:
+• Lock Screen widget with hourly visual updates
+• 20-stage pet evolution with progress tracking
+• Flexible recurring task scheduling
+• Smart grace period system
+• Daily completion bonuses and penalties
+• Beautiful template-based pet illustrations
+• Full VoiceOver accessibility support
+• On-device storage with privacy focus
+
+Build productive habits through delightful gamification. Perfect for personal task management and staying motivated!

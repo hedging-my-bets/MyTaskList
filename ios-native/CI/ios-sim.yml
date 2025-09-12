@@ -1,0 +1,40 @@
+name: iOS Simulator CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: cd ios-native && xcodegen generate
+
+      - name: Build (iPhone 15)
+        run: |
+          cd ios-native
+          xcodebuild -scheme PetProgress -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 15" build
+
+      - name: Test (iPhone 15)
+        run: |
+          cd ios-native
+          xcodebuild test -scheme PetProgress -destination "platform=iOS Simulator,name=iPhone 15"
+
+      # - name: Upload to Appetize (optional)
+      #   if: ${{ secrets.APPETIZE_API_TOKEN != '' }}
+      #   env:
+      #     APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+      #   run: |
+      #     cd ios-native
+      #     APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "PetProgress.app" -type d | head -n 1)
+      #     zip -r PetProgress.app.zip "$APP_PATH"
+      #     URL=$(curl -s -X POST https://api.appetize.io/v2/apps -H "Authorization: Bearer $APPETIZE_API_TOKEN" -F platform=ios -F file=@PetProgress.app.zip | jq -r '.publicURL')
+      #     echo "Appetize URL: $URL" >> $GITHUB_STEP_SUMMARY
+
