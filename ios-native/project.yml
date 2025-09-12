@@ -17,8 +17,6 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Shared
-    resources:
-      - path: Shared/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
@@ -27,6 +25,11 @@ targets:
         DYLIB_INSTALL_NAME_BASE: "@rpath"
         SKIP_INSTALL: NO
         SWIFT_INSTALL_OBJC_HEADER: NO
+        DEFINES_MODULE: NO
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+        PROVISIONING_PROFILE_SPECIFIER: ""
     info:
       path: Shared/Info.plist
 
@@ -45,12 +48,17 @@ targets:
     resources:
       - path: App/Resources/StageConfig.json
       - path: App/Resources/Assets.xcassets
+      - path: Shared/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress
         DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
         FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
         SWIFT_INSTALL_OBJC_HEADER: NO
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+        PROVISIONING_PROFILE_SPECIFIER: ""
     info:
       path: App/Info.plist
       properties:
@@ -79,6 +87,7 @@ targets:
       - path: Widget/Resources
     resources:
       - path: Widget/Resources/StageConfig.json
+      - path: Shared/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.widget
@@ -87,6 +96,10 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
         FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
         EXTENSION_POINT_IDENTIFIER: com.apple.widgetkit-extension
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+        PROVISIONING_PROFILE_SPECIFIER: ""
     entitlements:
       path: Entitlements/Widget.entitlements
     info:
