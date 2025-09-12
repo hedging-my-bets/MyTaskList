@@ -56,8 +56,8 @@ jobs:
             SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
           fi
 
-          # Concrete destination for tests: pick first available iOS Simulator UUID
-          FIRST_SIM_UUID="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | sed -n 's/.*platform:iOS Simulator.*id:\([^,}]*\).*/\1/p' | head -n1)"
+          # Concrete destination for tests: prefer simctl (robust)
+          FIRST_SIM_UUID="$(xcrun simctl list devices available | sed -n 's/^[[:space:]]*iPhone[^()]* (\([0-9A-Fa-f-]\{36\}\)).*/\1/p' | head -n1)"
           if [ -n "$FIRST_SIM_UUID" ]; then
             DEST_TEST="id=${FIRST_SIM_UUID}"
           else
