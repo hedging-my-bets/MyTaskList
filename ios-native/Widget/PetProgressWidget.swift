@@ -55,7 +55,7 @@ struct PetWidgetView: View {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(entry.rows, id: \.id) { row in
                     HStack(spacing: 4) {
-                        AppIntentButton(intent: CompleteTaskIntent(taskId: row.id.uuidString, dayKey: entry.dayKey)) {
+                        Button(intent: CompleteTaskIntent(taskId: row.id.uuidString, dayKey: entry.dayKey)) {
                             Image(systemName: row.isCompleted ? "checkmark.circle.fill" : "circle")
                         }
                         .accessibilityLabel(row.isCompleted ? "Completed" : "Mark as complete")
