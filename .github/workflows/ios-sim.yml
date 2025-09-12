@@ -1,39 +1,98 @@
-name: iOS Simulator Build
+name: PetProgress
 
-on: [push, workflow_dispatch]
+options:
+  minimumXcodeGenVersion: 2.37.0
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
 
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
+configs:
+  Debug: debug
+  Release: release
 
-      # Provision a job-local Python (avoids PEP 668 issues)
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          check-latest: true
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    IPHONEOS_DEPLOYMENT_TARGET: 16.0
+    ENABLE_BITCODE: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "" # empty = no signing for Simulator
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
 
-      - name: Build assets (Pillow)
-        run: |
-          python -m pip install --upgrade pip --break-system-packages
-          python -m pip install pillow --break-system-packages
-          python ios-native/Tools/build_assets.py
+fileGroups:
+  - App
+  - Shared
+  - Widget
+  - Entitlements
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+targets:
+  # -------------------------
+  # MAIN APP (embeds widget)
+  # -------------------------
+  PetProgress:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    sources:
+      - path: App
+      - path: Shared
+      - path: App/Resources
+        type: folder
+      - path: Shared/Resources
+        type: folder
+    resources:
+      - path: App/Resources/Assets.xcassets
+      - path: Shared/Resources/Assets.xcassets
+    entitlements:
+      path: Entitlements/App.entitlements
+    dependencies:
+      # ✅ App embeds the widget extension
+      - target: PetProgressWidget
+        embed: true
 
-      - name: Generate project
-        run: cd ios-native && xcodegen generate
+  # -------------------------
+  # WIDGET EXTENSION (NO dependency on App)
+  # -------------------------
+  PetProgressWidget:
+    type: app-extension     # WidgetKit extension
+    platform: iOS
+    deploymentTarget: "16.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress.Widget
+        INFOPLIST_FILE: Widget/Info.plist
+        # mark as a WidgetKit extension
+        NSEXTENSIONPOINTIDENTIFIER: com.apple.widgetkit-extension
+    sources:
+      - path: Widget
+      - path: Shared
+      - path: Widget/Resources
+        type: folder
+      - path: Shared/Resources
+        type: folder
+    resources:
+      - path: Widget/Resources/Assets.xcassets
+      - path: Shared/Resources/Assets.xcassets
+    entitlements:
+      path: Entitlements/Widget.entitlements
+    dependencies: []        # ❗️NO app dependency — THIS FIXES THE CYCLE
 
-      - name: Build (iPhone 15 simulator)
-        run: |
-          cd ios-native
-          xcodebuild -scheme PetProgress -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15' build
-
-      - name: Test
-        run: |
-          cd ios-native
-          xcodebuild test -scheme PetProgress \
-            -destination 'platform=iOS Simulator,name=iPhone 15'
+schemes:
+  PetProgress:
+    build:
+      targets:
+        PetProgress: all
+        PetProgressWidget: all
+    run:
+      config: Debug
+      executable: PetProgress
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets: [] # add test bundles here if/when you create them
+    archive:
+      config: Release
