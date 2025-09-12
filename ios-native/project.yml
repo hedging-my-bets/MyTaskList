@@ -44,7 +44,6 @@ targets:
     resources:
       - path: App/Resources/StageConfig.json
       - path: App/Resources/Assets.xcassets
-      - path: Shared/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress
@@ -78,7 +77,6 @@ targets:
       - path: Widget/Resources
     resources:
       - path: Widget/Resources/StageConfig.json
-      - path: Shared/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.widget
