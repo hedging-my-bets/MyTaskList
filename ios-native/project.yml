@@ -37,13 +37,10 @@ targets:
     sources:
       - path: App
       - path: Shared
-      - path: App/Resources
-        type: folder
-      - path: Shared/Resources
-        type: folder
     resources:
       - path: App/Resources/Assets.xcassets
       - path: Shared/Resources/Assets.xcassets
+      - path: App/Resources/StageConfig.json
     entitlements:
       path: Entitlements/App.entitlements
     dependencies:
@@ -62,13 +59,10 @@ targets:
     sources:
       - path: Widget
       - path: Shared
-      - path: Widget/Resources
-        type: folder
-      - path: Shared/Resources
-        type: folder
     resources:
       - path: Widget/Resources/Assets.xcassets
       - path: Shared/Resources/Assets.xcassets
+      - path: Widget/Resources/StageConfig.json
     entitlements:
       path: Entitlements/Widget.entitlements
     dependencies: []   # <- IMPORTANT: no dependency on the App
