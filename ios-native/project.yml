@@ -23,6 +23,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
         DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
+        GENERATE_INFOPLIST_FILE: YES
 
   PetProgress:
     type: application
