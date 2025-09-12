@@ -1,5 +1,6 @@
 import XCTest
 @testable import PetProgress
+@testable import PetProgressShared
 
 final class MaterializerTests: XCTestCase {
     func testSeriesMaterialization() {

@@ -11,12 +11,24 @@ settings:
     MARKETING_VERSION: 1.0.0
     CURRENT_PROJECT_VERSION: 1
 targets:
+  PetProgressShared:
+    type: framework
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Shared
+    resources:
+      - path: Shared/Resources/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
+        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
+
   PetProgress:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: Shared
       - path: App
       - path: Entitlements
         optional: true
@@ -43,7 +55,8 @@ targets:
             CFBundleURLSchemes: [petprogress]
     entitlements:
       path: Entitlements/App.entitlements
-    dependencies: []
+    dependencies:
+      - target: PetProgressShared
     postBuildScripts: []
     scheme:
       testTargets: [PetProgressTests]
@@ -53,7 +66,6 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: Shared
       - path: Widget
       - path: Entitlements
         optional: true
@@ -72,7 +84,8 @@ targets:
       path: Entitlements/Widget.entitlements
     info:
       path: Widget/Info.plist
-    dependencies: []
+    dependencies:
+      - target: PetProgressShared
 
   PetProgressTests:
     type: bundle.unit-test
@@ -84,11 +97,13 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.tests
     dependencies:
       - target: PetProgress
+      - target: PetProgressShared
 
 schemes:
   PetProgress:
     build:
       targets:
+        PetProgressShared: all
         PetProgress: all
         PetProgressWidget: all
         PetProgressTests: [test]

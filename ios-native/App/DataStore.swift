@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import PetProgressShared
 
 @MainActor
 final class DataStore: ObservableObject {

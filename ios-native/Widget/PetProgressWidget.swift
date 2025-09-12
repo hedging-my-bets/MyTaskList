@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import WidgetKit
+import PetProgressShared
 
 @main
 struct PetProgressWidgetBundle: WidgetBundle {

@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import PetProgressShared
 
 struct CompleteTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Complete Task"

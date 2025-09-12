@@ -1,4 +1,5 @@
 import AppIntents
+import PetProgressShared
 
 struct MarkNextTaskDoneIntent: AppIntent {
     static var title: LocalizedStringResource = "Mark Next Task Done"

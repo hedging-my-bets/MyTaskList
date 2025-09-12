@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import PetProgressShared
 
 struct SnoozeNextTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Snooze Next Task 15m"

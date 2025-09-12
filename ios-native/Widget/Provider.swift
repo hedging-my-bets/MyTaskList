@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import PetProgressShared
 
 struct Provider: TimelineProvider {
     private let shared = SharedStore()

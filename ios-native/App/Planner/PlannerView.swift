@@ -1,4 +1,5 @@
 import SwiftUI
+import PetProgressShared
 
 struct PlannerView: View {
     @EnvironmentObject var store: DataStore
