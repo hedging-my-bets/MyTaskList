@@ -43,8 +43,7 @@ targets:
             CFBundleURLSchemes: [petprogress]
     entitlements:
       path: Entitlements/App.entitlements
-    dependencies:
-      - target: PetProgressWidget
+    dependencies: []
     postBuildScripts: []
     scheme:
       testTargets: [PetProgressTests]
@@ -73,8 +72,7 @@ targets:
       path: Entitlements/Widget.entitlements
     info:
       path: Widget/Info.plist
-    dependencies:
-      - target: PetProgress
+    dependencies: []
 
   PetProgressTests:
     type: bundle.unit-test
@@ -92,7 +90,6 @@ schemes:
     build:
       targets:
         PetProgress: all
-        PetProgressWidget: all
         PetProgressTests: [test]
     test:
       gatherCoverageData: false
