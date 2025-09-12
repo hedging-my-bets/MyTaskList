@@ -1,98 +1,125 @@
-name: PetProgress
+name: iOS Simulator Build
 
-options:
-  minimumXcodeGenVersion: 2.37.0
-  createIntermediateGroups: true
-  xcodeVersion: "16.0"
+on:
+  push:
+  workflow_dispatch:
 
-configs:
-  Debug: debug
-  Release: release
+jobs:
+  build:
+    runs-on: macos-latest
 
-settings:
-  base:
-    SWIFT_VERSION: 5.10
-    IPHONEOS_DEPLOYMENT_TARGET: 16.0
-    ENABLE_BITCODE: NO
-    CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: "" # empty = no signing for Simulator
-    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    env:
+      DEFAULT_SCHEME: PetProgress
+      PROJECT_DIR: ios-native
+      PROJECT_FILE: ios-native/PetProgress.xcodeproj
 
-fileGroups:
-  - App
-  - Shared
-  - Widget
-  - Entitlements
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-targets:
-  # -------------------------
-  # MAIN APP (embeds widget)
-  # -------------------------
-  PetProgress:
-    type: application
-    platform: iOS
-    deploymentTarget: "16.0"
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress
-        INFOPLIST_FILE: App/Info.plist
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    sources:
-      - path: App
-      - path: Shared
-      - path: App/Resources
-        type: folder
-      - path: Shared/Resources
-        type: folder
-    resources:
-      - path: App/Resources/Assets.xcassets
-      - path: Shared/Resources/Assets.xcassets
-    entitlements:
-      path: Entitlements/App.entitlements
-    dependencies:
-      # ✅ App embeds the widget extension
-      - target: PetProgressWidget
-        embed: true
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          check-latest: true
 
-  # -------------------------
-  # WIDGET EXTENSION (NO dependency on App)
-  # -------------------------
-  PetProgressWidget:
-    type: app-extension     # WidgetKit extension
-    platform: iOS
-    deploymentTarget: "16.0"
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress.Widget
-        INFOPLIST_FILE: Widget/Info.plist
-        # mark as a WidgetKit extension
-        NSEXTENSIONPOINTIDENTIFIER: com.apple.widgetkit-extension
-    sources:
-      - path: Widget
-      - path: Shared
-      - path: Widget/Resources
-        type: folder
-      - path: Shared/Resources
-        type: folder
-    resources:
-      - path: Widget/Resources/Assets.xcassets
-      - path: Shared/Resources/Assets.xcassets
-    entitlements:
-      path: Entitlements/Widget.entitlements
-    dependencies: []        # ❗️NO app dependency — THIS FIXES THE CYCLE
+      - name: Build assets (Pillow)
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pillow
+          python ios-native/Tools/build_assets.py
 
-schemes:
-  PetProgress:
-    build:
-      targets:
-        PetProgress: all
-        PetProgressWidget: all
-    run:
-      config: Debug
-      executable: PetProgress
-    test:
-      config: Debug
-      gatherCoverageData: false
-      targets: [] # add test bundles here if/when you create them
-    archive:
-      config: Release
+      - name: Install XcodeGen
+        run: |
+          set -euxo pipefail
+          brew update
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          set -euxo pipefail
+          cd "$PROJECT_DIR"
+          xcodegen generate
+
+      - name: Resolve scheme and destination
+        id: resolve
+        run: |
+          set -euo pipefail
+
+          echo "== List targets/schemes =="
+          xcodebuild -list -project "$PROJECT_FILE" || true
+
+          if xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | grep -qx "$DEFAULT_SCHEME"; then
+            SCHEME="$DEFAULT_SCHEME"
+          else
+            SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
+          fi
+
+          if xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep -q "iPhone 15"; then
+            DEST="platform=iOS Simulator,name=iPhone 15"
+          else
+            DEST="generic/platform=iOS Simulator"
+          fi
+
+          echo "SCHEME=$SCHEME" | tee -a "$GITHUB_OUTPUT"
+          echo "DEST=$DEST" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Build (Simulator)
+        run: |
+          set -euxo pipefail
+          echo "Using scheme: ${{ steps.resolve.outputs.SCHEME }}"
+          echo "Using destination: ${{ steps.resolve.outputs.DEST }}"
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
+            -sdk iphonesimulator \
+            -destination "${{ steps.resolve.outputs.DEST }}" \
+            build \
+            -parallelizeTargets \
+            -derivedDataPath "$PWD/DerivedData" \
+            | tee build.log
+
+      - name: Test (Simulator)
+        run: |
+          set -euxo pipefail
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
+            -destination "${{ steps.resolve.outputs.DEST }}" \
+            test \
+            -derivedDataPath "$PWD/DerivedData" \
+            | tee test.log
+
+      - name: Archive built .app (Simulator)
+        if: success()
+        run: |
+          set -euo pipefail
+          mkdir -p build_artifacts
+          APP_PATH=$(find "$PWD/DerivedData/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
+            | xargs -0 -I{} stat -f "%m\t%N" {} \
+            | sort -rn \
+            | awk 'NR==1{print $2}')
+          if [ -z "${APP_PATH:-}" ]; then
+            echo "Could not locate a built Simulator .app in DerivedData."
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
+          cp -R "$APP_PATH" build_artifacts/PetProgress.app
+
+      - name: Upload artifact (Simulator .app)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetProgress-Simulator-App
+          path: build_artifacts/PetProgress.app
+
+      - name: Upload xcodebuild logs (on failure or success)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-logs
+          path: |
+            build.log
+            test.log
+          if-no-files-found: ignore
