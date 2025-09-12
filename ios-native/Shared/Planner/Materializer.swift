@@ -30,7 +30,7 @@ public func dateFor(dayKey: String, time: DateComponents) -> Date? {
     return Calendar.current.date(from: comps)
 }
 
-public func materializeTasks(for dayKey: String, in state: State) -> [MaterializedTask] {
+public func materializeTasks(for dayKey: String, in state: AppState) -> [MaterializedTask] {
     let completed: Set<UUID> = state.completions[dayKey] ?? []
     var result: [MaterializedTask] = []
 

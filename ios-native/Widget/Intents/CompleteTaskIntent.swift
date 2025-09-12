@@ -10,7 +10,7 @@ struct CompleteTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         guard let uuid = UUID(uuidString: taskId) else { return .result() }
         let shared = SharedStore()
-        var state = (try? shared.loadState()) ?? State(schemaVersion: 2, dayKey: dayKey, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: nil)
+        var state = (try? shared.loadState()) ?? AppState(schemaVersion: 2, dayKey: dayKey, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: nil)
 
         var completed = state.completions[dayKey] ?? Set<UUID>()
         if completed.contains(uuid) {

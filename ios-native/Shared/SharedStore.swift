@@ -17,7 +17,7 @@ public struct PetState: Codable, Hashable {
     public var lastCloseoutDayKey: String
 }
 
-public struct State: Codable {
+public struct AppState: Codable {
     public var schemaVersion: Int
     public var dayKey: String
     public var tasks: [TaskItem]
@@ -64,13 +64,13 @@ public final class SharedStore {
 
     public init() {}
 
-    public func loadState() throws -> State {
+    public func loadState() throws -> AppState {
         try queue.sync {
             let url = try fileURL()
             guard FileManager.default.fileExists(atPath: url.path) else {
                 throw NSError(domain: "SharedStore", code: 2, userInfo: [NSLocalizedDescriptionKey: "State not found"]) }
             let data = try Data(contentsOf: url)
-            var state = try JSONDecoder().decode(State.self, from: data)
+            var state = try JSONDecoder().decode(AppState.self, from: data)
             // Migration to schema v2
             if state.schemaVersion < 2 {
                 state.series = []
@@ -84,7 +84,7 @@ public final class SharedStore {
         }
     }
 
-    public func saveState(_ state: State) throws {
+    public func saveState(_ state: AppState) throws {
         try queue.sync {
             let url = try fileURL()
             var st = state
