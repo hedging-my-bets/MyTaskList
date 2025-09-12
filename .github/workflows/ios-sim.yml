@@ -56,16 +56,18 @@ jobs:
             SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
           fi
 
-          # Concrete destination for tests: parse first available iOS Simulator with name and OS
-          FIRST_SIM_LINE="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/{print $2; exit}')"
-          # Example segment:  platform:iOS Simulator, id:AD… , OS:18.5, name:iPhone 15
-          SIM_NAME="$(printf "%s" "$FIRST_SIM_LINE" | sed -n 's/.*name:\([^,]*\).*/\1/p' | sed 's/^ *//;s/ *$//')"
-          SIM_OS="$(printf "%s" "$FIRST_SIM_LINE" | sed -n 's/.*OS:\([^,]*\).*/\1/p' | sed 's/^ *//;s/ *$//')"
-          if [ -n "$SIM_NAME" ] && [ -n "$SIM_OS" ]; then
-            DEST_TEST="platform=iOS Simulator,name=${SIM_NAME},OS=${SIM_OS}"
+          # Concrete destination for tests: pick first available iOS Simulator UUID
+          FIRST_SIM_UUID="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/ { match($2, /id:([^,]*)/, m); if (m[1]!="") {print m[1]; exit} }')"
+          if [ -n "$FIRST_SIM_UUID" ]; then
+            DEST_TEST="id=${FIRST_SIM_UUID}"
           else
-            # Fallback to a common simulator name on runners
-            DEST_TEST="platform=iOS Simulator,name=iPhone 15"
+            # Fallback: choose by name if UUID parse fails
+            FIRST_SIM_NAME="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/ { match($2, /name:([^,]*)/, m); if (m[1]!="") {print m[1]; exit} }' | sed 's/^ *//;s/ *$//')"
+            if [ -n "$FIRST_SIM_NAME" ]; then
+              DEST_TEST="platform=iOS Simulator,name=${FIRST_SIM_NAME}"
+            else
+              DEST_TEST="platform=iOS Simulator,name=iPhone 16 Pro"
+            fi
           fi
 
           # Generic destination is fine for plain builds
