@@ -23,10 +23,11 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
         DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        GENERATE_INFOPLIST_FILE: YES
         MACH_O_TYPE: mh_dylib
         DYLIB_INSTALL_NAME_BASE: @rpath
         SKIP_INSTALL: NO
+    info:
+      path: Shared/Info.plist
 
   PetProgress:
     type: application
