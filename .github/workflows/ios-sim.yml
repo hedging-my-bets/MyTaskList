@@ -1,14 +1,14 @@
 name: iOS Simulator Build
+
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      # ✅ Provision a job-local Python that allows pip installs (avoids PEP 668)
+      # Provision a job-local Python (avoids PEP 668 issues)
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -16,8 +16,8 @@ jobs:
 
       - name: Build assets (Pillow)
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install pillow
+          python -m pip install --upgrade pip --break-system-packages
+          python -m pip install pillow --break-system-packages
           python ios-native/Tools/build_assets.py
 
       - name: Install XcodeGen
