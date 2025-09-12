@@ -1,0 +1,64 @@
+name: iOS Simulator Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Setup Python & Pillow (for assets)
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pillow
+
+    - name: Generate assets
+      run: cd ios-native && python3 Tools/build_assets.py
+
+    - name: Generate Xcode project
+      run: cd ios-native && xcodegen generate
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+    - name: Build for iPhone 15 simulator
+      run: |
+        cd ios-native
+        xcodebuild build \
+          -scheme PetProgress \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.5" \
+          -configuration Debug \
+          -derivedDataPath DerivedData
+
+    - name: Run tests
+      run: |
+        cd ios-native
+        xcodebuild test \
+          -scheme PetProgress \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.5" \
+          -configuration Debug \
+          -derivedDataPath DerivedData
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: ios-native/DerivedData/Logs/Test/
+
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: screenshots
+        path: ios-native/DerivedData/Logs/Test/**/*.png
