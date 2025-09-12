@@ -61,7 +61,6 @@ targets:
       - path: Widget/Resources
     resources:
       - path: Widget/Resources/StageConfig.json
-      - path: Widget/Resources/Assets.xcassets
       - path: Shared/Resources/Assets.xcassets
     settings:
       base:

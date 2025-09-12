@@ -25,3 +25,4 @@ The app does not include any analytics, tracking, or data collection mechanisms.
 
 If you have any questions about this privacy policy, please contact us through the App Store.
 
+
