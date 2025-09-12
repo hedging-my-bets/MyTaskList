@@ -61,7 +61,7 @@ public func materializeTasks(for dayKey: String, in state: AppState) -> [Materia
 
 public func nearestTaskIndex(now: Date, tasks: [MaterializedTask]) -> Int? {
     guard !tasks.isEmpty else { return nil }
-    let cal = Calendar.current
+    let _ = Calendar.current
     let distances: [(Int, TimeInterval)] = tasks.enumerated().compactMap { idx, t in
         guard let date = dateFor(dayKey: dayKey(for: now), time: t.time) else { return nil }
         return (idx, abs(date.timeIntervalSince(now)))

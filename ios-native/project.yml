@@ -90,6 +90,7 @@ schemes:
     build:
       targets:
         PetProgress: all
+        PetProgressWidget: all
         PetProgressTests: [test]
     test:
       gatherCoverageData: false

@@ -131,7 +131,7 @@ final class DataStore: ObservableObject {
         state.dayKey = today
         if state.rolloverEnabled {
             let carry = yesterdayTasks.filter { !$0.isCompleted }
-            let calendar = Calendar.current
+            let _ = Calendar.current
             let seed = carry.map { old -> TaskItem in
                 let comps = DateComponents(hour: old.scheduledAt.hour, minute: old.scheduledAt.minute)
                 return TaskItem(id: UUID(), title: old.title, scheduledAt: comps, dayKey: today, isCompleted: false, completedAt: nil, snoozedUntil: nil)
