@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class DataStore: ObservableObject {
-    @Published private(set) var state: State
+    @Published private(set) var state: AppState
     @Published var showPlanner: Bool = false
     @Published var showWidgetInstructions: Bool = false
     @Published var showSettings: Bool = false
@@ -18,7 +18,7 @@ final class DataStore: ObservableObject {
             self.state = loaded
         } else {
             let today = dayKey(for: Date())
-            self.state = State(schemaVersion: 2, dayKey: today, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: DateComponents(hour: 0, minute: 0))
+            self.state = AppState(schemaVersion: 2, dayKey: today, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: DateComponents(hour: 0, minute: 0))
             try? sharedStore.saveState(state)
         }
     }
@@ -166,7 +166,7 @@ final class DataStore: ObservableObject {
     
     func resetAllData() {
         let today = dayKey(for: Date())
-        state = State(schemaVersion: 2, dayKey: today, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: DateComponents(hour: 0, minute: 0))
+        state = AppState(schemaVersion: 2, dayKey: today, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: DateComponents(hour: 0, minute: 0))
         persist()
     }
 }
