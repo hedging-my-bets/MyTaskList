@@ -149,6 +149,11 @@ final class DataStore: ObservableObject {
         try? sharedStore.saveState(state)
     }
 
+    public func replaceState(_ newState: AppState) {
+        state = newState
+        persist()
+    }
+
     func routeToPlanner() { showPlanner = true }
     
     func updateGraceMinutes(_ minutes: Int) {

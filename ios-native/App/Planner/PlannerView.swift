@@ -166,8 +166,7 @@ struct PlannerView: View {
         } else {
             st.overrides.append(TaskInstanceOverride(seriesId: seriesId, dayKey: dayKey, isDeleted: isDeleted))
         }
-        store.state = st
-        let _ = store
+        store.replaceState(st)
         // persist
         try? SharedStore().saveState(st)
     }
@@ -177,7 +176,7 @@ struct PlannerView: View {
         let comps = Calendar.current.dateComponents([.hour, .minute], from: Date())
         let newTaskId = UUID()
         st.tasks.append(TaskItem(id: newTaskId, title: "New Task", scheduledAt: comps, dayKey: dayKey, isCompleted: false, completedAt: nil, snoozedUntil: nil))
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
 
         // Open editor for the newly created task
@@ -214,7 +213,7 @@ struct PlannerView: View {
             st.overrides.append(TaskInstanceOverride(seriesId: seriesId, dayKey: dayKey, title: editingTitle, time: time, isDeleted: false))
         }
 
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         showOverrideEditor = false
     }
@@ -228,7 +227,7 @@ struct PlannerView: View {
             st.tasks[idx].scheduledAt = DateComponents(hour: editingHour, minute: editingMinute)
         }
 
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         showOneOffEditor = false
     }
@@ -238,7 +237,7 @@ struct PlannerView: View {
 
         var st = store.state
         st.overrides.removeAll(where: { $0.seriesId == seriesId && $0.dayKey == dayKey })
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
     }
 }
@@ -276,7 +275,7 @@ struct NewSeriesView: View {
                         var st = store.state
                         let comps = DateComponents(hour: hour, minute: minute)
                         st.series.append(TaskSeries(title: title, daysOfWeek: dow, time: comps))
-                        store.state = st
+                        store.replaceState(st)
                         try? SharedStore().saveState(st)
                         dismiss()
                     }
@@ -330,7 +329,7 @@ struct EditSeriesView: View {
             st.series[idx].title = title
             st.series[idx].time = DateComponents(hour: hour, minute: minute)
             st.series[idx].daysOfWeek = dow
-            store.state = st
+            store.replaceState(st)
             try? SharedStore().saveState(st)
         }
         dismiss()
@@ -340,7 +339,7 @@ struct EditSeriesView: View {
         var st = store.state
         if let idx = st.series.firstIndex(where: { $0.id == series.id }) {
             st.series[idx].isActive = false
-            store.state = st
+            store.replaceState(st)
             try? SharedStore().saveState(st)
         }
         dismiss()
@@ -491,7 +490,7 @@ struct OneOffEditorView: View {
 
         var st = store.state
         st.tasks.removeAll(where: { $0.id == taskId })
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         onCancel()
     }
