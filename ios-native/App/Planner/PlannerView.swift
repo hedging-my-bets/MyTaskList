@@ -124,7 +124,12 @@ struct PlannerView: View {
                 initialTitle: editingTitle,
                 initialHour: editingHour,
                 initialMinute: editingMinute,
-                onSave: saveOverride,
+                onSave: { t, h, m in
+                    editingTitle = t
+                    editingHour = h
+                    editingMinute = m
+                    saveOverride()
+                },
                 onCancel: { showOverrideEditor = false }
             )
             .environmentObject(store)
@@ -135,7 +140,12 @@ struct PlannerView: View {
                 initialTitle: editingTitle,
                 initialHour: editingHour,
                 initialMinute: editingMinute,
-                onSave: saveOneOff,
+                onSave: { t, h, m in
+                    editingTitle = t
+                    editingHour = h
+                    editingMinute = m
+                    saveOneOff()
+                },
                 onCancel: { showOneOffEditor = false }
             )
             .environmentObject(store)
@@ -344,10 +354,10 @@ struct OverrideEditorView: View {
     @State private var title: String
     @State private var hour: Int
     @State private var minute: Int
-    let onSave: () -> Void
+    let onSave: (_ title: String, _ hour: Int, _ minute: Int) -> Void
     let onCancel: () -> Void
 
-    init(seriesId: UUID?, dayKey: String?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+    init(seriesId: UUID?, dayKey: String?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping (_ title: String, _ hour: Int, _ minute: Int) -> Void, onCancel: @escaping () -> Void) {
         self.seriesId = seriesId
         self.dayKey = dayKey
         self._title = State(initialValue: initialTitle)
@@ -390,13 +400,7 @@ struct OverrideEditorView: View {
                 }
 
                 Section {
-                    Button("Save Override") {
-                        // Update the editing values in parent view before saving
-                        editingTitle = title
-                        editingHour = hour
-                        editingMinute = minute
-                        onSave()
-                    }
+                    Button("Save Override") { onSave(title, hour, minute) }
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -417,10 +421,10 @@ struct OneOffEditorView: View {
     @State private var title: String
     @State private var hour: Int
     @State private var minute: Int
-    let onSave: () -> Void
+    let onSave: (_ title: String, _ hour: Int, _ minute: Int) -> Void
     let onCancel: () -> Void
 
-    init(taskId: UUID?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+    init(taskId: UUID?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping (_ title: String, _ hour: Int, _ minute: Int) -> Void, onCancel: @escaping () -> Void) {
         self.taskId = taskId
         self._title = State(initialValue: initialTitle)
         self._hour = State(initialValue: initialHour)
@@ -468,12 +472,7 @@ struct OneOffEditorView: View {
                 }
 
                 Section {
-                    Button("Save Changes") {
-                        editingTitle = title
-                        editingHour = hour
-                        editingMinute = minute
-                        onSave()
-                    }
+                    Button("Save Changes") { onSave(title, hour, minute) }
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
