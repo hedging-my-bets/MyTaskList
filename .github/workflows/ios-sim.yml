@@ -9,7 +9,6 @@ jobs:
     runs-on: macos-latest
 
     env:
-      # Default assumptions; we’ll auto-detect if they differ
       DEFAULT_SCHEME: PetProgress
       PROJECT_DIR: ios-native
       PROJECT_FILE: ios-native/PetProgress.xcodeproj
@@ -18,8 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Root cause of the original failure was using cache:'pip' without a dependency file.
-      # We keep this simple and deterministic: no pip cache, no PEP-668 conflicts.
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -53,16 +50,12 @@ jobs:
           echo "== List targets/schemes =="
           xcodebuild -list -project "$PROJECT_FILE" || true
 
-          # ---- Resolve SCHEME ----
-          # Prefer DEFAULT_SCHEME; if absent, pick the first listed scheme.
           if xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | grep -qx "$DEFAULT_SCHEME"; then
             SCHEME="$DEFAULT_SCHEME"
           else
             SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
           fi
 
-          # ---- Resolve DESTINATION ----
-          # Try iPhone 15 first; if unavailable, fall back to generic Simulator.
           if xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep -q "iPhone 15"; then
             DEST="platform=iOS Simulator,name=iPhone 15"
           else
@@ -103,18 +96,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build_artifacts
-
-          # Find the newest simulator .app inside DerivedData/Build/Products/*-iphonesimulator/
           APP_PATH=$(find "$PWD/DerivedData/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
             | xargs -0 -I{} stat -f "%m\t%N" {} \
             | sort -rn \
             | awk 'NR==1{print $2}')
-
           if [ -z "${APP_PATH:-}" ]; then
             echo "Could not locate a built Simulator .app in DerivedData."
             exit 1
           fi
-
           echo "Found app at: $APP_PATH"
           cp -R "$APP_PATH" build_artifacts/PetProgress.app
 
