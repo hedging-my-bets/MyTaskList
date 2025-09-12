@@ -57,12 +57,12 @@ jobs:
           fi
 
           # Concrete destination for tests: pick first available iOS Simulator UUID
-          FIRST_SIM_UUID="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/ { match($2, /id:([^,]*)/, m); if (m[1]!="") {print m[1]; exit} }')"
+          FIRST_SIM_UUID="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | sed -n 's/.*platform:iOS Simulator.*id:\([^,}]*\).*/\1/p' | head -n1)"
           if [ -n "$FIRST_SIM_UUID" ]; then
             DEST_TEST="id=${FIRST_SIM_UUID}"
           else
             # Fallback: choose by name if UUID parse fails
-            FIRST_SIM_NAME="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | awk -F '[{}]' '/platform:iOS Simulator/ { match($2, /name:([^,]*)/, m); if (m[1]!="") {print m[1]; exit} }' | sed 's/^ *//;s/ *$//')"
+            FIRST_SIM_NAME="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | sed -n 's/.*platform:iOS Simulator.*name:\([^,}]*\).*/\1/p' | sed 's/^ *//;s/ *$//' | head -n1)"
             if [ -n "$FIRST_SIM_NAME" ]; then
               DEST_TEST="platform=iOS Simulator,name=${FIRST_SIM_NAME}"
             else
