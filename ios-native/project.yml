@@ -1,92 +1,77 @@
 name: PetProgress
+
 options:
-  minimumXcodeGenVersion: 2.36.0
-  deploymentTarget:
-    iOS: "17.0"
-packages: {}
+  minimumXcodeGenVersion: 2.37.0
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+
+configs:
+  Debug: debug
+  Release: release
+
 settings:
   base:
-    IPHONEOS_DEPLOYMENT_TARGET: 17.0
-    SWIFT_VERSION: 5.9
-    MARKETING_VERSION: 1.0.0
-    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: 5.10
+    IPHONEOS_DEPLOYMENT_TARGET: 16.0
+    ENABLE_BITCODE: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "" # Simulator build; no signing
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+
+fileGroups:
+  - App
+  - Shared
+  - Widget
+  - Entitlements
+
 targets:
   PetProgress:
     type: application
     platform: iOS
-    deploymentTarget: "17.0"
-    sources:
-      - path: Shared
-      - path: App
-      - path: Entitlements
-        optional: true
-      - path: App/Resources
-      - path: App/ErrorHandling
-      - path: App/UI
-      - path: App/Settings
-    resources:
-      - path: App/Resources/StageConfig.json
-      - path: App/Resources/Assets.xcassets
-      - path: Shared/Resources/Assets.xcassets
+    deploymentTarget: "16.0"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-    info:
-      path: App/Info.plist
-      properties:
-        UILaunchScreen:
-          UIImageName: ""
-        CFBundleDisplayName: PetProgress
-        CFBundleURLTypes:
-          - CFBundleURLName: petprogress
-            CFBundleURLSchemes: [petprogress]
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    sources:
+      - path: App
+      - path: Shared
+      - path: App/Resources
+        type: folder
+      - path: Shared/Resources
+        type: folder
+    resources:
+      - path: App/Resources/Assets.xcassets
+      - path: Shared/Resources/Assets.xcassets
     entitlements:
       path: Entitlements/App.entitlements
     dependencies:
       - target: PetProgressWidget
-    postBuildScripts: []
-    scheme:
-      testTargets: [PetProgressTests]
+        embed: true
 
   PetProgressWidget:
     type: app-extension
     platform: iOS
-    deploymentTarget: "17.0"
+    deploymentTarget: "16.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PetProgress.Widget
+        INFOPLIST_FILE: Widget/Info.plist
+        NSEXTENSIONPOINTIDENTIFIER: com.apple.widgetkit-extension
     sources:
-      - path: Shared
       - path: Widget
-      - path: Entitlements
-        optional: true
+      - path: Shared
       - path: Widget/Resources
+        type: folder
+      - path: Shared/Resources
+        type: folder
     resources:
-      - path: Widget/Resources/StageConfig.json
       - path: Widget/Resources/Assets.xcassets
       - path: Shared/Resources/Assets.xcassets
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.widget
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
-        EXTENSION_POINT_IDENTIFIER: com.apple.widgetkit-extension
     entitlements:
       path: Entitlements/Widget.entitlements
-    info:
-      path: Widget/Info.plist
-    dependencies:
-      - target: PetProgress
-
-  PetProgressTests:
-    type: bundle.unit-test
-    platform: iOS
-    sources:
-      - path: Tests
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.tests
-    dependencies:
-      - target: PetProgress
+    dependencies: []   # <- IMPORTANT: no dependency on the App
 
 schemes:
   PetProgress:
@@ -94,9 +79,12 @@ schemes:
       targets:
         PetProgress: all
         PetProgressWidget: all
-        PetProgressTests: [test]
+    run:
+      config: Debug
+      executable: PetProgress
     test:
+      config: Debug
       gatherCoverageData: false
-      testTargets:
-        - name: PetProgressTests
-
+      targets: []
+    archive:
+      config: Release
