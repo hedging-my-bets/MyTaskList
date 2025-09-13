@@ -20,10 +20,6 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     CODE_SIGN_STYLE: Automatic
 
-packages:
-  SharedKit:
-    path: SharedKit
-
 targets:
   SharedKit:
     type: framework
