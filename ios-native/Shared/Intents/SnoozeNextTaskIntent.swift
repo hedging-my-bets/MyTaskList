@@ -1,23 +1,22 @@
 import AppIntents
 import Foundation
-import PetProgressShared
 import WidgetKit
 
 @available(iOS 17.0, *)
-struct SnoozeNextTaskIntent: AppIntent {
-    static var title: LocalizedStringResource = "Snooze Next Task 15m"
-    static var openAppWhenRun: Bool = false
+public struct SnoozeNextTaskIntent: AppIntent {
+    public static var title: LocalizedStringResource = "Snooze Next Task 15m"
+    public static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Task ID") var taskId: String
-    @Parameter(title: "Day Key") var dayKey: String
+    @Parameter(title: "Task ID") public var taskId: String
+    @Parameter(title: "Day Key") public var dayKey: String
 
-    init() { }
-    init(taskId: String, dayKey: String) {
+    public init() { }
+    public init(taskId: String, dayKey: String) {
         self.taskId = taskId
         self.dayKey = dayKey
     }
 
-    func perform() async throws -> some IntentResult {
+    public func perform() async throws -> some IntentResult {
         guard let uuid = UUID(uuidString: taskId), !dayKey.isEmpty else { return .result() }
         let shared = SharedStore()
         var state = (try? shared.loadState()) ?? AppState(
@@ -71,5 +70,3 @@ struct SnoozeNextTaskIntent: AppIntent {
         return .result()
     }
 }
-
-

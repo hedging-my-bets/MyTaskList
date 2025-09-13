@@ -1,20 +1,19 @@
 import AppIntents
-import PetProgressShared
 import WidgetKit
 
 @available(iOS 17.0, *)
-struct MarkNextTaskDoneIntent: AppIntent {
-    static var title: LocalizedStringResource = "Mark Next Task Done"
-    static var openAppWhenRun: Bool = false
+public struct MarkNextTaskDoneIntent: AppIntent {
+    public static var title: LocalizedStringResource = "Mark Next Task Done"
+    public static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Day Key") var dayKey: String
+    @Parameter(title: "Day Key") public var dayKey: String
 
-    init() { }
-    init(dayKey: String) {
+    public init() { }
+    public init(dayKey: String) {
         self.dayKey = dayKey
     }
 
-    func perform() async throws -> some IntentResult {
+    public func perform() async throws -> some IntentResult {
         guard !dayKey.isEmpty else { return .result() }
         let shared = SharedStore()
         var state = (try? shared.loadState()) ?? AppState(
@@ -69,5 +68,3 @@ struct MarkNextTaskDoneIntent: AppIntent {
         return .result()
     }
 }
-
-
