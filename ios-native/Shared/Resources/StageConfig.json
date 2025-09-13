@@ -1,0 +1,20 @@
+{
+  "stages": [
+    { "name": "pet_stage_01", "threshold": 0 },
+    { "name": "pet_stage_02", "threshold": 3 },
+    { "name": "pet_stage_03", "threshold": 7 },
+    { "name": "pet_stage_04", "threshold": 12 },
+    { "name": "pet_stage_05", "threshold": 18 },
+    { "name": "pet_stage_06", "threshold": 25 },
+    { "name": "pet_stage_07", "threshold": 33 },
+    { "name": "pet_stage_08", "threshold": 42 },
+    { "name": "pet_stage_09", "threshold": 52 },
+    { "name": "pet_stage_10", "threshold": 63 },
+    { "name": "pet_stage_11", "threshold": 75 },
+    { "name": "pet_stage_12", "threshold": 88 },
+    { "name": "pet_stage_13", "threshold": 102 },
+    { "name": "pet_stage_14", "threshold": 117 },
+    { "name": "pet_stage_15", "threshold": 133 },
+    { "name": "pet_stage_16", "threshold": 150 }
+  ]
+}

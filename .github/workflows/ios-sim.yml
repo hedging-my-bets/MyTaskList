@@ -128,7 +128,7 @@ jobs:
           echo "Widget appex validation passed."
 
 
-      - name: Test (Simulator)
+      - name: Test (Simulator) with result bundle
         run: |
           set -euxo pipefail
           xcodebuild \
@@ -136,11 +136,21 @@ jobs:
             -scheme "${{ steps.resolve.outputs.SCHEME }}" \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest,arch=arm64' \
+            -enableCodeCoverage YES \
+            -resultBundlePath TestResults.xcresult \
             test \
             -derivedDataPath "$PWD/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | tee test.log
+
+      - name: Upload XCTest result bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XCTest-Results
+          path: TestResults.xcresult
+          if-no-files-found: ignore
 
       - name: Build shipping app (Release) and validate no XCTest embedding
         run: |

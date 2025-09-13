@@ -24,6 +24,9 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Shared
+      - path: Shared/Time
+      - path: Shared/Store
+      - path: Shared/IntentBridging
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
@@ -117,6 +120,7 @@ targets:
           - "**/*Info.plist"
           - "../App/**"
           - "../PetProgressApp.swift"
+      - path: Widget/Intents
     resources:
       - path: Widget/Resources
         optional: true
