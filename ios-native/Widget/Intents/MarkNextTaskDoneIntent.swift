@@ -1,8 +1,11 @@
 import AppIntents
 import PetProgressShared
+import WidgetKit
 
+@available(iOS 17.0, *)
 struct MarkNextTaskDoneIntent: AppIntent {
     static var title: LocalizedStringResource = "Mark Next Task Done"
+    static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
         let shared = SharedStore()
@@ -26,6 +29,7 @@ struct MarkNextTaskDoneIntent: AppIntent {
                 try? shared.saveState(state)
             }
         }
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }
 }

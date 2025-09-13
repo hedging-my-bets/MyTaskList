@@ -1,12 +1,21 @@
 import AppIntents
 import Foundation
 import PetProgressShared
+import WidgetKit
 
+@available(iOS 17.0, *)
 struct CompleteTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Complete Task"
+    static var openAppWhenRun: Bool = false
 
     @Parameter(title: "Task ID") var taskId: String
     @Parameter(title: "Day Key") var dayKey: String
+
+    init() { }
+    init(taskId: String, dayKey: String) {
+        self.taskId = taskId
+        self.dayKey = dayKey
+    }
 
     func perform() async throws -> some IntentResult {
         guard let uuid = UUID(uuidString: taskId) else { return .result() }
@@ -42,6 +51,7 @@ struct CompleteTaskIntent: AppIntent {
         PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
         state.pet = pet
         try? shared.saveState(state)
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }
 }

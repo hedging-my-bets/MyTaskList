@@ -1,9 +1,17 @@
 import AppIntents
 import Foundation
 import PetProgressShared
+import WidgetKit
 
+@available(iOS 17.0, *)
 struct SnoozeNextTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Snooze Next Task 15m"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Day Key") var dayKey: String
+
+    init() { }
+    init(dayKey: String) { self.dayKey = dayKey }
 
     func perform() async throws -> some IntentResult {
         let shared = SharedStore()
@@ -26,6 +34,7 @@ struct SnoozeNextTaskIntent: AppIntent {
                 try? shared.saveState(state)
             }
         }
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }
 }
