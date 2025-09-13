@@ -127,25 +127,6 @@ jobs:
 
           echo "Widget appex validation passed."
 
-      - name: Check for XCTest framework leakage in app bundle
-        if: success()
-        run: |
-          set -euxo pipefail
-          APP="$PWD/DerivedData/Build/Products/Debug-iphonesimulator/PetProgress.app"
-
-          echo "== Check for XCTest frameworks in app bundle =="
-          if [ -e "$APP/Frameworks/XCTest.framework" ] || \
-             [ -e "$APP/Frameworks/XCTestCore.framework" ] || \
-             [ -e "$APP/Frameworks/XCTestSupport.framework" ] || \
-             [ -e "$APP/Frameworks/Testing.framework" ] || \
-             [ -e "$APP/Frameworks/XCUnit.framework" ] || \
-             [ -e "$APP/Frameworks/XCUIAutomation.framework" ]; then
-            echo "❌ XCTest frameworks leaked into app bundle"
-            find "$APP/Frameworks" -name "*XC*" -o -name "*Testing*" | sed 's/^/  Found: /'
-            exit 1
-          fi
-
-          echo "✅ No XCTest frameworks found in app bundle"
 
       - name: Test (Simulator)
         run: |
@@ -161,21 +142,64 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             | tee test.log
 
+      - name: Build shipping app (Release) and validate no XCTest embedding
+        run: |
+          set -euxo pipefail
+          echo "== Build Release configuration for shipping validation =="
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            build \
+            -derivedDataPath "$PWD/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | tee release_build.log
+
+          echo "== Validate shipping app has no XCTest frameworks =="
+          APP="$PWD/DerivedData/Build/Products/Release-iphonesimulator/PetProgress.app"
+
+          if [ ! -d "$APP" ]; then
+            echo "ERROR: Release app not found at $APP"
+            exit 1
+          fi
+
+          if [ -d "$APP/Frameworks" ] && \
+             find "$APP/Frameworks" -maxdepth 1 2>/dev/null | \
+             grep -qE '/(XCTest|Testing|XC[^/]*|XCT[^/]*)\.framework$|/libXCTest[^/]*\.dylib'; then
+            echo "::error::Test frameworks found in shipping app bundle:"
+            find "$APP/Frameworks" -maxdepth 1 -type d -name '*.framework' 2>/dev/null || true
+            find "$APP/Frameworks" -maxdepth 1 -type f -name 'libXCTest*.dylib' 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "✅ Shipping app clean - no XCTest frameworks embedded"
+
       - name: Archive built .app (Simulator)
         if: success()
         run: |
           set -euo pipefail
           mkdir -p build_artifacts
-          APP_PATH=$(find "$PWD/DerivedData/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
-            | xargs -0 -I{} stat -f "%m\t%N" {} \
-            | sort -rn \
-            | awk 'NR==1{print $2}')
-          if [ -z "${APP_PATH:-}" ]; then
-            echo "Could not locate a built Simulator .app in DerivedData."
-            exit 1
+          # Archive the Release build (shipping version)
+          RELEASE_APP="$PWD/DerivedData/Build/Products/Release-iphonesimulator/PetProgress.app"
+          if [ -d "$RELEASE_APP" ]; then
+            echo "Found Release app at: $RELEASE_APP"
+            cp -R "$RELEASE_APP" build_artifacts/PetProgress.app
+          else
+            echo "Release app not found, falling back to Debug build"
+            APP_PATH=$(find "$PWD/DerivedData/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
+              | xargs -0 -I{} stat -f "%m\t%N" {} \
+              | sort -rn \
+              | awk 'NR==1{print $2}')
+            if [ -z "${APP_PATH:-}" ]; then
+              echo "Could not locate a built Simulator .app in DerivedData."
+              exit 1
+            fi
+            echo "Found app at: $APP_PATH"
+            cp -R "$APP_PATH" build_artifacts/PetProgress.app
           fi
-          echo "Found app at: $APP_PATH"
-          cp -R "$APP_PATH" build_artifacts/PetProgress.app
 
       - name: Upload artifact (Simulator .app)
         if: success()
@@ -192,4 +216,5 @@ jobs:
           path: |
             build.log
             test.log
+            release_build.log
           if-no-files-found: ignore

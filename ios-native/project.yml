@@ -105,6 +105,7 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
         FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
         PROVISIONING_PROFILE_SPECIFIER: ""
+        ENABLE_TESTING_SEARCH_PATHS: NO
     sources:
       - path: Widget
         includes:
@@ -146,6 +147,7 @@ targets:
         CODE_SIGNING_ALLOWED: NO
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/PetProgress.app/PetProgress
         BUNDLE_LOADER: $(TEST_HOST)
+        ENABLE_TESTING_SEARCH_PATHS: YES
     dependencies:
       - target: PetProgress
       - target: PetProgressShared
