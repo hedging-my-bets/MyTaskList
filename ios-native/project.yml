@@ -103,7 +103,7 @@ targets:
         CFBundleVersion: "1"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PetProgressWidgetBundle
+          NSExtensionPrincipalClass: ""
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hedgingmybets.PetProgress.widget
