@@ -89,30 +89,43 @@ targets:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
-    sources:
-      - path: Widget
-    resources:
-      - path: Widget/Resources/StageConfig.json
-      - path: Shared/Resources/Assets.xcassets
-    info:
-      path: Widget/Info.plist
-      properties:
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
-        CFBundlePackageType: "XPC!"
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
-          NSExtensionPrincipalClass: ""
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hedgingmybets.PetProgress.widget
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
-        FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
+        INFOPLIST_FILE: Widget/Supporting/Info.plist
+        # Simulator-friendly signing
+        CODE_SIGN_STYLE: Automatic
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
+        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
+        LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
+        FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
         PROVISIONING_PROFILE_SPECIFIER: ""
+    sources:
+      - path: Widget
+        includes:
+          - "**/*.swift"
+        excludes:
+          - "**/*.storyboard"
+          - "**/*.storyboardc"
+          - "**/*.xib"
+          - "**/*Info.plist"
+          - "../App/**"
+          - "../PetProgressApp.swift"
+    resources:
+      - path: Widget/Resources
+        optional: true
+        excludes:
+          - "**/*.storyboard"
+          - "**/*.storyboardc"
+          - "**/*.xib"
+      - path: Shared/Resources
+        optional: true
+        excludes:
+          - "**/*.storyboard"
+          - "**/*.storyboardc"
+          - "**/*.xib"
     entitlements:
       path: Entitlements/Widget.entitlements
     dependencies:

@@ -90,7 +90,37 @@ jobs:
             build \
             -parallelizeTargets \
             -derivedDataPath "$PWD/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             | tee build.log
+
+      - name: Validate Widget appex contents (no storyboard/xib & no forbidden plist keys)
+        if: success()
+        run: |
+          set -euxo pipefail
+          APP="$PWD/DerivedData/Build/Products/Debug-iphonesimulator/PetProgress.app"
+          WIDGET="$APP/PlugIns/PetProgressWidget.appex"
+
+          echo "== List appex files =="
+          find "$WIDGET" -type f | sed 's/^/  /'
+
+          echo "== Check for forbidden UI resources =="
+          if find "$WIDGET" -type f \( -name "*.storyboard" -o -name "*.storyboardc" -o -name "*.xib" \) | grep -q .; then
+            echo "ERROR: Widget appex contains storyboard/xib files, which is not allowed."
+            exit 1
+          fi
+
+          echo "== Check Info.plist for forbidden keys =="
+          PLIST="$WIDGET/Info.plist"
+          for KEY in NSPrincipalClass UIMainStoryboardFile NSMainNibFile NSMainStoryboardFile; do
+            if /usr/libexec/PlistBuddy -c "Print :$KEY" "$PLIST" >/dev/null 2>&1; then
+              echo "ERROR: $KEY must NOT be present in widget Info.plist"
+              /usr/libexec/PlistBuddy -c "Print" "$PLIST" || true
+              exit 1
+            fi
+          done
+
+          echo "Widget appex validation passed."
 
       - name: Test (Simulator)
         run: |
@@ -101,6 +131,8 @@ jobs:
             -destination "${{ steps.resolve.outputs.DEST_TEST }}" \
             test \
             -derivedDataPath "$PWD/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             | tee test.log
 
       - name: Archive built .app (Simulator)
