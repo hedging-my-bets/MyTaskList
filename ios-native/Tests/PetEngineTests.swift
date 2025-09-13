@@ -37,12 +37,12 @@ final class PetEngineTests: XCTestCase {
         var pet = PetState(stageIndex: 0, stageXP: 5, lastCloseoutDayKey: "2025-01-01")
         let cfg = StageCfg.defaultConfig()
 
-        // 100% completion bonus
-        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg)
+        // 100% completion bonus (on new day)
+        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg, dayKey: "2025-01-02")
         XCTAssertEqual(pet.stageXP, 8) // 5 + 3 = 8
 
-        // 30% completion penalty
-        PetEngine.onDailyCloseout(rate: 0.3, pet: &pet, cfg: cfg)
+        // 30% completion penalty (on another new day)
+        PetEngine.onDailyCloseout(rate: 0.3, pet: &pet, cfg: cfg, dayKey: "2025-01-03")
         XCTAssertEqual(pet.stageXP, 5) // 8 - 3 = 5
     }
 

@@ -125,7 +125,7 @@ final class DataStore: ObservableObject {
 
         var petCopy = state.pet
         let cfg = (try? stageLoader.load()) ?? StageCfg.defaultConfig()
-        PetEngine.onDailyCloseout(rate: rate, pet: &petCopy, cfg: cfg)
+        PetEngine.onDailyCloseout(rate: rate, pet: &petCopy, cfg: cfg, dayKey: today)
         state.pet = petCopy
 
         // Archive yesterday (no-op here) and seed today (no rollover by default)
