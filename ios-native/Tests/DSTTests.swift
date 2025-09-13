@@ -33,7 +33,9 @@ final class DSTTests: XCTestCase {
 
         // Create task for 1:30 AM on DST day
         var taskComps = DateComponents()
+        taskComps.year = 2025; taskComps.month = 3; taskComps.day = 9
         taskComps.hour = 1; taskComps.minute = 30
+        taskComps.timeZone = tz
         let task = TaskItem(id: UUID(), title: "DST Task", scheduledAt: taskComps, dayKey: "2025-03-09", isCompleted: false, completedAt: nil, snoozedUntil: nil)
 
         // Test completion at 1:45 AM (should be on time)
