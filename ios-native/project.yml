@@ -95,6 +95,8 @@ targets:
     resources:
       - path: Widget/Resources/StageConfig.json
       - path: Shared/Resources/Assets.xcassets
+    info:
+      path: Widget/Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.widget
@@ -108,8 +110,6 @@ targets:
         PROVISIONING_PROFILE_SPECIFIER: ""
     entitlements:
       path: Entitlements/Widget.entitlements
-    info:
-      path: Widget/Info.plist
     dependencies:
       - target: PetProgressShared
 
