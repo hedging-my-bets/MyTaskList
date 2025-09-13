@@ -70,23 +70,29 @@ jobs:
         id: sim
         run: |
           set -euxo pipefail
-          # Find newest iOS runtime identifier (e.g. com.apple.CoreSimulator.SimRuntime.iOS-18-5)
-          RUNTIME=$(xcrun simctl list runtimes | awk -F '[()]' '/iOS [0-9]/{print $2}' | sort -V | tail -n1)
-          echo "Using runtime: $RUNTIME"
+
+          echo "=== Available iOS runtimes ==="
+          xcrun simctl list runtimes | grep iOS
+
+          # Find newest iOS runtime identifier (e.g. com.apple.CoreSimulator.SimRuntime.iOS-18-6)
+          # Parse the identifier column, not the version
+          RUNTIME=$(xcrun simctl list runtimes | grep iOS | grep -v unavailable | tail -n1 | awk '{print $NF}')
+          echo "Using runtime identifier: $RUNTIME"
 
           # Device type for iPhone 15
           DEVTYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
 
-          # Create if missing
+          # Create if missing (delete existing first to avoid conflicts)
           DEVICE_NAME="CI iPhone 15"
-          xcrun simctl create "$DEVICE_NAME" "$DEVTYPE" "$RUNTIME" || true
+          xcrun simctl delete "$DEVICE_NAME" 2>/dev/null || true
+          xcrun simctl create "$DEVICE_NAME" "$DEVTYPE" "$RUNTIME"
 
           # Boot & wait
-          xcrun simctl boot "$DEVICE_NAME" || true
+          xcrun simctl boot "$DEVICE_NAME"
           xcrun simctl bootstatus "$DEVICE_NAME" -b
 
           echo "dest=platform=iOS Simulator,name=${DEVICE_NAME}" >> "$GITHUB_OUTPUT"
-          echo "Booted simulator: $DEVICE_NAME"
+          echo "Successfully booted simulator: $DEVICE_NAME"
 
       - name: Build (Simulator)
         run: |

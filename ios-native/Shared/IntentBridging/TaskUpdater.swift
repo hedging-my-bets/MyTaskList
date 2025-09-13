@@ -2,94 +2,13 @@ import Foundation
 import WidgetKit
 
 public enum TaskUpdater {
-    public static func complete(taskId: String, dayKey: String) async throws {
-        guard let seriesUUID = UUID(uuidString: taskId) else { return }
-
-        let shared = SharedStore()
-        var state = (try? shared.loadState()) ?? AppState(
-            schemaVersion: 2,
-            dayKey: dayKey,
-            tasks: [],
-            pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey),
-            series: [],
-            overrides: [],
-            completions: [:],
-            rolloverEnabled: false,
-            graceMinutes: 60,
-            resetTime: nil
-        )
-
-        // Find the next incomplete task for this day to ensure we only complete the "next" one
-        let mats = materializeTasks(for: dayKey, in: state)
-        let incomplete = mats.filter { task in
-            let completions = state.completions[dayKey] ?? Set<UUID>()
-            return !completions.contains(task.id)
-        }
-
-        // Find the actual next task (earliest incomplete)
-        guard let nextTask = incomplete.min(by: { l, r in
-            let lTime = (l.time.hour ?? 0) * 60 + (l.time.minute ?? 0)
-            let rTime = (r.time.hour ?? 0) * 60 + (r.time.minute ?? 0)
-            return lTime < rTime
-        }) else {
-            return // No incomplete tasks
-        }
-
-        // Only proceed if the taskId matches the next task
-        guard nextTask.id == seriesUUID else {
-            // Do not complete tasks that are not "next"
-            return
-        }
-
-        // Mark task as complete
-        var completed = state.completions[dayKey] ?? Set<UUID>()
-        if completed.contains(seriesUUID) {
-            return // Already completed
-        }
-
-        let now = Date()
-        let gm = state.graceMinutes ?? 60
-        let taskDate = dateFor(dayKey: dayKey, time: nextTask.time) ?? now
-        let onTimeFlag: Bool = {
-            let start = taskDate.addingTimeInterval(TimeInterval(-gm * 60))
-            let end = taskDate.addingTimeInterval(TimeInterval(gm * 60))
-            return now >= start && now <= end
-        }()
-
-        completed.insert(seriesUUID)
-        state.completions[dayKey] = completed
-
-        // Update pet based on on-time completion
-        var pet = state.pet
-        let cfg = (try? StageConfigLoader().load(bundle: .main)) ?? StageCfg.defaultConfig()
-        PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
-        state.pet = pet
-
-        try? shared.saveState(state)
-        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
-    }
-
     public static func markNextDone(dayKey: String) async throws {
         let shared = SharedStore()
-        var state = (try? shared.loadState()) ?? AppState(
-            schemaVersion: 2,
-            dayKey: dayKey,
-            tasks: [],
-            pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey),
-            series: [],
-            overrides: [],
-            completions: [:],
-            rolloverEnabled: false,
-            graceMinutes: 60,
-            resetTime: nil
-        )
+        guard var state = try? shared.loadState() else { return }
 
-        // Find the next incomplete task for this day
+        // Find the next incomplete task using existing materializer
         let mats = materializeTasks(for: dayKey, in: state)
-        let incomplete = mats.filter { task in
-            let completions = state.completions[dayKey] ?? Set<UUID>()
-            return !completions.contains(task.id)
-        }
+        let incomplete = mats.filter { !$0.isCompleted }
 
         guard let next = incomplete.min(by: { l, r in
             let lTime = (l.time.hour ?? 0) * 60 + (l.time.minute ?? 0)
@@ -117,6 +36,45 @@ public enum TaskUpdater {
         completed.insert(next.id)
         state.completions[dayKey] = completed
 
+        // Update pet based on on-time completion
+        var pet = state.pet
+        let cfg = (try? StageConfigLoader().load(bundle: .main)) ?? StageCfg.defaultConfig()
+        PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
+        state.pet = pet
+
+        try? shared.saveState(state)
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
+    }
+
+    public static func complete(taskId: String, dayKey: String) async throws {
+        guard let taskUUID = UUID(uuidString: taskId) else { return }
+
+        let shared = SharedStore()
+        guard var state = try? shared.loadState() else { return }
+
+        // Find the specific task
+        let mats = materializeTasks(for: dayKey, in: state)
+        guard let task = mats.first(where: { $0.id == taskUUID }) else { return }
+
+        // Mark task as complete
+        var completed = state.completions[dayKey] ?? Set<UUID>()
+        if completed.contains(taskUUID) {
+            return // Already completed
+        }
+
+        let now = Date()
+        let gm = state.graceMinutes ?? 60
+        let taskDate = dateFor(dayKey: dayKey, time: task.time) ?? now
+        let onTimeFlag: Bool = {
+            let start = taskDate.addingTimeInterval(TimeInterval(-gm * 60))
+            let end = taskDate.addingTimeInterval(TimeInterval(gm * 60))
+            return now >= start && now <= end
+        }()
+
+        completed.insert(taskUUID)
+        state.completions[dayKey] = completed
+
+        // Update pet based on on-time completion
         var pet = state.pet
         let cfg = (try? StageConfigLoader().load(bundle: .main)) ?? StageCfg.defaultConfig()
         PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
@@ -127,63 +85,43 @@ public enum TaskUpdater {
     }
 
     public static func snoozeNextTask(taskId: String, dayKey: String) async throws {
-        guard let seriesUUID = UUID(uuidString: taskId) else { return }
+        guard let taskUUID = UUID(uuidString: taskId) else { return }
 
         let shared = SharedStore()
-        var state = (try? shared.loadState()) ?? AppState(
-            schemaVersion: 2,
-            dayKey: dayKey,
-            tasks: [],
-            pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey),
-            series: [],
-            overrides: [],
-            completions: [:],
-            rolloverEnabled: false,
-            graceMinutes: 60,
-            resetTime: nil
-        )
+        guard var state = try? shared.loadState() else { return }
 
-        // Find the next incomplete task to ensure we only snooze the "next" one
+        // Find the specific task to snooze
         let mats = materializeTasks(for: dayKey, in: state)
-        let incomplete = mats.filter { task in
-            let completions = state.completions[dayKey] ?? Set<UUID>()
-            return !completions.contains(task.id)
-        }
+        guard let task = mats.first(where: { $0.id == taskUUID && !$0.isCompleted }) else { return }
 
-        guard let nextTask = incomplete.min(by: { l, r in
-            let lTime = (l.time.hour ?? 0) * 60 + (l.time.minute ?? 0)
-            let rTime = (r.time.hour ?? 0) * 60 + (r.time.minute ?? 0)
-            return lTime < rTime
-        }) else {
-            return // No incomplete tasks
-        }
-
-        // Only proceed if the taskId matches the next task
-        guard nextTask.id == seriesUUID else {
-            return // Do not snooze tasks that are not "next"
-        }
-
-        // Create or update override to snooze the task
-        let snoozeMinutes = 10 // Default snooze duration
-        let currentTime = nextTask.time
+        // Create snooze override based on task origin
+        let snoozeMinutes = 15
+        let currentTime = task.time
         let newHour = (currentTime.hour ?? 0)
         let newMinute = (currentTime.minute ?? 0) + snoozeMinutes
 
         let finalHour = newHour + (newMinute / 60)
         let finalMinute = newMinute % 60
 
-        let override = TaskInstanceOverride(
-            seriesId: seriesUUID,
-            dayKey: dayKey,
-            time: DateComponents(hour: finalHour, minute: finalMinute),
-            isDeleted: false
-        )
+        switch task.origin {
+        case .series(let seriesId):
+            let override = TaskInstanceOverride(
+                seriesId: seriesId,
+                dayKey: dayKey,
+                time: DateComponents(hour: finalHour, minute: finalMinute),
+                isDeleted: false
+            )
 
-        // Add or update the override
-        var overrides = state.overrides
-        overrides.removeAll { $0.seriesId == seriesUUID && $0.dayKey == dayKey }
-        overrides.append(override)
-        state.overrides = overrides
+            // Remove existing override for this series/day, then add new one
+            state.overrides.removeAll { $0.seriesId == seriesId && $0.dayKey == dayKey }
+            state.overrides.append(override)
+
+        case .oneOff(_):
+            // For one-off tasks, update the task's scheduled time directly
+            if let taskIndex = state.tasks.firstIndex(where: { $0.id == taskUUID }) {
+                state.tasks[taskIndex].scheduledAt = DateComponents(hour: finalHour, minute: finalMinute)
+            }
+        }
 
         try? shared.saveState(state)
         WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
