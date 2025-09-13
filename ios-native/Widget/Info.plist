@@ -29,6 +29,8 @@
     </dict>
     <key>MinimumOSVersion</key>
     <string>17.0</string>
+    <key>WKRunsIndependentlyOfCompanionApp</key>
+    <false/>
 </dict>
 </plist>
 
