@@ -95,20 +95,16 @@ targets:
     resources:
       - path: Widget/Resources/StageConfig.json
       - path: Shared/Resources/Assets.xcassets
-    info:
-      path: Widget/Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.widget
         DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
         LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
         FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
-        PRODUCT_BUNDLE_PACKAGE_TYPE: XPC!
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
         PROVISIONING_PROFILE_SPECIFIER: ""
-        SKIP_INSTALL: YES
     entitlements:
       path: Entitlements/Widget.entitlements
     dependencies:
