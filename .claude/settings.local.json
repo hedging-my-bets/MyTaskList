@@ -14,7 +14,8 @@
       "Bash(xcodegen generate:*)",
       "Bash(xcodebuild:*)",
       "Bash(chmod:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
