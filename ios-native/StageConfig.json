@@ -1,0 +1,100 @@
+{
+  "stages": [
+    {
+      "index": 0,
+      "name": "Frog",
+      "threshold": 10,
+      "asset": "pet_frog"
+    },
+    {
+      "index": 1,
+      "name": "Hermit Crab",
+      "threshold": 25,
+      "asset": "pet_hermit"
+    },
+    {
+      "index": 2,
+      "name": "Seahorse",
+      "threshold": 40,
+      "asset": "pet_seahorse"
+    },
+    {
+      "index": 3,
+      "name": "Dolphin",
+      "threshold": 55,
+      "asset": "pet_dolphin"
+    },
+    {
+      "index": 4,
+      "name": "Alligator",
+      "threshold": 75,
+      "asset": "pet_alligator"
+    },
+    {
+      "index": 5,
+      "name": "Beaver",
+      "threshold": 95,
+      "asset": "pet_beaver"
+    },
+    {
+      "index": 6,
+      "name": "Wolf",
+      "threshold": 120,
+      "asset": "pet_wolf"
+    },
+    {
+      "index": 7,
+      "name": "Bear",
+      "threshold": 145,
+      "asset": "pet_bear"
+    },
+    {
+      "index": 8,
+      "name": "Bison",
+      "threshold": 175,
+      "asset": "pet_bison"
+    },
+    {
+      "index": 9,
+      "name": "Elephant",
+      "threshold": 205,
+      "asset": "pet_elephant"
+    },
+    {
+      "index": 10,
+      "name": "Rhino",
+      "threshold": 240,
+      "asset": "pet_rhino"
+    },
+    {
+      "index": 11,
+      "name": "Baby",
+      "threshold": 285,
+      "asset": "pet_baby"
+    },
+    {
+      "index": 12,
+      "name": "Toddler",
+      "threshold": 335,
+      "asset": "pet_toddler"
+    },
+    {
+      "index": 13,
+      "name": "Adult",
+      "threshold": 390,
+      "asset": "pet_adult"
+    },
+    {
+      "index": 14,
+      "name": "CEO",
+      "threshold": 450,
+      "asset": "pet_ceo"
+    },
+    {
+      "index": 15,
+      "name": "Gold",
+      "threshold": 0,
+      "asset": "pet_gold"
+    }
+  ]
+}

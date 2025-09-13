@@ -1,6 +1,5 @@
 import XCTest
-@testable import PetProgress
-@testable import PetProgressShared
+@testable import SharedKit
 
 final class PetEngineTests: XCTestCase {
     func testEvolutionLogic() {
@@ -59,4 +58,3 @@ final class PetEngineTests: XCTestCase {
         XCTAssertEqual(pet.stageXP, 3) // 2 + 1 = 3
     }
 }
-

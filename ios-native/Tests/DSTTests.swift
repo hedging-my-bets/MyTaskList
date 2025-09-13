@@ -1,53 +1,52 @@
 import XCTest
-@testable import PetProgress
-@testable import PetProgressShared
+@testable import SharedKit
 
 final class DSTTests: XCTestCase {
     func testDayKeyConsistencyAcrossDST() {
         // Test DST transition day (US Spring Forward)
         let calendar = Calendar(identifier: .gregorian)
         let tz = TimeZone(identifier: "America/Los_Angeles")!
-        
+
         // March 9, 2025 - DST transition day
         var comps = DateComponents()
         comps.year = 2025; comps.month = 3; comps.day = 9
         comps.timeZone = tz
-        
+
         // Before DST (1:30 AM)
         comps.hour = 1; comps.minute = 30
         let beforeDST = calendar.date(from: comps)!
         let beforeKey = dayKey(for: beforeDST, in: tz)
-        
+
         // After DST (3:30 AM, which becomes 2:30 AM after spring forward)
         comps.hour = 3; comps.minute = 30
         let afterDST = calendar.date(from: comps)!
         let afterKey = dayKey(for: afterDST, in: tz)
-        
+
         // Both should be same day
         XCTAssertEqual(beforeKey, afterKey)
         XCTAssertEqual(beforeKey, "2025-03-09")
     }
-    
+
     func testOnTimeCalculationWithDST() {
         let calendar = Calendar(identifier: .gregorian)
         let tz = TimeZone(identifier: "America/Los_Angeles")!
-        
+
         // Create task for 1:30 AM on DST day
         var taskComps = DateComponents()
         taskComps.hour = 1; taskComps.minute = 30
         let task = TaskItem(id: UUID(), title: "DST Task", scheduledAt: taskComps, dayKey: "2025-03-09", isCompleted: false, completedAt: nil, snoozedUntil: nil)
-        
+
         // Test completion at 1:45 AM (should be on time)
         var nowComps = DateComponents()
         nowComps.year = 2025; nowComps.month = 3; nowComps.day = 9
         nowComps.hour = 1; nowComps.minute = 45
         nowComps.timeZone = tz
         let now = calendar.date(from: nowComps)!
-        
+
         let onTime = isOnTime(task: task, now: now, graceMinutes: 60)
         XCTAssertTrue(onTime)
     }
-    
+
     func testTimezoneChangeHandling() {
         // Test with different timezone
         let tz1 = TimeZone(identifier: "America/New_York")!
@@ -100,4 +99,3 @@ final class DSTTests: XCTestCase {
         XCTAssertEqual(afterKey, "2025-01-02")
     }
 }
-

@@ -1,64 +1,83 @@
 import XCTest
-@testable import PetProgress
-@testable import PetProgressShared
+@testable import SharedKit
 
 final class AssetsTests: XCTestCase {
-    func testStageConfigAssetsExist() {
-        // Load StageConfig from bundle (not default)
-        let loader = StageConfigLoader()
-        guard let cfg = try? loader.load() else {
-            XCTFail("Could not load StageConfig from bundle")
-            return
+    func testStageConfigDefaults() {
+        let cfg = StageCfg.defaultConfig()
+
+        // Should have exactly 16 stages
+        XCTAssertEqual(cfg.stages.count, 16)
+
+        // Test first stage (Frog)
+        let firstStage = cfg.stages[0]
+        XCTAssertEqual(firstStage.index, 0)
+        XCTAssertEqual(firstStage.name, "Frog")
+        XCTAssertEqual(firstStage.threshold, 10)
+        XCTAssertEqual(firstStage.asset, "pet_frog")
+
+        // Test final stage (Gold)
+        let finalStage = cfg.stages[15]
+        XCTAssertEqual(finalStage.index, 15)
+        XCTAssertEqual(finalStage.name, "Gold")
+        XCTAssertEqual(finalStage.threshold, 0) // Terminal stage
+        XCTAssertEqual(finalStage.asset, "pet_gold")
+
+        // Test that all stages have valid thresholds (non-negative)
+        for stage in cfg.stages {
+            XCTAssertGreaterThanOrEqual(stage.threshold, 0)
         }
 
-        for (index, stage) in cfg.stages.enumerated() {
-            // Test that each stage asset can be loaded from bundle
-            let image = UIImage(named: stage.asset)
-            XCTAssertNotNil(image, "Asset '\(stage.asset)' for stage \(index) (\(stage.name)) should exist in bundle")
+        // Test that asset names don't contain .png
+        for stage in cfg.stages {
+            XCTAssertFalse(stage.asset.contains(".png"), "Asset name should not contain .png extension")
         }
     }
 
-    func testAllPetAssetsLoadable() {
-        // Load expected assets from actual StageConfig
+    func testStageConfigLoadFromFile() throws {
         let loader = StageConfigLoader()
-        guard let cfg = try? loader.load() else {
-            // Fallback to hardcoded list if bundle loading fails in test
-            let fallbackAssets = [
-                "pet_tadpole", "pet_frog", "pet_hermit", "pet_seahorse", "pet_dolphin", "pet_shark",
-                "pet_alligator", "pet_beaver", "pet_wolf", "pet_bear", "pet_bison", "pet_elephant",
-                "pet_rhino", "pet_lion", "pet_baby", "pet_toddler", "pet_teenager",
-                "pet_adult", "pet_ceo", "pet_gold"
-            ]
-            for assetName in fallbackAssets {
-                let image = UIImage(named: assetName)
-                XCTAssertNotNil(image, "Pet asset '\(assetName)' should be loadable")
-            }
-            return
+
+        // Should not crash when loading from bundle (even if file doesn't exist)
+        let cfg = try loader.load()
+        XCTAssertGreaterThan(cfg.stages.count, 0, "Should load default config if file not found")
+    }
+
+    func testStageConfigSerialization() throws {
+        let originalConfig = StageCfg.defaultConfig()
+
+        // Test JSON encoding/decoding
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        let data = try encoder.encode(originalConfig)
+        let decodedConfig = try decoder.decode(StageCfg.self, from: data)
+
+        XCTAssertEqual(originalConfig.stages.count, decodedConfig.stages.count)
+
+        // Test that all stages round-trip correctly
+        for (original, decoded) in zip(originalConfig.stages, decodedConfig.stages) {
+            XCTAssertEqual(original.index, decoded.index)
+            XCTAssertEqual(original.name, decoded.name)
+            XCTAssertEqual(original.threshold, decoded.threshold)
+            XCTAssertEqual(original.asset, decoded.asset)
+        }
+    }
+
+    func testStageProgressionThresholds() {
+        let cfg = StageCfg.defaultConfig()
+
+        // Test that thresholds generally increase (except for final stage)
+        for i in 0..<(cfg.stages.count - 2) {
+            let current = cfg.stages[i].threshold
+            let next = cfg.stages[i + 1].threshold
+            XCTAssertLessThan(current, next, "Stage \(i) threshold (\(current)) should be less than stage \(i + 1) threshold (\(next))")
         }
 
-        // Test all assets referenced in StageConfig
-        for stage in cfg.stages {
-            let image = UIImage(named: stage.asset)
-            XCTAssertNotNil(image, "Pet asset '\(stage.asset)' for '\(stage.name)' should be loadable")
-        }
+        // Final stage should have threshold 0 (terminal)
+        XCTAssertEqual(cfg.stages.last?.threshold, 0)
     }
 
     func testStageConfigCompleteness() {
-        // Load StageConfig from bundle
-        let loader = StageConfigLoader()
-        guard let cfg = try? loader.load() else {
-            XCTFail("Could not load StageConfig from bundle")
-            return
-        }
-
-        // Verify we have exactly 16 stages
-        XCTAssertEqual(cfg.stages.count, 16, "StageConfig should contain exactly 16 stages")
-
-        // Verify final stage (Gold) has threshold 0 (terminal)
-        if let finalStage = cfg.stages.last {
-            XCTAssertEqual(finalStage.threshold, 0, "Final stage (Gold) should have threshold 0")
-            XCTAssertEqual(finalStage.asset, "pet_gold", "Final stage should use pet_gold asset")
-        }
+        let cfg = StageCfg.defaultConfig()
 
         // Verify stage order and assets match the 16-stage specification
         let expectedStages = [

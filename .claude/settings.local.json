@@ -12,7 +12,9 @@
       "Bash(git push:*)",
       "WebFetch(domain:github.com)",
       "Bash(xcodegen generate:*)",
-      "Bash(xcodebuild:*)"
+      "Bash(xcodebuild:*)",
+      "Bash(chmod:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

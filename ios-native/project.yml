@@ -1,167 +1,123 @@
 name: PetProgress
 options:
-  minimumXcodeGenVersion: 2.37.0
-  createIntermediateGroups: true
-  xcodeVersion: "16.0"
+  bundleIdPrefix: com.petprogress
   deploymentTarget:
     iOS: "17.0"
-packages: {}
+  developmentLanguage: en
+  groupSortPosition: top
+  generateEmptyDirectories: false
+  findCarthageFrameworks: false
+  transitivelyLinkDependencies: false
+  groupOrdering:
+    - order: [SharedKit, App, Widget, Tests]
+
 settings:
   base:
-    IPHONEOS_DEPLOYMENT_TARGET: 17.0
-    SWIFT_VERSION: 5.10
-    MARKETING_VERSION: 1.0.0
-    CURRENT_PROJECT_VERSION: 1
-    CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: ""
-    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
-    ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: YES
-    ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  SharedKit:
+    path: SharedKit
+
 targets:
-  PetProgressShared:
+  SharedKit:
     type: framework
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: Shared
+      - path: SharedKit/Sources/SharedKit
+        buildPhase: sources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.shared
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        MACH_O_TYPE: mh_dylib
-        DYLIB_INSTALL_NAME_BASE: "@rpath"
-        SKIP_INSTALL: NO
-        SWIFT_INSTALL_OBJC_HEADER: NO
-        DEFINES_MODULE: NO
-        CODE_SIGNING_ALLOWED: NO
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGN_IDENTITY: ""
-        PROVISIONING_PROFILE_SPECIFIER: ""
-    info:
-      path: Shared/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.petprogress.SharedKit
+        DEFINES_MODULE: true
+        SKIP_INSTALL: true
+        ENABLE_TESTING_SEARCH_PATHS: false
 
   PetProgress:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: App
-      - path: Entitlements
-        optional: true
-      - path: App/Resources
-      - path: App/ErrorHandling
-      - path: App/UI
-      - path: App/Settings
+      - path: App/Sources
+        buildPhase: sources
     resources:
-      - path: App/Resources/StageConfig.json
-      - path: App/Resources/Assets.xcassets
-      - path: Shared/Resources/Assets.xcassets
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hedgingmybets.PetProgress
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
-        SWIFT_INSTALL_OBJC_HEADER: NO
-        CODE_SIGNING_ALLOWED: NO
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGN_IDENTITY: ""
-        PROVISIONING_PROFILE_SPECIFIER: ""
-        ENABLE_TESTING_SEARCH_PATHS: NO
-    info:
-      path: App/Info.plist
-      properties:
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
-        UILaunchScreen:
-          UIImageName: ""
-        CFBundleDisplayName: PetProgress
-        CFBundleURLTypes:
-          - CFBundleURLName: petprogress
-            CFBundleURLSchemes: [petprogress]
-    entitlements:
-      path: Entitlements/App.entitlements
+      - path: App/Assets.xcassets
+        buildPhase: resources
     dependencies:
-      - target: PetProgressShared
+      - target: SharedKit
       - target: PetProgressWidget
         embed: true
-    postBuildScripts: []
-    scheme:
-      testTargets: [PetProgressTests]
+    entitlements:
+      path: App/PetProgress.entitlements
+    settings:
+      base:
+        PRODUCT_NAME: PetProgress
+        PRODUCT_BUNDLE_IDENTIFIER: com.petprogress.app
+        INFOPLIST_FILE: App/Info.plist
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: true
+        ENABLE_TESTING_SEARCH_PATHS: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   PetProgressWidget:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
+    sources:
+      - path: Widget/Sources
+        buildPhase: sources
+    resources:
+      - path: Widget/Assets.xcassets
+        buildPhase: resources
+    dependencies:
+      - target: SharedKit
+    entitlements:
+      path: Widget/PetProgressWidget.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hedgingmybets.PetProgress.widget
-        INFOPLIST_FILE: Widget/Supporting/Info.plist
-        # Simulator-friendly signing
-        CODE_SIGN_STYLE: Automatic
-        CODE_SIGNING_ALLOWED: NO
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGN_IDENTITY: ""
-        DEVELOPMENT_TEAM: YOUR_ACTUAL_TEAM_ID
-        LD_RUNPATH_SEARCH_PATHS: '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
-        FRAMEWORK_SEARCH_PATHS: '$(inherited) $(BUILT_PRODUCTS_DIR)'
-        PROVISIONING_PROFILE_SPECIFIER: ""
-        ENABLE_TESTING_SEARCH_PATHS: NO
-    sources:
-      - path: Widget
-        includes:
-          - "**/*.swift"
-        excludes:
-          - "**/*.storyboard"
-          - "**/*.storyboardc"
-          - "**/*.xib"
-          - "**/*Info.plist"
-          - "../App/**"
-          - "../PetProgressApp.swift"
-    resources:
-      - path: Widget/Resources
-        optional: true
-        excludes:
-          - "**/*.storyboard"
-          - "**/*.storyboardc"
-          - "**/*.xib"
-      - path: Shared/Resources
-        optional: true
-        excludes:
-          - "**/*.storyboard"
-          - "**/*.storyboardc"
-          - "**/*.xib"
-    entitlements:
-      path: Entitlements/Widget.entitlements
-    dependencies:
-      - target: PetProgressShared
+        PRODUCT_NAME: PetProgressWidget
+        PRODUCT_BUNDLE_IDENTIFIER: com.petprogress.app.PetProgressWidget
+        INFOPLIST_FILE: Widget/Info.plist
+        ENABLE_TESTING_SEARCH_PATHS: false
+        SKIP_INSTALL: true
 
   PetProgressTests:
     type: bundle.unit-test
     platform: iOS
+    deploymentTarget: "17.0"
     sources:
       - path: Tests
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.tests
-        GENERATE_INFOPLIST_FILE: YES
-        CODE_SIGNING_ALLOWED: NO
-        TEST_HOST: $(BUILT_PRODUCTS_DIR)/PetProgress.app/PetProgress
-        BUNDLE_LOADER: $(TEST_HOST)
-        ENABLE_TESTING_SEARCH_PATHS: YES
+        buildPhase: sources
     dependencies:
       - target: PetProgress
-      - target: PetProgressShared
+      - target: SharedKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.petprogress.PetProgressTests
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/PetProgress.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PetProgress
+        ENABLE_TESTING_SEARCH_PATHS: true
 
 schemes:
   PetProgress:
     build:
       targets:
-        PetProgressShared: all
         PetProgress: all
         PetProgressWidget: all
-        PetProgressTests: [test]
+        SharedKit: all
+    run:
+      config: Debug
+      executable: PetProgress
     test:
-      gatherCoverageData: false
-      testTargets:
+      config: Debug
+      targets:
         - name: PetProgressTests
-
+          parallelizable: true
+          randomExecutionOrder: true
+    archive:
+      config: Release
