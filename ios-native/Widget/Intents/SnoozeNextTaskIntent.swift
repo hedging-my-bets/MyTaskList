@@ -54,14 +54,13 @@ struct SnoozeNextTaskIntent: AppIntent {
 
         // Find or create override for this task
         var overrides = state.overrides
-        if let existingIndex = overrides.firstIndex(where: { $0.taskId == uuid && $0.dayKey == dayKey }) {
+        if let existingIndex = overrides.firstIndex(where: { $0.seriesId == uuid && $0.dayKey == dayKey }) {
             overrides[existingIndex].time = newComps
         } else {
             let override = TaskInstanceOverride(
-                taskId: uuid,
+                seriesId: uuid,
                 dayKey: dayKey,
-                time: newComps,
-                skip: false
+                time: newComps
             )
             overrides.append(override)
         }
