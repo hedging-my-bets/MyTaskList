@@ -11,7 +11,13 @@ public func dayKey(for date: Date, in tz: TimeZone = .current) -> String {
 }
 
 public func isOnTime(task: TaskItem, now: Date, graceMinutes: Int = 60) -> Bool {
-    let cal = Calendar.current
+    var cal = Calendar.current
+
+    // Use task's timezone if available, otherwise current
+    if let taskTimeZone = task.scheduledAt.timeZone {
+        cal.timeZone = taskTimeZone
+    }
+
     let due = cal.date(bySettingHour: task.scheduledAt.hour ?? 0, minute: task.scheduledAt.minute ?? 0, second: 0, of: now) ?? now
     let windowStart = due.addingTimeInterval(TimeInterval(-graceMinutes * 60))
     let windowEnd = due.addingTimeInterval(TimeInterval(graceMinutes * 60))
