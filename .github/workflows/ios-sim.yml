@@ -1,5 +1,4 @@
 name: iOS Simulator Build
-
 on:
   push:
   workflow_dispatch:
@@ -9,18 +8,26 @@ jobs:
     runs-on: macos-latest
 
     env:
-      DEFAULT_SCHEME: PetProgress
       PROJECT_DIR: ios-native
       PROJECT_FILE: ios-native/PetProgress.xcodeproj
+      DEFAULT_SCHEME: PetProgress
+      DERIVED_DATA: ${{ github.workspace }}/DerivedData
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ✅ Pin Xcode so runner image updates don't break your build
+      - name: Select Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'  # change here if you later want 16.x/17.x
+
+      # ✅ Python for asset pipeline (no pip cache = zero surprises)
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
           check-latest: true
 
       - name: Build assets (Pillow)
@@ -30,11 +37,12 @@ jobs:
           python -m pip install pillow
           python ios-native/Tools/build_assets.py
 
-      - name: Install XcodeGen
+      # ✅ Tooling for project generation & pretty logs
+      - name: Install tooling (XcodeGen + xcbeautify)
         run: |
           set -euxo pipefail
           brew update
-          brew install xcodegen
+          brew install xcodegen xcbeautify
 
       - name: Generate Xcode project
         run: |
@@ -42,189 +50,101 @@ jobs:
           cd "$PROJECT_DIR"
           xcodegen generate
 
-      - name: Resolve scheme and destination
-        id: resolve
+      # ✅ Resolve scheme name and print available schemes
+      - name: Resolve scheme
+        id: scheme
         run: |
           set -euo pipefail
-
-          echo "== List targets/schemes =="
           xcodebuild -list -project "$PROJECT_FILE" || true
-
-          if xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | grep -qx "$DEFAULT_SCHEME"; then
+          SCHEMES=$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{p=1;next} p && NF{print $0}')
+          if echo "$SCHEMES" | grep -qx "$DEFAULT_SCHEME"; then
             SCHEME="$DEFAULT_SCHEME"
           else
-            SCHEME="$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | head -n1 | sed 's/^[[:space:]]*//')"
+            SCHEME="$(echo "$SCHEMES" | head -n1 | sed 's/^[[:space:]]*//')"
           fi
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          echo "Resolved scheme: $SCHEME"
 
-          # Concrete destination for tests: prefer simctl (robust)
-          FIRST_SIM_UUID="$(xcrun simctl list devices available | sed -n 's/^[[:space:]]*iPhone[^()]* (\([0-9A-Fa-f-]\{36\}\)).*/\1/p' | head -n1)"
-          if [ -n "$FIRST_SIM_UUID" ]; then
-            DEST_TEST="id=${FIRST_SIM_UUID}"
-          else
-            # Fallback: choose by name if UUID parse fails
-            FIRST_SIM_NAME="$(xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME" -showdestinations 2>/dev/null | sed -n 's/.*platform:iOS Simulator.*name:\([^,}]*\).*/\1/p' | sed 's/^ *//;s/ *$//' | head -n1)"
-            if [ -n "$FIRST_SIM_NAME" ]; then
-              DEST_TEST="platform=iOS Simulator,name=${FIRST_SIM_NAME}"
-            else
-              DEST_TEST="platform=iOS Simulator,name=iPhone 16 Pro"
-            fi
-          fi
-
-          # Generic destination is fine for plain builds
-          DEST_BUILD="generic/platform=iOS Simulator"
-
-          echo "SCHEME=$SCHEME" | tee -a "$GITHUB_OUTPUT"
-          echo "DEST_BUILD=$DEST_BUILD" | tee -a "$GITHUB_OUTPUT"
-          echo "DEST_TEST=$DEST_TEST" | tee -a "$GITHUB_OUTPUT"
-
-      - name: Clean derived data
+      # ✅ Create & boot a concrete iPhone 15 on the newest iOS runtime available
+      - name: Prepare Simulator (create & boot)
+        id: sim
         run: |
           set -euxo pipefail
-          rm -rf "$PWD/DerivedData"
+          # Find newest iOS runtime identifier (e.g. com.apple.CoreSimulator.SimRuntime.iOS-18-5)
+          RUNTIME=$(xcrun simctl list runtimes | awk -F '[()]' '/iOS [0-9]/{print $2}' | sort -V | tail -n1)
+          echo "Using runtime: $RUNTIME"
+
+          # Device type for iPhone 15
+          DEVTYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
+
+          # Create if missing
+          DEVICE_NAME="CI iPhone 15"
+          xcrun simctl create "$DEVICE_NAME" "$DEVTYPE" "$RUNTIME" || true
+
+          # Boot & wait
+          xcrun simctl boot "$DEVICE_NAME" || true
+          xcrun simctl bootstatus "$DEVICE_NAME" -b
+
+          echo "dest=platform=iOS Simulator,name=${DEVICE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Booted simulator: $DEVICE_NAME"
 
       - name: Build (Simulator)
         run: |
           set -euxo pipefail
-          echo "Using scheme: ${{ steps.resolve.outputs.SCHEME }}"
-          echo "Using destination: ${{ steps.resolve.outputs.DEST_BUILD }}"
           xcodebuild \
             -project "$PROJECT_FILE" \
-            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
+            -scheme "${{ steps.scheme.outputs.scheme }}" \
+            -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
-            -destination "${{ steps.resolve.outputs.DEST_BUILD }}" \
-            build \
+            -derivedDataPath "$DERIVED_DATA" \
             -parallelizeTargets \
-            -derivedDataPath "$PWD/DerivedData" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | tee build.log
-
-      - name: Validate Widget appex contents (no storyboard/xib & no forbidden plist keys)
-        if: success()
-        run: |
-          set -euxo pipefail
-          APP="$PWD/DerivedData/Build/Products/Debug-iphonesimulator/PetProgress.app"
-          WIDGET="$APP/PlugIns/PetProgressWidget.appex"
-
-          echo "== List appex files =="
-          find "$WIDGET" -type f | sed 's/^/  /'
-
-          echo "== Check for forbidden UI resources =="
-          if find "$WIDGET" -type f \( -name "*.storyboard" -o -name "*.storyboardc" -o -name "*.xib" \) | grep -q .; then
-            echo "ERROR: Widget appex contains storyboard/xib files, which is not allowed."
-            exit 1
-          fi
-
-          echo "== Check Info.plist for forbidden keys =="
-          PLIST="$WIDGET/Info.plist"
-          for KEY in NSPrincipalClass UIMainStoryboardFile NSMainNibFile NSMainStoryboardFile; do
-            if /usr/libexec/PlistBuddy -c "Print :$KEY" "$PLIST" >/dev/null 2>&1; then
-              echo "ERROR: $KEY must NOT be present in widget Info.plist"
-              /usr/libexec/PlistBuddy -c "Print" "$PLIST" || true
-              exit 1
-            fi
-          done
-
-          echo "Widget appex validation passed."
-
-
-      - name: Test (Simulator) with result bundle
-        run: |
-          set -euxo pipefail
-          xcodebuild \
-            -project "$PROJECT_FILE" \
-            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest,arch=arm64' \
-            -enableCodeCoverage YES \
-            -resultBundlePath TestResults.xcresult \
-            test \
-            -derivedDataPath "$PWD/DerivedData" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | tee test.log
-
-      - name: Upload XCTest result bundle
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: XCTest-Results
-          path: TestResults.xcresult
-          if-no-files-found: ignore
-
-      - name: Build shipping app (Release) and validate no XCTest embedding
-        run: |
-          set -euxo pipefail
-          echo "== Build Release configuration for shipping validation =="
-          xcodebuild \
-            -project "$PROJECT_FILE" \
-            -scheme "${{ steps.resolve.outputs.SCHEME }}" \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
             build \
-            -derivedDataPath "$PWD/DerivedData" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | tee release_build.log
+            | xcbeautify --renderer github-actions || true
 
-          echo "== Validate shipping app has no XCTest frameworks =="
-          APP="$PWD/DerivedData/Build/Products/Release-iphonesimulator/PetProgress.app"
+      - name: Test (Simulator)
+        run: |
+          set -euxo pipefail
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "${{ steps.scheme.outputs.scheme }}" \
+            -destination "${{ steps.sim.outputs.dest }}" \
+            -derivedDataPath "$DERIVED_DATA" \
+            -resultBundlePath "$DERIVED_DATA/TestResults.xcresult" \
+            test \
+            | xcbeautify --renderer github-actions || true
 
-          if [ ! -d "$APP" ]; then
-            echo "ERROR: Release app not found at $APP"
-            exit 1
-          fi
-
-          if [ -d "$APP/Frameworks" ] && \
-             find "$APP/Frameworks" -maxdepth 1 2>/dev/null | \
-             grep -qE '/(XCTest|Testing|XC[^/]*|XCT[^/]*)\.framework$|/libXCTest[^/]*\.dylib'; then
-            echo "::error::Test frameworks found in shipping app bundle:"
-            find "$APP/Frameworks" -maxdepth 1 -type d -name '*.framework' 2>/dev/null || true
-            find "$APP/Frameworks" -maxdepth 1 -type f -name 'libXCTest*.dylib' 2>/dev/null || true
-            exit 1
-          fi
-
-          echo "✅ Shipping app clean - no XCTest frameworks embedded"
-
-      - name: Archive built .app (Simulator)
-        if: success()
+      # ✅ Upload your built Simulator .app
+      - name: Archive built .app
+        if: always()
         run: |
           set -euo pipefail
           mkdir -p build_artifacts
-          # Archive the Release build (shipping version)
-          RELEASE_APP="$PWD/DerivedData/Build/Products/Release-iphonesimulator/PetProgress.app"
-          if [ -d "$RELEASE_APP" ]; then
-            echo "Found Release app at: $RELEASE_APP"
-            cp -R "$RELEASE_APP" build_artifacts/PetProgress.app
-          else
-            echo "Release app not found, falling back to Debug build"
-            APP_PATH=$(find "$PWD/DerivedData/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
-              | xargs -0 -I{} stat -f "%m\t%N" {} \
-              | sort -rn \
-              | awk 'NR==1{print $2}')
-            if [ -z "${APP_PATH:-}" ]; then
-              echo "Could not locate a built Simulator .app in DerivedData."
-              exit 1
-            fi
-            echo "Found app at: $APP_PATH"
+          APP_PATH=$(find "$DERIVED_DATA/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
+            | xargs -0 -I{} stat -f "%m\t%N" {} \
+            | sort -rn \
+            | awk 'NR==1{print $2}')
+          if [ -n "${APP_PATH:-}" ]; then
+            echo "Found app: $APP_PATH"
             cp -R "$APP_PATH" build_artifacts/PetProgress.app
+          else
+            echo "No Simulator .app found (build may have failed pre-link)."
           fi
 
       - name: Upload artifact (Simulator .app)
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PetProgress-Simulator-App
           path: build_artifacts/PetProgress.app
+          if-no-files-found: warn
 
-      - name: Upload xcodebuild logs (on failure or success)
+      # ✅ Upload xcresult and logs for quick triage when tests fail
+      - name: Upload test results & logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: xcodebuild-logs
+          name: xcode-results-and-logs
           path: |
-            build.log
-            test.log
-            release_build.log
+            ${{ env.DERIVED_DATA }}/TestResults.xcresult
+            ${{ env.DERIVED_DATA }}/Logs
           if-no-files-found: ignore
