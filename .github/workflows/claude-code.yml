@@ -1,0 +1,52 @@
+name: Claude Code
+
+on:
+  workflow_dispatch:
+    inputs:
+      instructions:
+        description: "High-level instructions for Claude (optional)"
+        required: false
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: claude-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  claude-autopilot:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code (autopilot)
+        uses: anthropics/claude-code-action@v3
+        with:
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: autopilot
+          event: ${{ toJSON(github.event) }}
+          instructions: ${{ inputs.instructions }}
+
+  claude-pr-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Claude Code (PR review)
+        uses: anthropics/claude-code-action@v3
+        with:
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: pr
+          event: ${{ toJSON(github.event) }}
+
+
