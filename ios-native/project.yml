@@ -143,6 +143,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourco.petprogress.tests
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/PetProgress.app/PetProgress
+        BUNDLE_LOADER: $(TEST_HOST)
     dependencies:
       - target: PetProgress
       - target: PetProgressShared

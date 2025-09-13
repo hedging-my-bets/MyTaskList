@@ -77,6 +77,11 @@ jobs:
           echo "DEST_BUILD=$DEST_BUILD" | tee -a "$GITHUB_OUTPUT"
           echo "DEST_TEST=$DEST_TEST" | tee -a "$GITHUB_OUTPUT"
 
+      - name: Clean derived data
+        run: |
+          set -euxo pipefail
+          rm -rf "$PWD/DerivedData"
+
       - name: Build (Simulator)
         run: |
           set -euxo pipefail
@@ -128,7 +133,8 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.resolve.outputs.SCHEME }}" \
-            -destination "${{ steps.resolve.outputs.DEST_TEST }}" \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4,arch=arm64' \
             test \
             -derivedDataPath "$PWD/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
