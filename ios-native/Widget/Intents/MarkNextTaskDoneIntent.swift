@@ -15,27 +15,56 @@ struct MarkNextTaskDoneIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
+        guard !dayKey.isEmpty else { return .result() }
         let shared = SharedStore()
-        let loader = StageConfigLoader()
-        var state = (try? shared.loadState()) ?? AppState(tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey(for: Date())), dayKey: dayKey(for: Date()), schemaVersion: 1, rolloverEnabled: false)
-        let today = state.dayKey
-        if let nextIdx = state.tasks.enumerated().filter({ $0.element.dayKey == today && !$0.element.isCompleted }).sorted(by: { (l, r) in
-            (l.element.scheduledAt.hour ?? 0, l.element.scheduledAt.minute ?? 0) < (r.element.scheduledAt.hour ?? 0, r.element.scheduledAt.minute ?? 0)
-        }).first?.offset {
-            var task = state.tasks[nextIdx]
-            if !task.isCompleted { // idempotent guard
-                let now = Date()
-                let onTimeFlag = isOnTime(task: task, now: now)
-                task.isCompleted = true
-                task.completedAt = now
-                state.tasks[nextIdx] = task
-                var petCopy = state.pet
-                let cfg = (try? loader.load(bundle: .main)) ?? StageCfg.defaultConfig()
-                PetEngine.onCheck(onTime: onTimeFlag, pet: &petCopy, cfg: cfg)
-                state.pet = petCopy
-                try? shared.saveState(state)
-            }
+        var state = (try? shared.loadState()) ?? AppState(
+            schemaVersion: 2,
+            dayKey: dayKey,
+            tasks: [],
+            pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey),
+            series: [],
+            overrides: [],
+            completions: [:],
+            rolloverEnabled: false,
+            graceMinutes: 60,
+            resetTime: nil
+        )
+
+        // Find the next incomplete task for this day
+        let mats = materializeTasks(for: dayKey, in: state)
+        let incomplete = mats.filter { !($0.isCompleted) }
+        guard let next = incomplete.min(by: { l, r in
+            let lTime = (l.time.hour ?? 0, l.time.minute ?? 0)
+            let rTime = (r.time.hour ?? 0, r.time.minute ?? 0)
+            return lTime < rTime
+        }) else {
+            return .result() // No incomplete tasks
         }
+
+        // Mark task as complete
+        var completed = state.completions[dayKey] ?? Set<UUID>()
+        if completed.contains(next.id) {
+            return .result() // Already completed
+        }
+
+        let now = Date()
+        let gm = state.graceMinutes ?? 60
+        let taskDate = dateFor(dayKey: dayKey, time: next.time) ?? now
+        let onTimeFlag: Bool = {
+            let start = taskDate.addingTimeInterval(TimeInterval(-gm * 60))
+            let end = taskDate.addingTimeInterval(TimeInterval(gm * 60))
+            return now >= start && now <= end
+        }()
+
+        completed.insert(next.id)
+        state.completions[dayKey] = completed
+
+        var pet = state.pet
+        let cfg = (try? StageConfigLoader().load(bundle: .main)) ?? StageCfg.defaultConfig()
+        PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
+        state.pet = pet
+
+        try? shared.saveState(state)
         WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }

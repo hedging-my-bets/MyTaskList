@@ -18,26 +18,56 @@ struct SnoozeNextTaskIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
+        guard let uuid = UUID(uuidString: taskId), !dayKey.isEmpty else { return .result() }
         let shared = SharedStore()
-        var state = (try? shared.loadState()) ?? AppState(tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey(for: Date())), dayKey: dayKey(for: Date()), schemaVersion: 1, rolloverEnabled: false)
-        let today = state.dayKey
-        if let nextIdx = state.tasks.enumerated().filter({ $0.element.dayKey == today && !$0.element.isCompleted }).sorted(by: { (l, r) in
-            (l.element.scheduledAt.hour ?? 0, l.element.scheduledAt.minute ?? 0) < (r.element.scheduledAt.hour ?? 0, r.element.scheduledAt.minute ?? 0)
-        }).first?.offset {
-            var task = state.tasks[nextIdx]
-            if !task.isCompleted { // idempotent
-                let cal = Calendar.current
-                let now = Date()
-                let due = cal.date(bySettingHour: task.scheduledAt.hour ?? 0, minute: task.scheduledAt.minute ?? 0, second: 0, of: now) ?? now
-                let midnight = cal.date(bySettingHour: 23, minute: 59, second: 0, of: now) ?? now
-                let snoozed = min(due.addingTimeInterval(15 * 60), midnight)
-                let comps = cal.dateComponents([.hour, .minute], from: snoozed)
-                task.snoozedUntil = snoozed
-                task.scheduledAt = comps
-                state.tasks[nextIdx] = task
-                try? shared.saveState(state)
-            }
+        var state = (try? shared.loadState()) ?? AppState(
+            schemaVersion: 2,
+            dayKey: dayKey,
+            tasks: [],
+            pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey),
+            series: [],
+            overrides: [],
+            completions: [:],
+            rolloverEnabled: false,
+            graceMinutes: 60,
+            resetTime: nil
+        )
+
+        // Find the task to snooze
+        let mats = materializeTasks(for: dayKey, in: state)
+        guard let task = mats.first(where: { $0.id == uuid }) else {
+            return .result() // Task not found
         }
+
+        // Check if already completed
+        let completed = state.completions[dayKey] ?? Set<UUID>()
+        if completed.contains(uuid) {
+            return .result() // Already completed, can't snooze
+        }
+
+        // Create or update override to snooze the task by 15 minutes
+        let cal = Calendar.current
+        let now = Date()
+        let originalTime = dateFor(dayKey: dayKey, time: task.time) ?? now
+        let snoozeTime = originalTime.addingTimeInterval(15 * 60)
+        let newComps = cal.dateComponents([.hour, .minute], from: snoozeTime)
+
+        // Find or create override for this task
+        var overrides = state.overrides
+        if let existingIndex = overrides.firstIndex(where: { $0.taskId == uuid && $0.dayKey == dayKey }) {
+            overrides[existingIndex].time = newComps
+        } else {
+            let override = TaskInstanceOverride(
+                taskId: uuid,
+                dayKey: dayKey,
+                time: newComps,
+                skip: false
+            )
+            overrides.append(override)
+        }
+        state.overrides = overrides
+
+        try? shared.saveState(state)
         WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }
