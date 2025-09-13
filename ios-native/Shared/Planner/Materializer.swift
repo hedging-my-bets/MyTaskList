@@ -30,7 +30,7 @@ public func dateFor(dayKey: String, time: DateComponents) -> Date? {
     return Calendar.current.date(from: comps)
 }
 
-public func materializeTasks(for dayKey: String, in state: State) -> [MaterializedTask] {
+public func materializeTasks(for dayKey: String, in state: AppState) -> [MaterializedTask] {
     let completed: Set<UUID> = state.completions[dayKey] ?? []
     var result: [MaterializedTask] = []
 
@@ -61,7 +61,7 @@ public func materializeTasks(for dayKey: String, in state: State) -> [Materializ
 
 public func nearestTaskIndex(now: Date, tasks: [MaterializedTask]) -> Int? {
     guard !tasks.isEmpty else { return nil }
-    let cal = Calendar.current
+    let _ = Calendar.current
     let distances: [(Int, TimeInterval)] = tasks.enumerated().compactMap { idx, t in
         guard let date = dateFor(dayKey: dayKey(for: now), time: t.time) else { return nil }
         return (idx, abs(date.timeIntervalSince(now)))
@@ -77,5 +77,6 @@ public func threeTasksAround(now: Date, tasks: [MaterializedTask]) -> [Materiali
     if mid + 1 < sorted.count { indices.append(mid + 1) }
     return indices.map { sorted[$0] }
 }
+
 
 

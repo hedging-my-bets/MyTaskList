@@ -1,12 +1,16 @@
 import AppIntents
+import PetProgressShared
+import WidgetKit
 
+@available(iOS 17.0, *)
 struct MarkNextTaskDoneIntent: AppIntent {
     static var title: LocalizedStringResource = "Mark Next Task Done"
+    static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
         let shared = SharedStore()
         let loader = StageConfigLoader()
-        var state = (try? shared.loadState()) ?? State(tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey(for: Date())), dayKey: dayKey(for: Date()), schemaVersion: 1, rolloverEnabled: false)
+        var state = (try? shared.loadState()) ?? AppState(tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dayKey(for: Date())), dayKey: dayKey(for: Date()), schemaVersion: 1, rolloverEnabled: false)
         let today = state.dayKey
         if let nextIdx = state.tasks.enumerated().filter({ $0.element.dayKey == today && !$0.element.isCompleted }).sorted(by: { (l, r) in
             (l.element.scheduledAt.hour ?? 0, l.element.scheduledAt.minute ?? 0) < (r.element.scheduledAt.hour ?? 0, r.element.scheduledAt.minute ?? 0)
@@ -25,6 +29,7 @@ struct MarkNextTaskDoneIntent: AppIntent {
                 try? shared.saveState(state)
             }
         }
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         return .result()
     }
 }

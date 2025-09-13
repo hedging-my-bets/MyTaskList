@@ -9,15 +9,37 @@ public struct TaskItem: Identifiable, Codable, Hashable {
     public var isCompleted: Bool
     public var completedAt: Date?
     public var snoozedUntil: Date?
+    public init(
+        id: UUID = UUID(),
+        title: String,
+        scheduledAt: DateComponents,
+        dayKey: String,
+        isCompleted: Bool,
+        completedAt: Date? = nil,
+        snoozedUntil: Date? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.scheduledAt = scheduledAt
+        self.dayKey = dayKey
+        self.isCompleted = isCompleted
+        self.completedAt = completedAt
+        self.snoozedUntil = snoozedUntil
+    }
 }
 
 public struct PetState: Codable, Hashable {
     public var stageIndex: Int
     public var stageXP: Int
     public var lastCloseoutDayKey: String
+    public init(stageIndex: Int, stageXP: Int, lastCloseoutDayKey: String) {
+        self.stageIndex = stageIndex
+        self.stageXP = stageXP
+        self.lastCloseoutDayKey = lastCloseoutDayKey
+    }
 }
 
-public struct State: Codable {
+public struct AppState: Codable {
     public var schemaVersion: Int
     public var dayKey: String
     public var tasks: [TaskItem]
@@ -28,6 +50,29 @@ public struct State: Codable {
     public var rolloverEnabled: Bool
     public var graceMinutes: Int?
     public var resetTime: DateComponents?
+    public init(
+        schemaVersion: Int,
+        dayKey: String,
+        tasks: [TaskItem],
+        pet: PetState,
+        series: [TaskSeries],
+        overrides: [TaskInstanceOverride],
+        completions: [String: Set<UUID>],
+        rolloverEnabled: Bool,
+        graceMinutes: Int? = nil,
+        resetTime: DateComponents? = nil
+    ) {
+        self.schemaVersion = schemaVersion
+        self.dayKey = dayKey
+        self.tasks = tasks
+        self.pet = pet
+        self.series = series
+        self.overrides = overrides
+        self.completions = completions
+        self.rolloverEnabled = rolloverEnabled
+        self.graceMinutes = graceMinutes
+        self.resetTime = resetTime
+    }
 }
 
 public struct Stage: Codable, Equatable {
@@ -64,13 +109,13 @@ public final class SharedStore {
 
     public init() {}
 
-    public func loadState() throws -> State {
+    public func loadState() throws -> AppState {
         try queue.sync {
             let url = try fileURL()
             guard FileManager.default.fileExists(atPath: url.path) else {
                 throw NSError(domain: "SharedStore", code: 2, userInfo: [NSLocalizedDescriptionKey: "State not found"]) }
             let data = try Data(contentsOf: url)
-            var state = try JSONDecoder().decode(State.self, from: data)
+            var state = try JSONDecoder().decode(AppState.self, from: data)
             // Migration to schema v2
             if state.schemaVersion < 2 {
                 state.series = []
@@ -84,7 +129,7 @@ public final class SharedStore {
         }
     }
 
-    public func saveState(_ state: State) throws {
+    public func saveState(_ state: AppState) throws {
         try queue.sync {
             let url = try fileURL()
             var st = state
@@ -174,8 +219,8 @@ public func nextUncompletedTask(for tasks: [TaskItem], dayKey: String) -> TaskIt
         .first
 }
 
-extension Array {
-    subscript(safe index: Int) -> Element? {
+public extension Array {
+    public subscript(safe index: Int) -> Element? {
         (0..<count).contains(index) ? self[index] : nil
     }
 }

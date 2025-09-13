@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import PetProgressShared
 
 struct Provider: TimelineProvider {
     private let shared = SharedStore()
@@ -32,7 +33,7 @@ struct Provider: TimelineProvider {
     private func buildEntry(for date: Date) -> PetEntry {
         let cfg = (try? loader.load(bundle: .main)) ?? StageCfg.defaultConfig()
         let dk = dayKey(for: date)
-        let state = (try? shared.loadState()) ?? State(schemaVersion: 2, dayKey: dk, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dk), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: nil)
+        let state = (try? shared.loadState()) ?? AppState(schemaVersion: 2, dayKey: dk, tasks: [], pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: dk), series: [], overrides: [], completions: [:], rolloverEnabled: false, graceMinutes: 60, resetTime: nil)
 
         let mats = materializeTasks(for: dk, in: state)
         let rows = threeTasksAround(now: date, tasks: mats)

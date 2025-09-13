@@ -1,4 +1,5 @@
 import SwiftUI
+import PetProgressShared
 
 struct PlannerView: View {
     @EnvironmentObject var store: DataStore
@@ -123,7 +124,12 @@ struct PlannerView: View {
                 initialTitle: editingTitle,
                 initialHour: editingHour,
                 initialMinute: editingMinute,
-                onSave: saveOverride,
+                onSave: { t, h, m in
+                    editingTitle = t
+                    editingHour = h
+                    editingMinute = m
+                    saveOverride()
+                },
                 onCancel: { showOverrideEditor = false }
             )
             .environmentObject(store)
@@ -134,7 +140,12 @@ struct PlannerView: View {
                 initialTitle: editingTitle,
                 initialHour: editingHour,
                 initialMinute: editingMinute,
-                onSave: saveOneOff,
+                onSave: { t, h, m in
+                    editingTitle = t
+                    editingHour = h
+                    editingMinute = m
+                    saveOneOff()
+                },
                 onCancel: { showOneOffEditor = false }
             )
             .environmentObject(store)
@@ -155,8 +166,7 @@ struct PlannerView: View {
         } else {
             st.overrides.append(TaskInstanceOverride(seriesId: seriesId, dayKey: dayKey, isDeleted: isDeleted))
         }
-        store.state = st
-        let _ = store
+        store.replaceState(st)
         // persist
         try? SharedStore().saveState(st)
     }
@@ -166,7 +176,7 @@ struct PlannerView: View {
         let comps = Calendar.current.dateComponents([.hour, .minute], from: Date())
         let newTaskId = UUID()
         st.tasks.append(TaskItem(id: newTaskId, title: "New Task", scheduledAt: comps, dayKey: dayKey, isCompleted: false, completedAt: nil, snoozedUntil: nil))
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
 
         // Open editor for the newly created task
@@ -203,7 +213,7 @@ struct PlannerView: View {
             st.overrides.append(TaskInstanceOverride(seriesId: seriesId, dayKey: dayKey, title: editingTitle, time: time, isDeleted: false))
         }
 
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         showOverrideEditor = false
     }
@@ -217,7 +227,7 @@ struct PlannerView: View {
             st.tasks[idx].scheduledAt = DateComponents(hour: editingHour, minute: editingMinute)
         }
 
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         showOneOffEditor = false
     }
@@ -227,7 +237,7 @@ struct PlannerView: View {
 
         var st = store.state
         st.overrides.removeAll(where: { $0.seriesId == seriesId && $0.dayKey == dayKey })
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
     }
 }
@@ -265,7 +275,7 @@ struct NewSeriesView: View {
                         var st = store.state
                         let comps = DateComponents(hour: hour, minute: minute)
                         st.series.append(TaskSeries(title: title, daysOfWeek: dow, time: comps))
-                        store.state = st
+                        store.replaceState(st)
                         try? SharedStore().saveState(st)
                         dismiss()
                     }
@@ -319,7 +329,7 @@ struct EditSeriesView: View {
             st.series[idx].title = title
             st.series[idx].time = DateComponents(hour: hour, minute: minute)
             st.series[idx].daysOfWeek = dow
-            store.state = st
+            store.replaceState(st)
             try? SharedStore().saveState(st)
         }
         dismiss()
@@ -329,7 +339,7 @@ struct EditSeriesView: View {
         var st = store.state
         if let idx = st.series.firstIndex(where: { $0.id == series.id }) {
             st.series[idx].isActive = false
-            store.state = st
+            store.replaceState(st)
             try? SharedStore().saveState(st)
         }
         dismiss()
@@ -343,10 +353,10 @@ struct OverrideEditorView: View {
     @State private var title: String
     @State private var hour: Int
     @State private var minute: Int
-    let onSave: () -> Void
+    let onSave: (_ title: String, _ hour: Int, _ minute: Int) -> Void
     let onCancel: () -> Void
 
-    init(seriesId: UUID?, dayKey: String?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+    init(seriesId: UUID?, dayKey: String?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping (_ title: String, _ hour: Int, _ minute: Int) -> Void, onCancel: @escaping () -> Void) {
         self.seriesId = seriesId
         self.dayKey = dayKey
         self._title = State(initialValue: initialTitle)
@@ -389,13 +399,7 @@ struct OverrideEditorView: View {
                 }
 
                 Section {
-                    Button("Save Override") {
-                        // Update the editing values in parent view before saving
-                        editingTitle = title
-                        editingHour = hour
-                        editingMinute = minute
-                        onSave()
-                    }
+                    Button("Save Override") { onSave(title, hour, minute) }
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -416,10 +420,10 @@ struct OneOffEditorView: View {
     @State private var title: String
     @State private var hour: Int
     @State private var minute: Int
-    let onSave: () -> Void
+    let onSave: (_ title: String, _ hour: Int, _ minute: Int) -> Void
     let onCancel: () -> Void
 
-    init(taskId: UUID?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping () -> Void, onCancel: @escaping () -> Void) {
+    init(taskId: UUID?, initialTitle: String, initialHour: Int, initialMinute: Int, onSave: @escaping (_ title: String, _ hour: Int, _ minute: Int) -> Void, onCancel: @escaping () -> Void) {
         self.taskId = taskId
         self._title = State(initialValue: initialTitle)
         self._hour = State(initialValue: initialHour)
@@ -467,12 +471,7 @@ struct OneOffEditorView: View {
                 }
 
                 Section {
-                    Button("Save Changes") {
-                        editingTitle = title
-                        editingHour = hour
-                        editingMinute = minute
-                        onSave()
-                    }
+                    Button("Save Changes") { onSave(title, hour, minute) }
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -491,7 +490,7 @@ struct OneOffEditorView: View {
 
         var st = store.state
         st.tasks.removeAll(where: { $0.id == taskId })
-        store.state = st
+        store.replaceState(st)
         try? SharedStore().saveState(st)
         onCancel()
     }

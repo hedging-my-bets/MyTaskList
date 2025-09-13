@@ -7,9 +7,6 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                NavigationLink(destination: PlannerView().environmentObject(store), isActive: $store.showPlanner) { EmptyView() }
-                NavigationLink(destination: WidgetInstructionsView(), isActive: $store.showWidgetInstructions) { EmptyView() }
-                NavigationLink(destination: SettingsView().environmentObject(store), isActive: $store.showSettings) { EmptyView() }
                 header
                 List {
                     ForEach(store.todayTasksSorted) { task in
@@ -38,6 +35,15 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("Today")
+            .navigationDestination(isPresented: $store.showPlanner) {
+                PlannerView().environmentObject(store)
+            }
+            .navigationDestination(isPresented: $store.showWidgetInstructions) {
+                WidgetInstructionsView()
+            }
+            .navigationDestination(isPresented: $store.showSettings) {
+                SettingsView().environmentObject(store)
+            }
         }
     }
 

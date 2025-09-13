@@ -133,3 +133,4 @@ xcodebuild test -scheme PetProgress -destination "platform=iOS Simulator,name=iP
 3. **Signing issues**: Confirm Team ID and provisioning profiles
 4. **Privacy policy**: Must be hosted publicly, not just local file
 5. **Hourly updates**: Verify widget only refreshes on timeline ticks
+

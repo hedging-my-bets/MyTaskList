@@ -58,3 +58,4 @@ final class PetEngineTests: XCTestCase {
         XCTAssertEqual(pet.stageXP, 3) // 2 + 1 = 3
     }
 }
+
