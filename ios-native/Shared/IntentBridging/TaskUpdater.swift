@@ -3,7 +3,7 @@ import WidgetKit
 
 public enum TaskUpdater {
     public static func complete(taskId: String, dayKey: String) async throws {
-        guard let uuid = UUID(uuidString: taskId) else { return }
+        guard let seriesUUID = UUID(uuidString: taskId) else { return }
 
         let shared = SharedStore()
         var state = (try? shared.loadState()) ?? AppState(
@@ -36,14 +36,14 @@ public enum TaskUpdater {
         }
 
         // Only proceed if the taskId matches the next task
-        guard nextTask.id == uuid else {
+        guard nextTask.id == seriesUUID else {
             // Do not complete tasks that are not "next"
             return
         }
 
         // Mark task as complete
         var completed = state.completions[dayKey] ?? Set<UUID>()
-        if completed.contains(uuid) {
+        if completed.contains(seriesUUID) {
             return // Already completed
         }
 
@@ -56,7 +56,7 @@ public enum TaskUpdater {
             return now >= start && now <= end
         }()
 
-        completed.insert(uuid)
+        completed.insert(seriesUUID)
         state.completions[dayKey] = completed
 
         // Update pet based on on-time completion
@@ -127,7 +127,7 @@ public enum TaskUpdater {
     }
 
     public static func snoozeNextTask(taskId: String, dayKey: String) async throws {
-        guard let uuid = UUID(uuidString: taskId) else { return }
+        guard let seriesUUID = UUID(uuidString: taskId) else { return }
 
         let shared = SharedStore()
         var state = (try? shared.loadState()) ?? AppState(
@@ -159,7 +159,7 @@ public enum TaskUpdater {
         }
 
         // Only proceed if the taskId matches the next task
-        guard nextTask.id == uuid else {
+        guard nextTask.id == seriesUUID else {
             return // Do not snooze tasks that are not "next"
         }
 
@@ -173,16 +173,15 @@ public enum TaskUpdater {
         let finalMinute = newMinute % 60
 
         let override = TaskInstanceOverride(
-            id: uuid,
+            seriesId: seriesUUID,
             dayKey: dayKey,
-            taskId: uuid,
             time: DateComponents(hour: finalHour, minute: finalMinute),
             isDeleted: false
         )
 
         // Add or update the override
         var overrides = state.overrides
-        overrides.removeAll { $0.taskId == uuid && $0.dayKey == dayKey }
+        overrides.removeAll { $0.seriesId == seriesUUID && $0.dayKey == dayKey }
         overrides.append(override)
         state.overrides = overrides
 
