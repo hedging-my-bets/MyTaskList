@@ -4,11 +4,11 @@ options:
   createIntermediateGroups: true
   xcodeVersion: "16.0"
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "17.0"
 packages: {}
 settings:
   base:
-    IPHONEOS_DEPLOYMENT_TARGET: 16.0
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
     SWIFT_VERSION: 5.10
     MARKETING_VERSION: 1.0.0
     CURRENT_PROJECT_VERSION: 1

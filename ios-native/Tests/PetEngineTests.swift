@@ -24,12 +24,12 @@ final class PetEngineTests: XCTestCase {
     }
 
     func testFinalStageTerminal() {
-        var pet = PetState(stageIndex: 19, stageXP: 0, lastCloseoutDayKey: "2025-01-01")
+        var pet = PetState(stageIndex: 15, stageXP: 0, lastCloseoutDayKey: "2025-01-01")
         let cfg = StageCfg.defaultConfig()
 
         // Should not evolve beyond final stage (Gold)
         PetEngine.onCheck(onTime: true, pet: &pet, cfg: cfg)
-        XCTAssertEqual(pet.stageIndex, 19) // Should remain at final stage
+        XCTAssertEqual(pet.stageIndex, 15) // Should remain at final stage
     }
 
     func testBonusPenaltyMath() {

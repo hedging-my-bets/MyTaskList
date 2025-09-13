@@ -86,10 +86,10 @@ public struct StageCfg: Codable, Equatable {
     public let stages: [Stage]
 
     public static func defaultConfig() -> StageCfg {
-        let thresholds = [10,20,30,40,50,60,75,90,110,135,165,200,240,285,335,390,450,515,585,0]
-        let names = ["Tadpole","Minnow","Frog","Hermit Crab","Starfish","Jellyfish","Squid","Seahorse","Dolphin","Shark","Otter","Fox","Lynx","Wolf","Bear","Bison","Elephant","Rhino","Lion","Floating God"]
-        let assets = ["pet_tadpole","pet_minnow","pet_frog","pet_hermit","pet_starfish","pet_jellyfish","pet_squid","pet_seahorse","pet_dolphin","pet_shark","pet_otter","pet_fox","pet_lynx","pet_wolf","pet_bear","pet_bison","pet_elephant","pet_rhino","pet_lion","pet_god"]
-        let stages = (0..<20).map { Stage(i: $0, name: names[$0], threshold: thresholds[$0], asset: assets[$0]) }
+        let thresholds = [10,25,40,55,75,95,120,145,175,205,240,285,335,390,450,0]
+        let names = ["Frog","Hermit Crab","Seahorse","Dolphin","Alligator","Beaver","Wolf","Bear","Bison","Elephant","Rhino","Baby","Toddler","Adult","CEO","Gold"]
+        let assets = ["pet_frog","pet_hermit","pet_seahorse","pet_dolphin","pet_alligator","pet_beaver","pet_wolf","pet_bear","pet_bison","pet_elephant","pet_rhino","pet_baby","pet_toddler","pet_adult","pet_ceo","pet_gold"]
+        let stages = (0..<16).map { Stage(i: $0, name: names[$0], threshold: thresholds[$0], asset: assets[$0]) }
         return StageCfg(stages: stages)
     }
 }
