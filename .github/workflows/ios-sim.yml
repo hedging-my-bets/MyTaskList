@@ -99,9 +99,12 @@ jobs:
             -derivedDataPath "$DERIVED_DATA" \
             -parallelizeTargets \
             build \
-            | xcbeautify --renderer github-actions || true
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions
 
       - name: Test (Simulator)
+        if: success()  # Only run tests if build succeeded
         run: |
           set -euxo pipefail
           xcodebuild \
@@ -111,7 +114,17 @@ jobs:
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$DERIVED_DATA/TestResults.xcresult" \
             test \
-            | xcbeautify --renderer github-actions || true
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions
+
+      - name: Show build logs on failure
+        if: failure()
+        run: |
+          echo "Build failed. Showing recent build logs:"
+          find "$DERIVED_DATA" -name "*.xcactivitylog" -exec echo "=== {} ===" \; -exec cat {} \; || true
+          echo "=== DerivedData structure ==="
+          find "$DERIVED_DATA" -type f -name "*.log" -o -name "*.xcactivitylog" | head -20 || true
 
       # ✅ Upload your built Simulator .app
       - name: Archive built .app
@@ -119,15 +132,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build_artifacts
-          APP_PATH=$(find "$DERIVED_DATA/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 \
-            | xargs -0 -I{} stat -f "%m\t%N" {} \
+
+          # Check if Build/Products directory exists first
+          if [ ! -d "$DERIVED_DATA/Build/Products" ]; then
+            echo "Build/Products directory not found - build likely failed before creating products"
+            echo "Skipping app archival"
+            exit 0
+          fi
+
+          APP_PATH=$(find "$DERIVED_DATA/Build/Products" -type d -name "*.app" -path "*/-iphonesimulator/*" -print0 2>/dev/null \
+            | xargs -0 -I{} stat -f "%m\t%N" {} 2>/dev/null \
             | sort -rn \
             | awk 'NR==1{print $2}')
           if [ -n "${APP_PATH:-}" ]; then
             echo "Found app: $APP_PATH"
             cp -R "$APP_PATH" build_artifacts/PetProgress.app
           else
-            echo "No Simulator .app found (build may have failed pre-link)."
+            echo "No Simulator .app found (build may have failed before creating app bundle)."
           fi
 
       - name: Upload artifact (Simulator .app)
