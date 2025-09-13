@@ -8,10 +8,14 @@ struct SnoozeNextTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Snooze Next Task 15m"
     static var openAppWhenRun: Bool = false
 
+    @Parameter(title: "Task ID") var taskId: String
     @Parameter(title: "Day Key") var dayKey: String
 
     init() { }
-    init(dayKey: String) { self.dayKey = dayKey }
+    init(taskId: String, dayKey: String) {
+        self.taskId = taskId
+        self.dayKey = dayKey
+    }
 
     func perform() async throws -> some IntentResult {
         let shared = SharedStore()

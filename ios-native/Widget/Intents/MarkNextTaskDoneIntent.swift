@@ -7,6 +7,13 @@ struct MarkNextTaskDoneIntent: AppIntent {
     static var title: LocalizedStringResource = "Mark Next Task Done"
     static var openAppWhenRun: Bool = false
 
+    @Parameter(title: "Day Key") var dayKey: String
+
+    init() { }
+    init(dayKey: String) {
+        self.dayKey = dayKey
+    }
+
     func perform() async throws -> some IntentResult {
         let shared = SharedStore()
         let loader = StageConfigLoader()
