@@ -66,13 +66,15 @@ final class DSTTests: XCTestCase {
     func testCloseoutRunsOncePerDay() {
         var pet = PetState(stageIndex: 0, stageXP: 5, lastCloseoutDayKey: "2025-01-01")
         let cfg = StageCfg.defaultConfig()
+        let today = "2025-01-02"
 
-        // First closeout should apply
-        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg)
+        // First closeout should apply (different day from lastCloseoutDayKey)
+        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg, dayKey: today)
         let firstXP = pet.stageXP
+        XCTAssertEqual(firstXP, 8, "Closeout should add 3 XP for perfect rate")
 
         // Second closeout on same day should not apply
-        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg)
+        PetEngine.onDailyCloseout(rate: 1.0, pet: &pet, cfg: cfg, dayKey: today)
         XCTAssertEqual(pet.stageXP, firstXP, "Closeout should only run once per day")
     }
 

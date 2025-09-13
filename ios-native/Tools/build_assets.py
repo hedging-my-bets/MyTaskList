@@ -415,5 +415,7 @@ def ensure_imageset(name: str):
 # Drive from StageConfig.json so names stay in lockstep
 cfg = json.loads((ROOT / "ios-native" / "Shared" / "Resources" / "StageConfig.json").read_text())
 for stage in cfg.get("stages", []):
-    ensure_imageset(stage["name"])
+    # Use the asset field, not name field
+    asset_name = stage.get("asset", stage["name"])
+    ensure_imageset(asset_name)
 

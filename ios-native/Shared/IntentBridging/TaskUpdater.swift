@@ -6,7 +6,44 @@ public enum TaskUpdater {
         let shared = SharedStore()
         guard var state = try? shared.loadState() else { return }
 
-        // Find the next incomplete task using existing materializer
+        // Find the next incomplete task - first check TaskItems
+        let incompleteTaskItems = state.tasks.filter { $0.dayKey == dayKey && !$0.isCompleted }
+
+        // Sort by scheduled time to find the earliest
+        let sortedTasks = incompleteTaskItems.sorted { l, r in
+            let lTime = (l.scheduledAt.hour ?? 0) * 60 + (l.scheduledAt.minute ?? 0)
+            let rTime = (r.scheduledAt.hour ?? 0) * 60 + (r.scheduledAt.minute ?? 0)
+            return lTime < rTime
+        }
+
+        if let nextTask = sortedTasks.first {
+            // Mark the TaskItem as complete directly
+            if let index = state.tasks.firstIndex(where: { $0.id == nextTask.id }) {
+                state.tasks[index].isCompleted = true
+                state.tasks[index].completedAt = Date()
+
+                // Update pet based on on-time completion
+                let now = Date()
+                let gm = state.graceMinutes ?? 60
+                let taskDate = dateFor(dayKey: dayKey, time: nextTask.scheduledAt) ?? now
+                let onTimeFlag: Bool = {
+                    let start = taskDate.addingTimeInterval(TimeInterval(-gm * 60))
+                    let end = taskDate.addingTimeInterval(TimeInterval(gm * 60))
+                    return now >= start && now <= end
+                }()
+
+                var pet = state.pet
+                let cfg = (try? StageConfigLoader().load(bundle: .main)) ?? StageCfg.defaultConfig()
+                PetEngine.onCheck(onTime: onTimeFlag, pet: &pet, cfg: cfg)
+                state.pet = pet
+
+                try? shared.saveState(state)
+                WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
+                return
+            }
+        }
+
+        // If no TaskItems, check materialized tasks (series)
         let mats = materializeTasks(for: dayKey, in: state)
         let incomplete = mats.filter { !$0.isCompleted }
 
@@ -18,7 +55,7 @@ public enum TaskUpdater {
             return // No incomplete tasks
         }
 
-        // Mark task as complete
+        // Mark task as complete in completions map
         var completed = state.completions[dayKey] ?? Set<UUID>()
         if completed.contains(next.id) {
             return // Already completed
@@ -100,8 +137,8 @@ public enum TaskUpdater {
         let newHour = (currentTime.hour ?? 0)
         let newMinute = (currentTime.minute ?? 0) + snoozeMinutes
 
-        let finalHour = newHour + (newMinute / 60)
-        let finalMinute = newMinute % 60
+        let finalHour = min(23, newHour + (newMinute / 60))  // Clamp at 23
+        let finalMinute = (finalHour == 23 && newMinute >= 60) ? 59 : (newMinute % 60)  // If clamped, set to 23:59
 
         switch task.origin {
         case .series(let seriesId):

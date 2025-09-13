@@ -160,7 +160,12 @@ public enum PetEngine {
         deEvolveIfNeeded(&pet, cfg: cfg)
     }
 
-    public static func onDailyCloseout(rate: Double, pet: inout PetState, cfg: StageCfg) {
+    public static func onDailyCloseout(rate: Double, pet: inout PetState, cfg: StageCfg, dayKey: String) {
+        // Only run closeout once per day
+        if pet.lastCloseoutDayKey == dayKey {
+            return
+        }
+
         if rate >= 0.8 {
             pet.stageXP += 3
             evolveIfNeeded(&pet, cfg: cfg)
@@ -168,6 +173,9 @@ public enum PetEngine {
             pet.stageXP -= 3
             deEvolveIfNeeded(&pet, cfg: cfg)
         }
+
+        // Update last closeout day
+        pet.lastCloseoutDayKey = dayKey
     }
 
     public static func evolveIfNeeded(_ pet: inout PetState, cfg: StageCfg) {
