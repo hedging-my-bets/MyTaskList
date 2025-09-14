@@ -144,24 +144,32 @@ struct Provider: TimelineProvider {
     // MARK: - Private Implementation
 
     private func loadOrCreateDayModel(for dayKey: String, at date: Date) throws -> DayModel {
-        // Attempt to load existing day model
+        // Attempt to load from AppState first (authoritative source)
+        if let currentModel = SharedStore.shared.getCurrentDayModel() {
+            logger.debug("Loaded day model from AppState bridge with \(currentModel.slots.count) tasks")
+            return currentModel
+        }
+
+        // Fallback: attempt to load legacy DayModel
         if let existingModel = SharedStore.shared.loadDay(key: dayKey) {
-            logger.debug("Loaded existing day model with \(existingModel.slots.count) tasks")
+            logger.debug("Loaded legacy day model with \(existingModel.slots.count) tasks")
             return existingModel
         }
 
-        // Create new day model using TaskPlanner
-        logger.info("Creating new day model for \(dayKey)")
-        let planner = TaskPlanner.shared
-        let newModel = planner.createDailySchedule(for: date)
+        // Create fallback day model for widget display
+        logger.info("Creating fallback day model for \(dayKey)")
+        let fallbackSlots = [
+            DayModel.Slot(hour: 9, title: "Morning task", isDone: false),
+            DayModel.Slot(hour: 14, title: "Afternoon task", isDone: false),
+            DayModel.Slot(hour: 18, title: "Evening task", isDone: false)
+        ]
 
-        // Ensure minimum tasks for widget display
-        let enhancedModel = planner.ensureMinimumTasks(dayModel: newModel, minimumCount: 3)
+        let fallbackModel = DayModel(key: dayKey, slots: fallbackSlots, points: 0)
 
-        // Save the new model
-        SharedStore.shared.saveDay(enhancedModel)
+        // Save the fallback model
+        SharedStore.shared.saveDay(fallbackModel)
 
-        return enhancedModel
+        return fallbackModel
     }
 
     private func generateTimelineEntries(from dayModel: DayModel, startingAt date: Date) -> [SimpleEntry] {
@@ -295,10 +303,6 @@ enum WidgetErrorState: Equatable {
     }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let dayModel: DayModel
-}
 
 struct PetProgressWidgetEntryView: View {
     var entry: Provider.Entry

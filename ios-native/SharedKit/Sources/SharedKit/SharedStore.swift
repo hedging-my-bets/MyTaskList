@@ -444,4 +444,165 @@ public final class SharedStore: ObservableObject {
     private func dayKey(_ key: String) -> String {
         return "day_\(key)"
     }
+
+    // MARK: - AppState Bridge Methods
+
+    /// Load AppState from shared storage
+    public func loadAppState() -> AppState? {
+        return performAtomicOperation(operationType: "loadAppState") { [weak self] in
+            guard let self = self else { return nil }
+
+            let key = "app_state"
+            guard let data = self.userDefaults.data(forKey: key) else {
+                self.logger.info("No AppState found for key: \(key)")
+                return nil
+            }
+
+            do {
+                let state = try self.decoder.decode(AppState.self, from: data)
+                self.logger.info("Successfully loaded AppState for key: \(key)")
+                return state
+            } catch {
+                self.logger.error("Failed to decode AppState: \(error.localizedDescription)")
+                return nil
+            }
+        } ?? nil
+    }
+
+    /// Save AppState to shared storage
+    public func saveAppState(_ state: AppState) {
+        performAtomicOperation(operationType: "saveAppState") { [weak self] in
+            guard let self = self else { return }
+
+            let key = "app_state"
+            do {
+                let data = try self.encoder.encode(state)
+                self.userDefaults.set(data, forKey: key)
+                self.lastSuccessfulWrite = Date()
+                self.logger.info("Successfully saved AppState for key: \(key)")
+
+                // Also update the DayModel representation for widget consumption
+                self.updateDayModelFromAppState(state)
+
+            } catch {
+                self.logger.error("Failed to encode AppState: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Convert AppState to DayModel for widget consumption
+    private func updateDayModelFromAppState(_ appState: AppState) {
+        let dayKey = appState.dayKey
+
+        // Get materialized tasks for today
+        let materializedTasks = TaskMaterialization.materializeTasks(
+            tasks: appState.tasks,
+            series: appState.series,
+            overrides: appState.overrides,
+            dayKey: dayKey
+        )
+
+        // Create slots from materialized tasks (limit to 24 for widget)
+        var slots: [DayModel.Slot] = []
+        let completedTasks = appState.completions[dayKey] ?? Set<UUID>()
+
+        for (index, task) in materializedTasks.prefix(24).enumerated() {
+            let isCompleted = completedTasks.contains(task.id)
+            let slot = DayModel.Slot(
+                hour: task.timeSlot?.hour ?? index,
+                title: task.title,
+                isDone: isCompleted
+            )
+            slots.append(slot)
+        }
+
+        // Create DayModel with current points
+        let dayModel = DayModel(
+            key: dayKey,
+            slots: slots,
+            points: appState.pet.points
+        )
+
+        // Save the DayModel for widget consumption
+        self.saveDay(dayModel)
+    }
+
+    /// Get current day's tasks as DayModel (for widget)
+    public func getCurrentDayModel() -> DayModel? {
+        // First try to get from AppState (authoritative)
+        if let appState = loadAppState() {
+            let materializedTasks = TaskMaterialization.materializeTasks(
+                tasks: appState.tasks,
+                series: appState.series,
+                overrides: appState.overrides,
+                dayKey: appState.dayKey
+            )
+
+            var slots: [DayModel.Slot] = []
+            let completedTasks = appState.completions[appState.dayKey] ?? Set<UUID>()
+
+            for (index, task) in materializedTasks.prefix(24).enumerated() {
+                let isCompleted = completedTasks.contains(task.id)
+                let slot = DayModel.Slot(
+                    hour: task.timeSlot?.hour ?? index,
+                    title: task.title,
+                    isDone: isCompleted
+                )
+                slots.append(slot)
+            }
+
+            return DayModel(
+                key: appState.dayKey,
+                slots: slots,
+                points: appState.pet.points
+            )
+        }
+
+        // Fallback to DayModel storage
+        let todayKey = TimeSlot.todayKey()
+        return loadDay(key: todayKey)
+    }
+
+    /// Update AppState when widget makes changes
+    public func updateTaskCompletion(taskIndex: Int, completed: Bool, dayKey: String? = nil) {
+        guard var appState = loadAppState() else {
+            logger.error("No AppState found - cannot update task completion")
+            return
+        }
+
+        let targetDayKey = dayKey ?? appState.dayKey
+        let materializedTasks = TaskMaterialization.materializeTasks(
+            tasks: appState.tasks,
+            series: appState.series,
+            overrides: appState.overrides,
+            dayKey: targetDayKey
+        )
+
+        guard taskIndex < materializedTasks.count else {
+            logger.error("Task index \(taskIndex) out of bounds")
+            return
+        }
+
+        let task = materializedTasks[taskIndex]
+        var completedTasks = appState.completions[targetDayKey] ?? Set<UUID>()
+
+        if completed {
+            completedTasks.insert(task.id)
+            // Use proper PetEngine for completion
+            let stageCfg = StageConfigLoader.shared.loadStageConfig()
+            PetEngine.onCheck(onTime: true, pet: &appState.pet, cfg: stageCfg)
+        } else {
+            completedTasks.remove(task.id)
+            // Use proper PetEngine for regression
+            let stageCfg = StageConfigLoader.shared.loadStageConfig()
+            PetEngine.onMiss(pet: &appState.pet, cfg: stageCfg)
+        }
+
+        appState.completions[targetDayKey] = completedTasks
+
+        // Save updated AppState
+        saveAppState(appState)
+
+        logger.info("Updated task \(taskIndex) completion to \(completed) for day \(targetDayKey)")
+    }
 }
