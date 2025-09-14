@@ -1,6 +1,7 @@
 import WidgetKit
 import SwiftUI
 import SharedKit
+import AppIntents
 import os.log
 
 /// Pet Progress Widget - Simple and Functional
@@ -15,7 +16,7 @@ struct PetProgressWidget: Widget {
     let kind: String = "PetProgressWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             PetProgressWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
@@ -25,21 +26,28 @@ struct PetProgressWidget: Widget {
     }
 }
 
+// MARK: - Configuration Intent
+
+struct ConfigurationAppIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "Configuration"
+    static var description = IntentDescription("This is an example widget.")
+}
+
 // MARK: - Timeline Provider
 
-struct Provider: TimelineProvider {
+struct Provider: AppIntentTimelineProvider {
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "Provider")
 
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(), dayModel: createPlaceholderModel())
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+    func getSnapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         let entry = SimpleEntry(date: Date(), dayModel: loadOrCreateDayModel())
         completion(entry)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func getTimeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let now = Date()
         let dayModel = loadOrCreateDayModel()
         let entries: [SimpleEntry] = [SimpleEntry(date: now, dayModel: dayModel)]
@@ -115,6 +123,9 @@ struct CircularLockScreenView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.primary)
         }
+        .containerBackground(for: .widget) {
+            AccessoryWidgetBackground()
+        }
     }
 
     private var currentStage: Int {
@@ -183,6 +194,9 @@ struct RectangularLockScreenView: View {
             }
         }
         .padding(.horizontal, 8)
+        .containerBackground(for: .widget) {
+            AccessoryWidgetBackground()
+        }
     }
 
     private var currentStage: Int {
