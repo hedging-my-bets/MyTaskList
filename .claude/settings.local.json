@@ -16,7 +16,8 @@
       "Bash(chmod:*)",
       "Bash(python:*)",
       "Bash(find:*)",
-      "Bash(swift:*)"
+      "Bash(swift:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

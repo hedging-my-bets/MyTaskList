@@ -1,5 +1,6 @@
 import SwiftUI
 import SharedKit
+import WidgetKit
 
 struct AddTaskView: View {
     @EnvironmentObject var dataStore: DataStore
@@ -82,6 +83,14 @@ struct AddTaskView: View {
         )
 
         dataStore.addTask(newTask)
+
+        // CRITICAL FIX: Sync to SharedStore for widget visibility
+        if let currentState = dataStore.state {
+            SharedStore.shared.saveAppState(currentState)
+        }
+
+        // Refresh widget timeline immediately
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

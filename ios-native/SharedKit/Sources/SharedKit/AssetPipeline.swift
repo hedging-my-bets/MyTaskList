@@ -139,8 +139,14 @@ public final class AssetPipeline: ObservableObject {
         "13.circle.fill",     // Stage 12 - rhino
         "14.circle.fill",     // Stage 13 - adult
         "15.circle.fill",     // Stage 14 - ceo
-        "16.circle.fill"      // Stage 15 - gold
+        "crown.fill"          // Stage 15 - gold (special crown icon)
     ]
+
+    /// Enhanced placeholders with emoji support for better visual feedback
+    public func enhancedPlaceholderName(for stageIndex: Int) -> String {
+        let clampedIndex = max(0, min(15, stageIndex))
+        return stageNames[clampedIndex]
+    }
 
     /// Checks if a specific asset exists with comprehensive validation
     public func hasAsset(named name: String) -> Bool {

@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import SharedKit
+import WidgetKit
 
 @MainActor
 final class DataStore: ObservableObject {
@@ -194,7 +195,15 @@ final class DataStore: ObservableObject {
     private func persist() {
         objectWillChange.send()
         do {
+            // Save to legacy SharedStore (for main app compatibility)
             try sharedStore.saveState(state)
+
+            // CRITICAL FIX: Also sync to unified SharedStore for widget visibility
+            SharedStore.shared.saveAppState(state)
+
+            // Refresh widget timeline immediately to show changes
+            WidgetCenter.shared.reloadAllTimelines()
+
         } catch {
             showErrorMessage("Failed to save data: \(error.localizedDescription)")
         }
