@@ -56,6 +56,86 @@ struct SimpleEntry: TimelineEntry {
 
 struct PetProgressWidgetEntryView : View {
     var entry: Provider.Entry
+    @Environment(\.widgetFamily) var widgetFamily
+
+    var body: some View {
+        switch widgetFamily {
+        case .accessoryCircular:
+            CircularLockScreenView(entry: entry)
+        case .accessoryRectangular:
+            RectangularLockScreenView(entry: entry)
+        default:
+            StandardWidgetView(entry: entry)
+        }
+    }
+}
+
+struct CircularLockScreenView: View {
+    let entry: Provider.Entry
+
+    var body: some View {
+        Gauge(value: Double(entry.tasksCompleted), in: 0...Double(max(1, entry.tasksTotal))) {
+            Image("pet_frog")
+                .resizable()
+                .scaledToFit()
+        } currentValueLabel: {
+            Text("\(entry.tasksCompleted)")
+                .font(.caption2)
+                .bold()
+        }
+        .gaugeStyle(.accessoryCircular)
+        .accessibilityLabel("Task completion: \(entry.tasksCompleted) of \(entry.tasksTotal) tasks completed")
+    }
+}
+
+struct RectangularLockScreenView: View {
+    let entry: Provider.Entry
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image("pet_frog")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Stage \(entry.pet.stageIndex)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+
+                Text("\(entry.tasksCompleted)/\(entry.tasksTotal) tasks")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            if let nextTask = entry.nextTask {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(timeString(from: nextTask.time))
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                    Text("next")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Pet at stage \(entry.pet.stageIndex), \(entry.tasksCompleted) of \(entry.tasksTotal) tasks completed")
+    }
+
+    private func timeString(from dateComponents: DateComponents) -> String {
+        let hour = dateComponents.hour ?? 0
+        let minute = dateComponents.minute ?? 0
+        return String(format: "%02d:%02d", hour, minute)
+    }
+}
+
+struct StandardWidgetView: View {
+    let entry: Provider.Entry
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -65,6 +145,7 @@ struct PetProgressWidgetEntryView : View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 32, height: 32)
+                    .accessibilityLabel("Pet at stage \(entry.pet.stageIndex)")
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Stage \(entry.pet.stageIndex)")
@@ -74,6 +155,8 @@ struct PetProgressWidgetEntryView : View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Pet status: Stage \(entry.pet.stageIndex), \(entry.pet.stageXP) experience points")
                 Spacer()
             }
 
@@ -86,8 +169,12 @@ struct PetProgressWidgetEntryView : View {
                 if entry.tasksTotal > 0 {
                     ProgressView(value: Double(entry.tasksCompleted), total: Double(entry.tasksTotal))
                         .progressViewStyle(LinearProgressViewStyle())
+                        .accessibilityLabel("\(entry.tasksCompleted) of \(entry.tasksTotal) tasks completed")
+                        .accessibilityValue(Text("\(Int((Double(entry.tasksCompleted) / Double(entry.tasksTotal)) * 100)) percent complete"))
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Task progress: \(entry.tasksCompleted) of \(entry.tasksTotal) tasks completed")
 
             // Next task
             if let nextTask = entry.nextTask {
@@ -103,11 +190,22 @@ struct PetProgressWidgetEntryView : View {
                         .foregroundColor(.secondary)
                 }
                 .padding(.top, 4)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Next task: \(nextTask.title) at \(timeString(from: nextTask.time))")
+            } else {
+                Text("All tasks completed!")
+                    .font(.caption)
+                    .foregroundColor(.green)
+                    .padding(.top, 4)
+                    .accessibilityLabel("All tasks completed for today")
             }
 
             Spacer()
         }
         .padding()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Pet Progress Widget")
+        .accessibilityHint("Shows your pet's progress and today's task completion status")
     }
 
     private func timeString(from dateComponents: DateComponents) -> String {
@@ -133,6 +231,6 @@ struct PetProgressWidget: Widget {
         }
         .configurationDisplayName("Pet Progress")
         .description("Track your daily tasks and watch your pet grow!")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular])
     }
 }

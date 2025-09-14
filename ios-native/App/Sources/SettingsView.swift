@@ -12,9 +12,10 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Grace Period")
                             .font(.headline)
+                            .foregroundStyle(.primary)
                         Text("Tasks completed within this window count as on-time")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
 
                         Picker("Grace Minutes", selection: Binding(
                             get: { dataStore.state.graceMinutes },
@@ -39,9 +40,11 @@ struct SettingsView: View {
                     Button("Reset All Data") {
                         dataStore.showResetConfirmation = true
                     }
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

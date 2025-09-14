@@ -4,6 +4,15 @@ import SharedKit
 
 public enum TaskUpdater {
     public static func markNextDone(dayKey: String) async throws {
+        // Parameter validation
+        guard !dayKey.isEmpty,
+              dayKey.count == 10, // Expected format: YYYY-MM-DD
+              dayKey.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
+        else {
+            throw NSError(domain: "TaskUpdater", code: 3, userInfo: [
+                NSLocalizedDescriptionKey: "Invalid parameter: dayKey"
+            ])
+        }
         let shared = SharedStore()
         guard var state = try? shared.loadState() else { return }
 
@@ -48,7 +57,17 @@ public enum TaskUpdater {
     }
 
     public static func complete(taskId: String, dayKey: String) async throws {
-        guard let taskUUID = UUID(uuidString: taskId) else { return }
+        // Parameter validation
+        guard !taskId.isEmpty,
+              let taskUUID = UUID(uuidString: taskId),
+              !dayKey.isEmpty,
+              dayKey.count == 10, // Expected format: YYYY-MM-DD
+              dayKey.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
+        else {
+            throw NSError(domain: "TaskUpdater", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "Invalid parameters: taskId or dayKey"
+            ])
+        }
 
         let shared = SharedStore()
         guard var state = try? shared.loadState() else { return }
@@ -86,7 +105,17 @@ public enum TaskUpdater {
     }
 
     public static func snoozeNextTask(taskId: String, dayKey: String) async throws {
-        guard let taskUUID = UUID(uuidString: taskId) else { return }
+        // Parameter validation
+        guard !taskId.isEmpty,
+              let taskUUID = UUID(uuidString: taskId),
+              !dayKey.isEmpty,
+              dayKey.count == 10, // Expected format: YYYY-MM-DD
+              dayKey.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
+        else {
+            throw NSError(domain: "TaskUpdater", code: 2, userInfo: [
+                NSLocalizedDescriptionKey: "Invalid parameters: taskId or dayKey"
+            ])
+        }
 
         let shared = SharedStore()
         guard var state = try? shared.loadState() else { return }

@@ -13,7 +13,7 @@ struct TaskRowView: View {
                 }
             }) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.isCompleted ? .green : .gray)
+                    .foregroundStyle(task.isCompleted ? .green : .secondary)
                     .font(.title2)
             }
             .buttonStyle(PlainButtonStyle())
@@ -22,11 +22,11 @@ struct TaskRowView: View {
                 Text(task.title)
                     .font(.body)
                     .strikethrough(task.isCompleted, color: .primary)
-                    .foregroundColor(task.isCompleted ? .secondary : .primary)
+                    .foregroundStyle(task.isCompleted ? .secondary : .primary)
 
                 Text(timeString(from: task.time))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -44,11 +44,12 @@ struct TaskRowView: View {
                     }
                 } label: {
                     Image(systemName: "clock")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
             }
         }
         .padding(.vertical, 4)
+        .listRowBackground(Color(.systemBackground))
     }
 
     private func timeString(from dateComponents: DateComponents) -> String {

@@ -176,6 +176,26 @@ final class DataStore: ObservableObject {
 
     func routeToPlanner() { showPlanner = true }
 
+    func addTask(_ task: TaskItem) {
+        // Validate task before adding
+        guard task.isValid else {
+            print("Warning: Attempted to add invalid task: \(task)")
+            return
+        }
+
+        state.tasks.append(task)
+        persist()
+    }
+
+    func deleteTask(_ taskID: UUID) {
+        state.tasks.removeAll { $0.id == taskID }
+        // Also remove from completions if it was completed
+        for dayKey in state.completions.keys {
+            state.completions[dayKey]?.remove(taskID)
+        }
+        persist()
+    }
+
     func updateGraceMinutes(_ minutes: Int) {
         state.graceMinutes = minutes
         persist()

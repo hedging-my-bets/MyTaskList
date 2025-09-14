@@ -27,7 +27,7 @@ struct ContentView: View {
                         .frame(width: 200)
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color(.secondarySystemGroupedBackground))
                 .cornerRadius(12)
 
                 // Task Summary
@@ -48,15 +48,43 @@ struct ContentView: View {
 
                 // Task List
                 List {
-                    ForEach(dataStore.todayTasksSorted, id: \.id) { task in
-                        TaskRowView(task: task)
+                    if dataStore.todayTasksSorted.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.secondary)
+                            Text("No tasks today")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                            Text("Tap the + button to add your first task")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color(.systemBackground))
+                    } else {
+                        ForEach(dataStore.todayTasksSorted, id: \.id) { task in
+                            TaskRowView(task: task)
+                        }
                     }
                 }
+                .scrollContentBackground(.hidden)
 
                 Spacer()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("PetProgress")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dataStore.showPlanner = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Settings") {
                         dataStore.showSettings = true
@@ -65,6 +93,10 @@ struct ContentView: View {
             }
             .sheet(isPresented: $dataStore.showSettings) {
                 SettingsView()
+                    .environmentObject(dataStore)
+            }
+            .sheet(isPresented: $dataStore.showPlanner) {
+                AddTaskView()
                     .environmentObject(dataStore)
             }
         }
