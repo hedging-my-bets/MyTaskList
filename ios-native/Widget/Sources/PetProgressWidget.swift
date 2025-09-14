@@ -49,12 +49,37 @@ struct Provider: AppIntentTimelineProvider {
 
     func getTimeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let now = Date()
-        let dayModel = loadOrCreateDayModel()
-        let entries: [SimpleEntry] = [SimpleEntry(date: now, dayModel: dayModel)]
 
-        // Refresh at next hour
-        let nextHour = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
+        // Calculate next top of hour for timeline alignment
+        let nextHour = Calendar.current.nextDate(
+            after: now,
+            matching: DateComponents(minute: 0, second: 0),
+            matchingPolicy: .nextTime,
+            direction: .forward
+        ) ?? now.addingTimeInterval(3600)
+
+        logger.info("Building timeline from \(now) to next hour at \(nextHour)")
+
+        // Build entries for next 12 hours, aligned to top of hour
+        var entries: [SimpleEntry] = []
+        var entryDate = nextHour
+
+        for hourOffset in 0..<12 {
+            let dayModel = loadDayModelForDate(entryDate)
+            let entry = SimpleEntry(date: entryDate, dayModel: dayModel)
+            entries.append(entry)
+
+            entryDate = Calendar.current.date(byAdding: .hour, value: 1, to: entryDate) ?? entryDate.addingTimeInterval(3600)
+        }
+
+        // Add current entry if we're not at top of hour yet
+        if Calendar.current.component(.minute, from: now) != 0 || Calendar.current.component(.second, from: now) != 0 {
+            let currentEntry = SimpleEntry(date: now, dayModel: loadOrCreateDayModel())
+            entries.insert(currentEntry, at: 0)
+        }
+
         let timeline = Timeline(entries: entries, policy: .after(nextHour))
+        logger.info("Timeline built with \(entries.count) entries, next refresh at \(nextHour)")
 
         completion(timeline)
     }
@@ -64,6 +89,11 @@ struct Provider: AppIntentTimelineProvider {
         return SharedStore.shared.getCurrentDayModel() ?? createPlaceholderModel()
     }
 
+    private func loadDayModelForDate(_ date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        return SharedStore.shared.loadDay(key: dayKey) ?? createPlaceholderModelForDate(date)
+    }
+
     private func createPlaceholderModel() -> DayModel {
         return DayModel(
             key: TimeSlot.todayKey(),
@@ -71,6 +101,20 @@ struct Provider: AppIntentTimelineProvider {
                 DayModel.Slot(hour: 9, title: "Morning task", isDone: false),
                 DayModel.Slot(hour: 14, title: "Afternoon task", isDone: true),
                 DayModel.Slot(hour: 18, title: "Evening task", isDone: false)
+            ],
+            points: 25
+        )
+    }
+
+    private func createPlaceholderModelForDate(_ date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        let hour = Calendar.current.component(.hour, from: date)
+
+        // Create a single task for the current hour
+        return DayModel(
+            key: dayKey,
+            slots: [
+                DayModel.Slot(hour: hour, title: "Task at \(hour):00", isDone: false)
             ],
             points: 25
         )
@@ -206,6 +250,7 @@ struct RectangularLockScreenView: View {
 
     private var nextIncompleteTask: DayModel.Slot? {
         let currentHour = Calendar.current.component(.hour, from: entry.date)
+        // Show task for current hour or next upcoming task
         return entry.dayModel.slots.first { slot in
             slot.hour >= currentHour && !slot.isDone
         }
