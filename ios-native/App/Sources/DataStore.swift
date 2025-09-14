@@ -172,7 +172,11 @@ final class DataStore: ObservableObject {
         PetEngine.onDailyCloseout(rate: rate, pet: &petCopy, cfg: cfg, dayKey: today)
         state.pet = petCopy
 
+        // Process missed tasks for immediate pet consequences
+        processMissedTasks(yesterdayTasks: yesterdayTasks, petCopy: &petCopy, cfg: cfg)
+
         // Archive yesterday (no-op here) and seed today (no rollover by default)
+        state.pet = petCopy
         state.pet.lastCloseoutDayKey = today
         state.dayKey = today
         if state.rolloverEnabled {
@@ -219,6 +223,43 @@ final class DataStore: ObservableObject {
     private func triggerHapticFeedback(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(type)
+    }
+
+    private func processMissedTasks(yesterdayTasks: [TaskItem], petCopy: inout PetState, cfg: StageCfg) {
+        let now = Date()
+        let calendar = Calendar.current
+
+        // Find tasks that were clearly missed (not completed and time has passed)
+        let missedTasks = yesterdayTasks.filter { task in
+            guard !task.isCompleted else { return false }
+
+            // Check if task time has passed significantly (more than grace period + 2 hours)
+            let taskTime = calendar.date(bySettingHour: task.scheduledAt.hour ?? 0,
+                                       minute: task.scheduledAt.minute ?? 0,
+                                       second: 0,
+                                       of: now) ?? now
+
+            let cutoffTime = taskTime.addingTimeInterval(TimeInterval((state.graceMinutes + 120) * 60))
+            return now > cutoffTime
+        }
+
+        // Apply onMiss penalty for each clearly missed task
+        let oldStageIndex = petCopy.stageIndex
+        for _ in missedTasks {
+            PetEngine.onMiss(pet: &petCopy, cfg: cfg)
+        }
+
+        // Show user feedback about pet consequences
+        if missedTasks.count > 0 {
+            let stageChange = petCopy.stageIndex - oldStageIndex
+            if stageChange < 0 {
+                showErrorMessage("Your pet lost \(abs(stageChange)) stage(s) due to \(missedTasks.count) missed tasks 😢")
+                triggerHapticFeedback(.warning)
+            } else if missedTasks.count > 0 {
+                showErrorMessage("Your pet lost XP due to \(missedTasks.count) missed tasks")
+                triggerHapticFeedback(.warning)
+            }
+        }
     }
 
     public func replaceState(_ newState: AppState) {
