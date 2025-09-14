@@ -173,15 +173,24 @@ struct CircularLockScreenView: View {
     }
 
     private var currentStage: Int {
-        engine.stageIndex(for: entry.dayModel.points)
+        // Always get fresh pet stage from current data, not cached entry
+        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
+            return engine.stageIndex(for: entry.dayModel.points)
+        }
+        return engine.stageIndex(for: currentDay.points)
     }
 
     private var progressToNextStage: Double {
-        // Simplified progress calculation
-        let stage = currentStage
+        // Use fresh data for accurate progress calculation
+        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
+            let progress = Double(entry.dayModel.points % 50) / 50.0
+            return max(0.0, min(1.0, progress))
+        }
+
+        let stage = engine.stageIndex(for: currentDay.points)
         if stage >= 15 { return 1.0 }
 
-        let progress = Double(entry.dayModel.points % 50) / 50.0
+        let progress = Double(currentDay.points % 50) / 50.0
         return max(0.0, min(1.0, progress))
     }
 }
@@ -198,7 +207,7 @@ struct RectangularLockScreenView: View {
                 Text("Stage \(currentStage + 1)")
                     .font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Text("\(entry.dayModel.points) XP")
+                Text("\(currentXP) XP")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -260,29 +269,51 @@ struct RectangularLockScreenView: View {
     }
 
     private var currentStage: Int {
+        // Always get fresh pet stage from current data, not cached entry
+        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
+            let engine = PetEvolutionEngine()
+            return engine.stageIndex(for: entry.dayModel.points)
+        }
         let engine = PetEvolutionEngine()
-        return engine.stageIndex(for: entry.dayModel.points)
+        return engine.stageIndex(for: currentDay.points)
+    }
+
+    private var currentXP: Int {
+        // Always get fresh XP from current data, not cached entry
+        return SharedStore.shared.getCurrentDayModel()?.points ?? entry.dayModel.points
     }
 
     private var nextIncompleteTask: DayModel.Slot? {
+        // Always use fresh data for task navigation
+        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
+            return entry.dayModel.slots.first { !$0.isDone }
+        }
+
         // Get widget focus index from App Group
         let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
         let focusIndex = sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
 
-        // Get tasks for current hour or later
+        // Get tasks for current hour or later using fresh data
         let currentHour = Calendar.current.component(.hour, from: entry.date)
-        let availableTasks = entry.dayModel.slots.filter { slot in
+        let availableTasks = currentDay.slots.filter { slot in
             slot.hour >= currentHour && !slot.isDone
         }
 
-        // Return task at focus index, or first available task if index out of bounds
-        if focusIndex < availableTasks.count {
-            return availableTasks[focusIndex]
-        } else {
-            // Reset focus index if out of bounds
+        // Validate and clamp focus index
+        guard !availableTasks.isEmpty else {
+            // Reset focus when no tasks available
             sharedDefaults?.set(0, forKey: "widget_focus_index")
-            return availableTasks.first
+            return nil
         }
+
+        // Clamp focus index to valid range
+        let validIndex = min(max(0, focusIndex), availableTasks.count - 1)
+        if validIndex != focusIndex {
+            // Auto-correct invalid focus index
+            sharedDefaults?.set(validIndex, forKey: "widget_focus_index")
+        }
+
+        return availableTasks[validIndex]
     }
 }
 

@@ -3,6 +3,7 @@ import AppIntents
 import SharedKit
 import os.log
 import WidgetKit
+import UIKit
 
 // MARK: - Complete Task Intent
 
@@ -28,12 +29,33 @@ struct CompleteTaskIntent: AppIntent {
         let completedTasks = updatedDay.slots.filter { $0.isDone }
         let taskName = completedTasks.last?.title ?? "Task"
 
+        // Check for level up and provide appropriate feedback
+        let oldPoints = updatedDay.points - 5  // Points before this completion
+        let oldStage = PetEvolutionEngine().stageIndex(for: oldPoints)
+        let newStage = PetEvolutionEngine().stageIndex(for: updatedDay.points)
+
+        // Provide haptic feedback
+        if newStage > oldStage {
+            // Level up! Celebration haptic
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+        } else {
+            // Regular completion haptic
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+
         // Refresh widgets immediately
         WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Task '\(taskName)' completed via SharedStore.markNextDone")
 
-        return .result(dialog: IntentDialog("✅ \(taskName) completed!"))
+        let dialogText = newStage > oldStage ?
+            "🎉 \(taskName) completed! Level up to Stage \(newStage + 1)!" :
+            "✅ \(taskName) completed!"
+
+        return .result(dialog: IntentDialog(dialogText))
     }
 }
 
@@ -68,6 +90,9 @@ struct SkipTaskIntent: AppIntent {
         // Advance the widget focus index to skip this task
         let currentIndex = getCurrentWidgetIndex()
         setCurrentWidgetIndex(currentIndex + 1)
+
+        // Provide subtle haptic feedback for skip action
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
         // Refresh widgets to show next task
         WidgetCenter.shared.reloadAllTimelines()
@@ -113,6 +138,10 @@ struct ShowNextTaskIntent: AppIntent {
         let newIndex = min(currentIndex + 1, availableTasks.count - 1)
 
         setCurrentWidgetIndex(newIndex)
+
+        // Provide subtle haptic feedback for navigation
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
         WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Advanced to next task (index: \(newIndex)/\(availableTasks.count))")
@@ -154,6 +183,10 @@ struct ShowPreviousTaskIntent: AppIntent {
         let newIndex = max(0, currentIndex - 1)
 
         setCurrentWidgetIndex(newIndex)
+
+        // Provide subtle haptic feedback for navigation
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
         WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Moved to previous task (index: \(newIndex)/\(availableTasks.count))")
