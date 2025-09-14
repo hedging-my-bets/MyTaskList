@@ -265,10 +265,23 @@ struct RectangularLockScreenView: View {
     }
 
     private var nextIncompleteTask: DayModel.Slot? {
+        // Get widget focus index from App Group
+        let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+        let focusIndex = sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
+
+        // Get tasks for current hour or later
         let currentHour = Calendar.current.component(.hour, from: entry.date)
-        // Show task for current hour or next upcoming task
-        return entry.dayModel.slots.first { slot in
+        let availableTasks = entry.dayModel.slots.filter { slot in
             slot.hour >= currentHour && !slot.isDone
+        }
+
+        // Return task at focus index, or first available task if index out of bounds
+        if focusIndex < availableTasks.count {
+            return availableTasks[focusIndex]
+        } else {
+            // Reset focus index if out of bounds
+            sharedDefaults?.set(0, forKey: "widget_focus_index")
+            return availableTasks.first
         }
     }
 }

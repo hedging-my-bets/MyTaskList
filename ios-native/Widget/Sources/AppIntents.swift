@@ -18,31 +18,22 @@ struct CompleteTaskIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
-              !currentDay.slots.isEmpty else {
-            logger.warning("No tasks available")
+        // Use SharedStore's proper method for marking next task done
+        guard let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) else {
+            logger.warning("No tasks available to complete")
             throw AppIntentError.noTasksAvailable
         }
 
-        let currentHour = TimeSlot.hourIndex(for: now)
-        guard let nextTaskIndex = currentDay.slots.firstIndex(where: { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }) else {
-            logger.info("All tasks completed")
-            throw AppIntentError.allTasksComplete
-        }
+        // Find the completed task for feedback
+        let completedTasks = updatedDay.slots.filter { $0.isDone }
+        let taskName = completedTasks.last?.title ?? "Task"
 
-        let task = currentDay.slots[nextTaskIndex]
-
-        // Complete the task
-        SharedStore.shared.updateTaskCompletion(taskIndex: nextTaskIndex, completed: true, dayKey: dayKey)
-
-        // Refresh widgets
+        // Refresh widgets immediately
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Task '\(task.title)' completed")
+        logger.info("Task '\(taskName)' completed via SharedStore.markNextDone")
 
-        return .result(dialog: IntentDialog("✅ Task '\(task.title)' completed!"))
+        return .result(dialog: IntentDialog("✅ \(taskName) completed!"))
     }
 }
 
@@ -51,41 +42,39 @@ struct CompleteTaskIntent: AppIntent {
 @available(iOS 17.0, *)
 struct SkipTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Skip Task"
-    static var description = IntentDescription("Skips the current task")
+    static var description = IntentDescription("Skips the current task without marking it done")
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "SkipTask")
 
         let now = Date()
+        let dayKey = TimeSlot.dayKey(for: now)
 
         guard let currentDay = SharedStore.shared.getCurrentDayModel(),
               !currentDay.slots.isEmpty else {
-            logger.warning("No tasks available")
+            logger.warning("No tasks available to skip")
             throw AppIntentError.noTasksAvailable
         }
 
         let currentHour = TimeSlot.hourIndex(for: now)
-        guard let nextTask = currentDay.slots.first(where: { slot in
+        guard let taskToSkip = currentDay.slots.first(where: { slot in
             slot.hour >= currentHour && !slot.isDone
         }) else {
-            logger.info("No tasks to skip")
+            logger.info("No incomplete tasks to skip")
             throw AppIntentError.allTasksComplete
         }
 
-        // Mark as skipped and refresh widgets
-        if let nextTaskIndex = currentDay.slots.firstIndex(where: { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }) {
-            // For now, we'll just advance past this task - future: add "skipped" state
-            logger.info("Task '\(nextTask.title)' marked as skipped")
-        }
+        // Advance the widget focus index to skip this task
+        let currentIndex = getCurrentWidgetIndex()
+        setCurrentWidgetIndex(currentIndex + 1)
 
+        // Refresh widgets to show next task
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Task '\(nextTask.title)' skipped")
+        logger.info("Skipped task '\(taskToSkip.title)' by advancing widget index")
 
-        return .result(dialog: IntentDialog("⏭️ Task '\(nextTask.title)' skipped"))
+        return .result(dialog: IntentDialog("⏭️ Skipped: \(taskToSkip.title)"))
     }
 }
 
@@ -100,17 +89,33 @@ struct ShowNextTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "NextTask")
 
-        // Get current widget focus index from shared storage
+        let now = Date()
+
+        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
+              !currentDay.slots.isEmpty else {
+            logger.warning("No tasks available")
+            throw AppIntentError.noTasksAvailable
+        }
+
+        // Get available tasks for bounds checking
+        let currentHour = TimeSlot.hourIndex(for: now)
+        let availableTasks = currentDay.slots.filter { slot in
+            slot.hour >= currentHour && !slot.isDone
+        }
+
+        guard !availableTasks.isEmpty else {
+            logger.info("No incomplete tasks available")
+            throw AppIntentError.allTasksComplete
+        }
+
+        // Get current index and advance with bounds checking
         let currentIndex = getCurrentWidgetIndex()
-        let newIndex = currentIndex + 1
+        let newIndex = min(currentIndex + 1, availableTasks.count - 1)
 
-        // Store new index
         setCurrentWidgetIndex(newIndex)
-
-        // Refresh widgets to show new task
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Advanced to next task (index: \(newIndex))")
+        logger.info("Advanced to next task (index: \(newIndex)/\(availableTasks.count))")
 
         return .result(dialog: IntentDialog("➡️ Next task"))
     }
@@ -125,17 +130,33 @@ struct ShowPreviousTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "PrevTask")
 
-        // Get current widget focus index from shared storage
+        let now = Date()
+
+        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
+              !currentDay.slots.isEmpty else {
+            logger.warning("No tasks available")
+            throw AppIntentError.noTasksAvailable
+        }
+
+        // Get available tasks for bounds checking
+        let currentHour = TimeSlot.hourIndex(for: now)
+        let availableTasks = currentDay.slots.filter { slot in
+            slot.hour >= currentHour && !slot.isDone
+        }
+
+        guard !availableTasks.isEmpty else {
+            logger.info("No incomplete tasks available")
+            throw AppIntentError.allTasksComplete
+        }
+
+        // Get current index and go back with bounds checking
         let currentIndex = getCurrentWidgetIndex()
         let newIndex = max(0, currentIndex - 1)
 
-        // Store new index
         setCurrentWidgetIndex(newIndex)
-
-        // Refresh widgets to show new task
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Moved to previous task (index: \(newIndex))")
+        logger.info("Moved to previous task (index: \(newIndex)/\(availableTasks.count))")
 
         return .result(dialog: IntentDialog("⬅️ Previous task"))
     }
@@ -144,12 +165,12 @@ struct ShowPreviousTaskIntent: AppIntent {
 // MARK: - Widget Focus Index Helpers
 
 private func getCurrentWidgetIndex() -> Int {
-    let sharedDefaults = UserDefaults(suiteName: "group.com.petprogress.shared")
+    let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
     return sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
 }
 
 private func setCurrentWidgetIndex(_ index: Int) {
-    let sharedDefaults = UserDefaults(suiteName: "group.com.petprogress.shared")
+    let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
     sharedDefaults?.set(index, forKey: "widget_focus_index")
 }
 
