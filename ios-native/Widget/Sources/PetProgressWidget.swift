@@ -1,6 +1,7 @@
 import WidgetKit
 import SwiftUI
 import SharedKit
+import AppIntents
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
@@ -176,28 +177,61 @@ struct StandardWidgetView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Task progress: \(entry.tasksCompleted) of \(entry.tasksTotal) tasks completed")
 
-            // Next task
+            // Next task with interactive buttons
             if let nextTask = entry.nextTask {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Next:")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    Text(nextTask.title)
-                        .font(.caption)
-                        .lineLimit(1)
-                    Text(timeString(from: nextTask.time))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Next:")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(nextTask.title)
+                                .font(.caption)
+                                .lineLimit(1)
+                            Text(timeString(from: nextTask.time))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        // Interactive buttons for iOS 16+
+                        if #available(iOS 16.0, *) {
+                            HStack(spacing: 8) {
+                                Button(intent: CompleteTaskIntent(taskId: nextTask.id.uuidString, dayKey: SharedKit.dayKey(for: entry.date))) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button(intent: SnoozeTaskIntent(taskId: nextTask.id.uuidString, dayKey: SharedKit.dayKey(for: entry.date))) {
+                                    Image(systemName: "clock.fill")
+                                        .foregroundStyle(.orange)
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
                 }
                 .padding(.top, 4)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Next task: \(nextTask.title) at \(timeString(from: nextTask.time))")
+                .accessibilityLabel("Next task: \(nextTask.title) at \(timeString(from: nextTask.time)). Tap checkmark to complete or clock to snooze.")
             } else {
-                Text("All tasks completed!")
-                    .font(.caption)
-                    .foregroundColor(.green)
-                    .padding(.top, 4)
-                    .accessibilityLabel("All tasks completed for today")
+                HStack {
+                    Text("All tasks completed!")
+                        .font(.caption)
+                        .foregroundColor(.green)
+
+                    Spacer()
+
+                    Image(systemName: "party.popper.fill")
+                        .foregroundStyle(.green)
+                        .font(.caption)
+                }
+                .padding(.top, 4)
+                .accessibilityLabel("All tasks completed for today")
             }
 
             Spacer()

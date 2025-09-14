@@ -25,6 +25,7 @@ struct ContentView: View {
                     ProgressView(value: Double(dataStore.pet.stageXP), total: Double(dataStore.currentThreshold))
                         .progressViewStyle(LinearProgressViewStyle())
                         .frame(width: 200)
+                        .animation(.easeInOut(duration: 0.8), value: dataStore.pet.stageXP)
                 }
                 .padding()
                 .background(Color(.secondarySystemGroupedBackground))
@@ -42,6 +43,7 @@ struct ContentView: View {
                     if dataStore.tasksTotal > 0 {
                         ProgressView(value: Double(dataStore.tasksDone), total: Double(dataStore.tasksTotal))
                             .progressViewStyle(LinearProgressViewStyle())
+                            .animation(.easeInOut(duration: 0.5), value: dataStore.tasksDone)
                     }
                 }
                 .padding()
@@ -98,6 +100,16 @@ struct ContentView: View {
             .sheet(isPresented: $dataStore.showPlanner) {
                 AddTaskView()
                     .environmentObject(dataStore)
+            }
+            .alert("Error", isPresented: $dataStore.showError) {
+                Button("OK") {}
+            } message: {
+                Text(dataStore.errorMessage)
+            }
+            .alert("Success", isPresented: $dataStore.showSuccess) {
+                Button("OK") {}
+            } message: {
+                Text(dataStore.successMessage)
             }
         }
     }

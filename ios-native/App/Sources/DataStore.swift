@@ -10,6 +10,10 @@ final class DataStore: ObservableObject {
     @Published var showWidgetInstructions: Bool = false
     @Published var showSettings: Bool = false
     @Published var showResetConfirmation: Bool = false
+    @Published var showError: Bool = false
+    @Published var errorMessage: String = ""
+    @Published var showSuccess: Bool = false
+    @Published var successMessage: String = ""
 
     private let sharedStore = SharedStore()
     private let stageLoader = StageConfigLoader()
@@ -71,8 +75,27 @@ final class DataStore: ObservableObject {
 
         var petCopy = state.pet
         let cfg = (try? stageLoader.load()) ?? StageCfg.defaultConfig()
+        let oldXP = petCopy.stageXP
+        let oldStage = petCopy.stageIndex
+
         PetEngine.onCheck(onTime: onTime, pet: &petCopy, cfg: cfg)
         state.pet = petCopy
+
+        // Haptic feedback and success messages
+        if onTime {
+            triggerHapticFeedback(.success)
+            showSuccessMessage("Task completed on time! +XP earned")
+        } else {
+            triggerHapticFeedback(.warning)
+            showSuccessMessage("Task completed")
+        }
+
+        // Level up celebration
+        if petCopy.stageIndex > oldStage {
+            triggerHapticFeedback(.success)
+            showSuccessMessage("🎉 Your pet leveled up to Stage \(petCopy.stageIndex)!")
+        }
+
         persist()
     }
 
@@ -166,7 +189,36 @@ final class DataStore: ObservableObject {
 
     private func persist() {
         objectWillChange.send()
-        try? sharedStore.saveState(state)
+        do {
+            try sharedStore.saveState(state)
+        } catch {
+            showErrorMessage("Failed to save data: \(error.localizedDescription)")
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
+
+        // Auto-dismiss after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            self.showError = false
+        }
+    }
+
+    private func showSuccessMessage(_ message: String) {
+        successMessage = message
+        showSuccess = true
+
+        // Auto-dismiss after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.showSuccess = false
+        }
+    }
+
+    private func triggerHapticFeedback(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(type)
     }
 
     public func replaceState(_ newState: AppState) {
@@ -179,20 +231,77 @@ final class DataStore: ObservableObject {
     func addTask(_ task: TaskItem) {
         // Validate task before adding
         guard task.isValid else {
-            print("Warning: Attempted to add invalid task: \(task)")
+            showErrorMessage("Unable to add task: Invalid task details")
+            return
+        }
+
+        // Check for duplicate tasks at the same time
+        let existingTask = state.tasks.first { existing in
+            existing.dayKey == task.dayKey &&
+            existing.scheduledAt.hour == task.scheduledAt.hour &&
+            existing.scheduledAt.minute == task.scheduledAt.minute
+        }
+
+        if let existing = existingTask {
+            showErrorMessage("A task is already scheduled at \(timeString(from: task.scheduledAt))")
             return
         }
 
         state.tasks.append(task)
         persist()
+        showSuccessMessage("Task '\(task.title)' added successfully!")
+    }
+
+    private func timeString(from dateComponents: DateComponents) -> String {
+        let hour = dateComponents.hour ?? 0
+        let minute = dateComponents.minute ?? 0
+        return String(format: "%02d:%02d", hour, minute)
     }
 
     func deleteTask(_ taskID: UUID) {
+        guard let taskToDelete = state.tasks.first(where: { $0.id == taskID }) else {
+            showErrorMessage("Task not found")
+            return
+        }
+
         state.tasks.removeAll { $0.id == taskID }
         // Also remove from completions if it was completed
         for dayKey in state.completions.keys {
             state.completions[dayKey]?.remove(taskID)
         }
+
+        triggerHapticFeedback(.warning)
+        showSuccessMessage("Task '\(taskToDelete.title)' deleted")
+        persist()
+    }
+
+    func updateTask(_ updatedTask: TaskItem) {
+        guard updatedTask.isValid else {
+            showErrorMessage("Unable to update task: Invalid task details")
+            return
+        }
+
+        guard let index = state.tasks.firstIndex(where: { $0.id == updatedTask.id }) else {
+            showErrorMessage("Task not found")
+            return
+        }
+
+        // Check for time conflicts with other tasks (excluding this one)
+        let conflictingTask = state.tasks.first { existing in
+            existing.id != updatedTask.id &&
+            existing.dayKey == updatedTask.dayKey &&
+            existing.scheduledAt.hour == updatedTask.scheduledAt.hour &&
+            existing.scheduledAt.minute == updatedTask.scheduledAt.minute
+        }
+
+        if let existing = conflictingTask {
+            showErrorMessage("Another task is already scheduled at \(timeString(from: updatedTask.scheduledAt))")
+            return
+        }
+
+        state.tasks[index] = updatedTask
+        triggerHapticFeedback(.success)
+        showSuccessMessage("Task updated successfully")
         persist()
     }
 

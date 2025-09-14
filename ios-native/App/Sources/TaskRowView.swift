@@ -4,6 +4,7 @@ import SharedKit
 struct TaskRowView: View {
     let task: MaterializedTask
     @EnvironmentObject var dataStore: DataStore
+    @State private var showEditSheet: Bool = false
 
     var body: some View {
         HStack {
@@ -50,6 +51,17 @@ struct TaskRowView: View {
         }
         .padding(.vertical, 4)
         .listRowBackground(Color(.systemBackground))
+        .onLongPressGesture {
+            if !task.isCompleted {
+                showEditSheet = true
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            if let originalTask = dataStore.state.tasks.first(where: { $0.id == task.id }) {
+                EditTaskView(task: originalTask)
+                    .environmentObject(dataStore)
+            }
+        }
     }
 
     private func timeString(from dateComponents: DateComponents) -> String {

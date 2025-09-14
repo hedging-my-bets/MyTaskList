@@ -49,6 +49,8 @@ targets:
         buildPhase: resources
       - path: App/PrivacyInfo.xcprivacy
         buildPhase: resources
+      - path: App/LaunchScreen.storyboard
+        buildPhase: resources
     dependencies:
       - target: SharedKit
       - target: PetProgressWidget
