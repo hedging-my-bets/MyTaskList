@@ -1,0 +1,42 @@
+name: Claude Code PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'ios-native/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  claude-review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Claude Code Review
+      uses: anthropics/claude-code@v1
+      with:
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        review_level: 'comprehensive'
+        focus_areas: |
+          - iOS Swift code quality and best practices
+          - Widget and App Intents implementation
+          - SharedKit framework architecture
+          - Memory management and performance
+          - App Group configuration and security
+          - Pet evolution logic correctness
+        exclude_patterns: |
+          - "*.xcodeproj/**"
+          - "build/**"
+          - "*.DS_Store"
+          - "DerivedData/**"

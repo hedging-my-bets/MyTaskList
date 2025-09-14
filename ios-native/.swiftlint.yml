@@ -1,0 +1,86 @@
+# SwiftLint Configuration for Pet Progress iOS App
+
+# Paths to include in linting
+included:
+  - App/Sources
+  - Widget/Sources
+  - SharedKit/Sources
+
+# Paths to exclude from linting
+excluded:
+  - build
+  - .build
+  - Pods
+  - Carthage
+  - .git
+
+# Rule configuration
+disabled_rules:
+  - trailing_whitespace  # Allow trailing whitespace for now
+  - todo                 # Allow TODO comments during development
+
+opt_in_rules:
+  - empty_count
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - sorted_imports
+  - vertical_parameter_alignment
+
+# Custom rule settings
+line_length:
+  warning: 120
+  error: 150
+  ignores_comments: true
+  ignores_urls: true
+
+function_body_length:
+  warning: 60
+  error: 100
+
+type_body_length:
+  warning: 300
+  error: 400
+
+file_length:
+  warning: 400
+  error: 500
+
+identifier_name:
+  min_length:
+    warning: 1
+    error: 0
+  max_length:
+    warning: 40
+    error: 60
+  excluded:
+    - id
+    - x
+    - y
+    - z
+
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+nesting:
+  type_level:
+    warning: 2
+  statement_level:
+    warning: 5
+
+# Custom rules for our project
+custom_rules:
+  no_hardcoded_strings:
+    name: "No Hardcoded Strings"
+    regex: '(Text|title|message)\s*\(\s*"[^"]*"'
+    message: "Consider using localized strings instead of hardcoded text"
+    severity: warning
+
+  proper_spacing:
+    name: "Proper Spacing"
+    regex: '(?:if|while|for|switch)\('
+    message: "Add space after control flow keywords"
+    severity: warning
+
+reporter: "xcode" # Change to "github-actions-logging" in CI

@@ -15,7 +15,8 @@
       "Bash(xcodebuild:*)",
       "Bash(chmod:*)",
       "Bash(python:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(swift:*)"
     ],
     "deny": [],
     "ask": []

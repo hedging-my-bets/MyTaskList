@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.petprogress.app</string>
+		<string>group.hedging-my-bets.mytasklist</string>
 	</array>
 </dict>
 </plist>

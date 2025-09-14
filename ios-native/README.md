@@ -1,25 +1,53 @@
-## PetProgress (iOS 17+ SwiftUI + WidgetKit)
+# Pet Progress - iOS 17+ Interactive Widget App
 
-PetProgress is a native SwiftUI app with a Lock Screen widget that evolves a cute pet as you complete time-slotted to-dos. The widget updates visuals only once per hour using pre-scheduled timeline entries and never forces reloads.
+A gamified task tracking app for iOS 17+ featuring interactive widgets, pet evolution, and a clean SharedKit architecture.
 
-## 16 Stages (Ocean → Land → People → Boss)
+## 🎯 Features
 
-1. **Frog** (pet_frog) - threshold: 10 XP
-2. **Hermit Crab** (pet_hermit) - threshold: 25 XP
-3. **Seahorse** (pet_seahorse) - threshold: 40 XP
-4. **Dolphin** (pet_dolphin) - threshold: 55 XP
-5. **Alligator** (pet_alligator) - threshold: 75 XP
-6. **Beaver** (pet_beaver) - threshold: 95 XP
-7. **Wolf** (pet_wolf) - threshold: 120 XP
-8. **Bear** (pet_bear) - threshold: 145 XP
-9. **Bison** (pet_bison) - threshold: 175 XP
-10. **Elephant** (pet_elephant) - threshold: 205 XP
-11. **Rhino** (pet_rhino) - threshold: 240 XP
-12. **Baby** (pet_baby) - threshold: 285 XP
-13. **Toddler** (pet_toddler) - threshold: 335 XP
-14. **Adult** (pet_adult) - threshold: 390 XP
-15. **CEO** (pet_ceo) - threshold: 450 XP
-16. **Gold** (pet_gold) - threshold: 0 XP (terminal)
+- **Interactive Widgets**: iOS 17+ widgets with Button(intent:) for lock-screen interaction
+- **Pet Evolution**: 16-stage pet progression system based on task completion
+- **Smart Scheduling**: DST-safe timeline with automatic hourly refresh
+- **App Group Storage**: Seamless data sharing between app and widget
+- **3-Row Task Feed**: Clean, focused task display showing next 3 tasks
+- **App Intents**: Complete, Snooze, and Mark-Next actions from widgets
+
+## 🏗 Architecture
+
+### SharedKit Framework
+Eliminates dependency cycles by providing shared components:
+- **TimeSlot**: DST-safe time utilities
+- **DayModel**: Task and progress data structures
+- **PetEvolutionEngine**: 16-stage pet progression logic
+- **SharedStore**: App Group persistence layer
+- **TaskPlanner**: Intelligent task scheduling
+- **AssetPipeline**: Deterministic asset management with SF Symbol fallbacks
+
+### Target Dependencies
+```
+App ←→ SharedKit ←→ Widget
+```
+Clean separation with no cycles between App and Widget targets.
+
+## 🎨 Pet Evolution Stages (Updated)
+
+| Stage | Name | Points | Description |
+|-------|------|--------|-------------|
+| 0 | Baby | 0 | Starting stage |
+| 1 | Toddler | 10 | First milestone |
+| 2 | Frog | 25 | Amphibian phase |
+| 3 | Hermit | 45 | Introvert period |
+| 4 | Seahorse | 70 | Ocean explorer |
+| 5 | Dolphin | 100 | Intelligent swimmer |
+| 6 | Alligator | 135 | Apex predator |
+| 7 | Beaver | 175 | Master builder |
+| 8 | Wolf | 220 | Pack leader |
+| 9 | Bear | 270 | Forest guardian |
+| 10 | Bison | 325 | Plains wanderer |
+| 11 | Elephant | 385 | Gentle giant |
+| 12 | Rhino | 450 | Armored tank |
+| 13 | Adult | 520 | Mature form |
+| 14 | CEO | 595 | Business leader |
+| 15 | Gold | 675 | Ultimate achievement |
 
 ### What it does
 - **Hourly widget visuals**: Pet image and progress only change on the top of each hour timeline tick.

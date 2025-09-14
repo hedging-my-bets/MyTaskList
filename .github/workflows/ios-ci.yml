@@ -1,0 +1,295 @@
+name: iOS CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  XCODE_VERSION: '15.1'
+  IOS_DEPLOYMENT_TARGET: '17.0'
+  DEVELOPER_DIR: /Applications/Xcode_15.1.app/Contents/Developer
+
+jobs:
+  # Job 1: Generate Xcode Project and Build
+  build-and-test:
+    name: Build and Test iOS App
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+    - name: Show Xcode Version
+      run: xcodebuild -version
+
+    - name: Install XcodeGen
+      run: |
+        brew install xcodegen
+        xcodegen --version
+
+    - name: Generate Xcode Project
+      working-directory: ios-native
+      run: |
+        echo "Generating Xcode project with XcodeGen..."
+        xcodegen generate
+        ls -la *.xcodeproj
+
+    - name: Build SharedKit Framework
+      working-directory: ios-native
+      run: |
+        echo "Building SharedKit framework..."
+        xcodebuild -project PetProgress.xcodeproj \
+          -scheme SharedKit \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          clean build \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --simple
+
+    - name: Build Widget Extension
+      working-directory: ios-native
+      run: |
+        echo "Building Widget extension..."
+        xcodebuild -project PetProgress.xcodeproj \
+          -scheme Widget \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          clean build \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --simple
+
+    - name: Build Main App
+      working-directory: ios-native
+      run: |
+        echo "Building main app..."
+        xcodebuild -project PetProgress.xcodeproj \
+          -scheme App \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          clean build \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --simple
+
+    - name: Run SharedKit Tests
+      working-directory: ios-native
+      run: |
+        echo "Running SharedKit tests..."
+        xcodebuild -project PetProgress.xcodeproj \
+          -scheme SharedKit \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          test \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --test --simple
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: build-logs-${{ github.run_number }}
+        path: |
+          ios-native/build/Logs
+          ios-native/*.xcodeproj
+        retention-days: 7
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ github.run_number }}
+        path: |
+          ios-native/test-results
+        retention-days: 30
+
+  # Job 2: Code Quality and Analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: macos-14
+    needs: build-and-test
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install SwiftLint
+      run: brew install swiftlint
+
+    - name: Run SwiftLint
+      working-directory: ios-native
+      run: |
+        echo "Running SwiftLint analysis..."
+        swiftlint --reporter github-actions-logging
+        swiftlint --reporter json > swiftlint-results.json
+
+    - name: Upload SwiftLint Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: swiftlint-results-${{ github.run_number }}
+        path: ios-native/swiftlint-results.json
+        retention-days: 30
+
+  # Job 3: Asset Validation
+  asset-validation:
+    name: Asset Pipeline Validation
+    runs-on: macos-14
+    needs: build-and-test
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
+      working-directory: ios-native
+      run: xcodegen generate
+
+    - name: Validate Pet Assets
+      working-directory: ios-native
+      run: |
+        echo "Validating pet evolution assets..."
+
+        # Check for all required pet stage assets
+        REQUIRED_ASSETS=(
+          "pet_baby" "pet_toddler" "pet_frog" "pet_hermit"
+          "pet_seahorse" "pet_dolphin" "pet_alligator" "pet_beaver"
+          "pet_wolf" "pet_bear" "pet_bison" "pet_elephant"
+          "pet_rhino" "pet_adult" "pet_ceo" "pet_gold"
+        )
+
+        MISSING_COUNT=0
+        echo "Asset validation report:" > asset-report.txt
+        echo "========================" >> asset-report.txt
+
+        for asset in "${REQUIRED_ASSETS[@]}"; do
+          if find Assets -name "${asset}.*" | grep -q .; then
+            echo "✅ Found: ${asset}" >> asset-report.txt
+          else
+            echo "❌ Missing: ${asset}" >> asset-report.txt
+            ((MISSING_COUNT++))
+          fi
+        done
+
+        echo "" >> asset-report.txt
+        echo "Summary: $((16 - MISSING_COUNT))/16 assets found" >> asset-report.txt
+        echo "Missing: ${MISSING_COUNT} assets" >> asset-report.txt
+
+        cat asset-report.txt
+
+        # Don't fail CI for missing assets (they have fallbacks)
+        if [ $MISSING_COUNT -gt 0 ]; then
+          echo "⚠️ Warning: ${MISSING_COUNT} pet assets are missing, but fallbacks will be used"
+        else
+          echo "🎉 All pet assets are present!"
+        fi
+
+    - name: Upload Asset Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: asset-report-${{ github.run_number }}
+        path: ios-native/asset-report.txt
+        retention-days: 30
+
+  # Job 4: Security and Dependency Analysis
+  security-analysis:
+    name: Security Analysis
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Check for Secrets in Code
+      run: |
+        echo "Scanning for potential secrets..."
+
+        # Check for common secret patterns
+        if grep -r -i "api_key\|apikey\|secret\|password\|token" ios-native/ --include="*.swift" --exclude-dir=build; then
+          echo "⚠️ Warning: Potential secrets found in code"
+          echo "Please review the above matches to ensure no actual secrets are committed"
+        else
+          echo "✅ No obvious secret patterns found"
+        fi
+
+    - name: Validate App Group Configuration
+      working-directory: ios-native
+      run: |
+        echo "Validating App Group configuration..."
+
+        APP_GROUP="group.hedging-my-bets.mytasklist"
+
+        if grep -q "$APP_GROUP" App/PetProgress.entitlements && \
+           grep -q "$APP_GROUP" Widget/PetProgressWidget.entitlements; then
+          echo "✅ App Group configuration is consistent"
+        else
+          echo "❌ App Group configuration mismatch"
+          exit 1
+        fi
+
+  # Job 5: Deployment Readiness Check
+  deployment-check:
+    name: Deployment Readiness
+    runs-on: macos-14
+    needs: [build-and-test, code-quality, asset-validation, security-analysis]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Deployment Readiness Summary
+      run: |
+        echo "🚀 Deployment Readiness Check"
+        echo "================================="
+        echo ""
+        echo "✅ Build: Passed"
+        echo "✅ Tests: Passed"
+        echo "✅ Code Quality: Analyzed"
+        echo "✅ Assets: Validated"
+        echo "✅ Security: Checked"
+        echo ""
+        echo "🎯 Ready for deployment to TestFlight/App Store"
+        echo ""
+        echo "Next steps:"
+        echo "- Archive and upload to App Store Connect"
+        echo "- Submit for App Review"
+        echo "- Configure App Store listing"
+
+    - name: Create Release Summary
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "# Release Summary - Build ${{ github.run_number }}" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## 🚀 What's New" >> RELEASE_NOTES.md
+        echo "- iOS 17+ Interactive Widgets" >> RELEASE_NOTES.md
+        echo "- 16-stage pet evolution system" >> RELEASE_NOTES.md
+        echo "- Lock-screen widget with 3-row task feed" >> RELEASE_NOTES.md
+        echo "- App Intents for Complete/Snooze/Mark-Next" >> RELEASE_NOTES.md
+        echo "- DST-safe timeline with hourly refresh" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## 🏗 Architecture" >> RELEASE_NOTES.md
+        echo "- SharedKit framework eliminates dependency cycles" >> RELEASE_NOTES.md
+        echo "- App Group storage for widget data sharing" >> RELEASE_NOTES.md
+        echo "- Deterministic asset pipeline with SF Symbol fallbacks" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## 📊 Build Info" >> RELEASE_NOTES.md
+        echo "- Build: ${{ github.run_number }}" >> RELEASE_NOTES.md
+        echo "- Commit: ${{ github.sha }}" >> RELEASE_NOTES.md
+        echo "- Xcode: ${{ env.XCODE_VERSION }}" >> RELEASE_NOTES.md
+        echo "- iOS Target: ${{ env.IOS_DEPLOYMENT_TARGET }}" >> RELEASE_NOTES.md
+
+    - name: Upload Release Notes
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes-${{ github.run_number }}
+        path: RELEASE_NOTES.md
+        retention-days: 90
