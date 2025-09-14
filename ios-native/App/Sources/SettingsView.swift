@@ -1,9 +1,11 @@
 import SwiftUI
 import SharedKit
+import SafariServices
 
 struct SettingsView: View {
     @EnvironmentObject var dataStore: DataStore
     @Environment(\.dismiss) private var dismiss
+    @State private var showingPrivacyPolicy = false
 
     var body: some View {
         NavigationView {
@@ -36,6 +38,13 @@ struct SettingsView: View {
                     ))
                 }
 
+                Section("Privacy") {
+                    Button("Privacy Policy") {
+                        showingPrivacyPolicy = true
+                    }
+                    .foregroundStyle(.blue)
+                }
+
                 Section("Debug") {
                     Button("Reset All Data") {
                         dataStore.showResetConfirmation = true
@@ -63,6 +72,22 @@ struct SettingsView: View {
             } message: {
                 Text("This will permanently delete all your tasks and reset your pet. This cannot be undone.")
             }
+            .sheet(isPresented: $showingPrivacyPolicy) {
+                SafariView(url: URL(string: "https://www.example.com/privacy-policy")!)
+                    .ignoresSafeArea()
+            }
         }
+    }
+}
+
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {
+        // No updates needed
     }
 }

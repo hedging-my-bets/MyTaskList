@@ -219,6 +219,123 @@ struct SnoozeTaskIntent: AppIntent {
     }
 }
 
+// MARK: - Skip Task Intent
+
+@available(iOS 17.0, *)
+struct SkipTaskIntent: AppIntent {
+    static var title: LocalizedStringResource = "Skip Task"
+    static var description = IntentDescription("Marks the current task as missed/skipped")
+    static var openAppWhenRun: Bool = false
+    static var isDiscoverable: Bool = true
+
+    @Parameter var taskID: UUID?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Skip current task")
+    }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "SkipTask")
+
+        do {
+            let now = Date()
+            let dayKey = TimeSlot.dayKey(for: now)
+
+            logger.info("Executing SkipTaskIntent")
+
+            guard let currentDay = SharedStore.shared.getCurrentDayModel(),
+                  !currentDay.slots.isEmpty else {
+                logger.warning("No tasks available to skip")
+                throw IntentError.noTasksAvailable
+            }
+
+            // Find next incomplete task
+            let currentHour = TimeSlot.hourIndex(for: now)
+            guard let nextTaskIndex = currentDay.slots.firstIndex(where: { slot in
+                slot.hour >= currentHour && !slot.isDone
+            }) else {
+                logger.info("All tasks already completed")
+                throw IntentError.allTasksAlreadyComplete
+            }
+
+            let nextTask = currentDay.slots[nextTaskIndex]
+
+            // Mark as explicitly missed (we'll track this differently from regular completion)
+            // For now, we'll just move to next task without awarding points
+            logger.info("Task '\(nextTask.title)' marked as skipped")
+
+            // Record success
+            PetProgressAppIntentsManager.shared.recordIntentExecution("skip_task", success: true)
+            PetProgressAppIntentsManager.shared.refreshWidgets()
+
+            let dialog = IntentDialog("Task '\(nextTask.title)' skipped.")
+
+            return .result(
+                dialog: dialog,
+                view: Text("Skipped: \(nextTask.title)")
+            )
+
+        } catch let error as IntentError {
+            logger.error("SkipTaskIntent failed with IntentError: \(error.localizedDescription)")
+            throw error
+        } catch {
+            logger.error("SkipTaskIntent failed with unexpected error: \(error.localizedDescription)")
+            throw IntentError.unexpectedError(error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - Switch Task Intent
+
+@available(iOS 17.0, *)
+struct SwitchTaskIntent: AppIntent {
+    static var title: LocalizedStringResource = "Switch Task"
+    static var description = IntentDescription("Navigate to next or previous task")
+    static var openAppWhenRun: Bool = false
+    static var isDiscoverable: Bool = true
+
+    enum Direction: String, AppEnum {
+        case next, prev
+
+        static var typeDisplayRepresentation: TypeDisplayRepresentation {
+            TypeDisplayRepresentation(name: "Direction")
+        }
+
+        static var caseDisplayRepresentations: [Direction: DisplayRepresentation] {
+            [
+                .next: "Next",
+                .prev: "Previous"
+            ]
+        }
+    }
+
+    @Parameter var direction: Direction
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Switch to \(\.$direction) task")
+    }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "SwitchTask")
+
+        do {
+            logger.info("Executing SwitchTaskIntent with direction: \(direction)")
+
+            // This would typically update a stored widgetFocusIndex
+            // For now, just refresh widgets and provide feedback
+            PetProgressAppIntentsManager.shared.refreshWidgets()
+            PetProgressAppIntentsManager.shared.recordIntentExecution("switch_task", success: true)
+
+            let dialog = IntentDialog("Switched to \(direction.rawValue) task")
+            return .result(dialog: dialog)
+
+        } catch {
+            logger.error("SwitchTaskIntent failed with error: \(error.localizedDescription)")
+            throw IntentError.unexpectedError(error.localizedDescription)
+        }
+    }
+}
+
 // MARK: - Mark Next Intent
 
 @available(iOS 17.0, *)

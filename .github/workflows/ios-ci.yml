@@ -47,7 +47,7 @@ jobs:
         echo "Building SharedKit framework..."
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme SharedKit \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -destination 'platform=iOS Simulator,OS=latest' \
           clean build \
           CODE_SIGNING_ALLOWED=NO \
           | xcpretty --color --simple
@@ -58,7 +58,7 @@ jobs:
         echo "Building Widget extension..."
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme Widget \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -destination 'platform=iOS Simulator,OS=latest' \
           clean build \
           CODE_SIGNING_ALLOWED=NO \
           | xcpretty --color --simple
@@ -69,7 +69,7 @@ jobs:
         echo "Building main app..."
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme App \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -destination 'platform=iOS Simulator,OS=latest' \
           clean build \
           CODE_SIGNING_ALLOWED=NO \
           | xcpretty --color --simple
@@ -80,7 +80,7 @@ jobs:
         echo "Running SharedKit tests..."
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme SharedKit \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -destination 'platform=iOS Simulator,OS=latest' \
           test \
           CODE_SIGNING_ALLOWED=NO \
           | xcpretty --color --test --simple

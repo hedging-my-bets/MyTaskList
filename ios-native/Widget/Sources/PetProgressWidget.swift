@@ -326,18 +326,47 @@ struct CircularLockScreenView: View {
     let entry: Provider.Entry
     private let engine = PetEvolutionEngine()
 
+    private var currentStage: Int {
+        engine.stageIndex(for: entry.dayModel.points)
+    }
+
+    private var progressToNextStage: Double {
+        guard currentStage < 15 else { return 1.0 } // Max stage
+
+        let currentThreshold = engine.config.stages[currentStage].threshold
+        let nextThreshold = currentStage + 1 < engine.config.stages.count ?
+                           engine.config.stages[currentStage + 1].threshold :
+                           currentThreshold + 50
+
+        let progress = Double(entry.dayModel.points - currentThreshold) / Double(nextThreshold - currentThreshold)
+        return max(0.0, min(1.0, progress))
+    }
+
     var body: some View {
         ZStack {
+            // Background circle
+            Circle()
+                .stroke(.tertiary, lineWidth: 3)
+
+            // Progress ring
+            Circle()
+                .trim(from: 0, to: progressToNextStage)
+                .stroke(progressColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.3), value: progressToNextStage)
+
             // Pet image in center
-            Image(engine.imageName(for: entry.dayModel.points))
+            AssetPipeline.shared.image(for: currentStage)
                 .resizable()
                 .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(8)
                 .clipShape(Circle())
 
             // Stage indicator
             VStack {
                 Spacer()
-                Text("S\(engine.stageIndex(for: entry.dayModel.points))")
+                Text("\(currentStage + 1)")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.primary)
                     .padding(.horizontal, 4)
@@ -345,7 +374,19 @@ struct CircularLockScreenView: View {
                     .background(.regularMaterial, in: Capsule())
             }
         }
-        .accessibilityLabel("Pet at stage \(engine.stageIndex(for: entry.dayModel.points))")
+        .accessibilityLabel("Pet at stage \(currentStage + 1), \(Int(progressToNextStage * 100))% to next stage")
+    }
+
+    private var progressColor: Color {
+        if currentStage >= 15 {
+            return .yellow // Gold stage
+        } else if progressToNextStage >= 0.8 {
+            return .green
+        } else if progressToNextStage >= 0.5 {
+            return .blue
+        } else {
+            return .orange
+        }
     }
 }
 
@@ -571,31 +612,40 @@ struct RectangularLockScreenView: View {
     private func InteractiveButtonRow() -> some View {
         if nextIncompleteSlot != nil {
             HStack(spacing: buttonSpacing) {
+                // Previous Task Button
+                InteractiveButton(
+                    intent: SwitchTaskIntent(direction: .prev),
+                    icon: "chevron.left",
+                    color: .secondary,
+                    label: "◂",
+                    accessibilityLabel: "Previous task"
+                )
+
                 // Complete Task Button
                 InteractiveButton(
                     intent: CompleteTaskIntent(),
                     icon: "checkmark.circle.fill",
                     color: .green,
-                    label: "Complete",
+                    label: "Done",
                     accessibilityLabel: "Complete current task"
                 )
 
-                // Snooze Task Button
+                // Skip Task Button
                 InteractiveButton(
-                    intent: SnoozeTaskIntent(),
-                    icon: "clock.fill",
-                    color: .orange,
-                    label: "Snooze",
-                    accessibilityLabel: "Snooze current task by 1 hour"
+                    intent: SkipTaskIntent(),
+                    icon: "xmark",
+                    color: .red,
+                    label: "X",
+                    accessibilityLabel: "Skip current task"
                 )
 
-                // Mark Next Button
+                // Next Task Button
                 InteractiveButton(
-                    intent: MarkNextIntent(),
-                    icon: "arrow.right.circle.fill",
-                    color: .blue,
-                    label: "Next",
-                    accessibilityLabel: "Mark task as done and move to next"
+                    intent: SwitchTaskIntent(direction: .next),
+                    icon: "chevron.right",
+                    color: .secondary,
+                    label: "▸",
+                    accessibilityLabel: "Next task"
                 )
 
                 Spacer()
