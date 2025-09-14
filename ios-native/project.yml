@@ -152,6 +152,7 @@ targets:
         INFOPLIST_FILE: Widget/Info.plist
         ENABLE_TESTING_SEARCH_PATHS: false
         SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1"  # iPhone only
 
   PetProgressTests:
     type: bundle.unit-test
