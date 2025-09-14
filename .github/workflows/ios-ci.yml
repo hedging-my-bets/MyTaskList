@@ -7,9 +7,9 @@ on:
     branches: [ main ]
 
 env:
-  XCODE_VERSION: '15.1'
+  XCODE_VERSION: '16.2'
   IOS_DEPLOYMENT_TARGET: '17.0'
-  DEVELOPER_DIR: /Applications/Xcode_15.1.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
 
 jobs:
   # Job 1: Generate Xcode Project and Build

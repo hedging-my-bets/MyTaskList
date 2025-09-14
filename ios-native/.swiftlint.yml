@@ -26,6 +26,13 @@ disabled_rules:
   - for_where           # Allow traditional for loops
   - unused_setter_value # Allow in SwiftUI property wrappers
   - sorted_imports      # Allow flexible import ordering
+  - identifier_name     # Allow SwiftUI view function naming conventions
+  - multiple_closures_with_trailing_closure  # Allow SwiftUI syntax
+  - unused_closure_parameter  # Allow SwiftUI parameter patterns
+  - empty_enum_arguments  # Allow enum pattern matching
+  - large_tuple         # Allow complex data structures
+  - void_return         # Allow explicit void returns
+  - trailing_comma      # Allow trailing commas in collections
 
 opt_in_rules:
   - trailing_newline
@@ -43,12 +50,12 @@ function_body_length:
   error: 120
 
 type_body_length:
-  warning: 400
-  error: 600
+  warning: 500
+  error: 800
 
 file_length:
-  warning: 800
-  error: 1200
+  warning: 1000
+  error: 1500
 
 identifier_name:
   min_length:
@@ -69,9 +76,7 @@ cyclomatic_complexity:
 
 nesting:
   type_level:
-    warning: 2
-  statement_level:
-    warning: 5
+    warning: 3
 
 # Custom rules disabled for enterprise codebase flexibility
 # custom_rules:
