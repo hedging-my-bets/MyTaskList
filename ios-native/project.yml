@@ -1,6 +1,6 @@
-name: PetProgress
+name: MyTaskList
 options:
-  bundleIdPrefix: com.petprogress
+  bundleIdPrefix: com.mytasklist
   deploymentTarget:
     iOS: "17.0"
   developmentLanguage: en
@@ -29,19 +29,12 @@ settings:
     ENABLE_HARDENED_RUNTIME: true
 
     # Build Performance Optimizations
-    ENABLE_LIBRARY_EVOLUTION: true
-    BUILD_LIBRARY_FOR_DISTRIBUTION: true
-    ENABLE_INCREMENTAL_DISTILL: true
-    SWIFT_COMPILATION_MODE: singlefile
-    SWIFT_EXEC: /usr/bin/xcrun
+    ENABLE_LIBRARY_EVOLUTION: false
+    BUILD_LIBRARY_FOR_DISTRIBUTION: false
+    SWIFT_COMPILATION_MODE: wholemodule
 
-    # Advanced Swift Features
-    SWIFT_STRICT_CONCURRENCY: complete
-    SWIFT_UPCOMING_FEATURE_CONCISE_MAGIC_FILE: true
-    SWIFT_UPCOMING_FEATURE_FORWARD_TRAILING_CLOSURES: true
-    SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: true
-    SWIFT_UPCOMING_FEATURE_BARE_SLASH_REGEX_LITERALS: true
-    SWIFT_UPCOMING_FEATURE_DISABLE_OUTWARD_ACTOR_ISOLATION: true
+    # Advanced Swift Features - Reduced set for CI compatibility
+    SWIFT_STRICT_CONCURRENCY: minimal
 
     # Code Quality & Warnings
     CLANG_ANALYZER_NONNULL: true

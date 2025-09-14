@@ -45,7 +45,7 @@ jobs:
       working-directory: ios-native
       run: |
         echo "Building SharedKit framework..."
-        xcodebuild -project PetProgress.xcodeproj \
+        xcodebuild -project MyTaskList.xcodeproj \
           -scheme SharedKit \
           -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
           clean build \
@@ -56,7 +56,7 @@ jobs:
       working-directory: ios-native
       run: |
         echo "Building Widget extension..."
-        xcodebuild -project PetProgress.xcodeproj \
+        xcodebuild -project MyTaskList.xcodeproj \
           -scheme Widget \
           -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
           clean build \
@@ -67,7 +67,7 @@ jobs:
       working-directory: ios-native
       run: |
         echo "Building main app..."
-        xcodebuild -project PetProgress.xcodeproj \
+        xcodebuild -project MyTaskList.xcodeproj \
           -scheme App \
           -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
           clean build \
@@ -78,7 +78,7 @@ jobs:
       working-directory: ios-native
       run: |
         echo "Running SharedKit tests..."
-        xcodebuild -project PetProgress.xcodeproj \
+        xcodebuild -project MyTaskList.xcodeproj \
           -scheme SharedKit \
           -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
           test \
