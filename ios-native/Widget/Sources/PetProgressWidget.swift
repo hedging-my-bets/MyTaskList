@@ -218,7 +218,25 @@ struct RectangularLockScreenView: View {
 
             // Action buttons - THESE ACTUALLY WORK
             if nextIncompleteTask != nil {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    // Navigation
+                    Button(intent: ShowPreviousTaskIntent()) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Button(intent: ShowNextTaskIntent()) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Spacer()
+
+                    // Actions
                     Button(intent: CompleteTaskIntent()) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 16))
@@ -232,8 +250,6 @@ struct RectangularLockScreenView: View {
                             .foregroundStyle(.red)
                     }
                     .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
                 }
             }
         }

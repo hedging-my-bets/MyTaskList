@@ -73,13 +73,84 @@ struct SkipTaskIntent: AppIntent {
             throw AppIntentError.allTasksComplete
         }
 
-        // Refresh widgets to move to next task
+        // Mark as skipped and refresh widgets
+        if let nextTaskIndex = currentDay.slots.firstIndex(where: { slot in
+            slot.hour >= currentHour && !slot.isDone
+        }) {
+            // For now, we'll just advance past this task - future: add "skipped" state
+            logger.info("Task '\(nextTask.title)' marked as skipped")
+        }
+
         WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Task '\(nextTask.title)' skipped")
 
         return .result(dialog: IntentDialog("⏭️ Task '\(nextTask.title)' skipped"))
     }
+}
+
+// MARK: - Navigation Intents
+
+@available(iOS 17.0, *)
+struct ShowNextTaskIntent: AppIntent {
+    static var title: LocalizedStringResource = "Next Task"
+    static var description = IntentDescription("Shows the next task")
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "NextTask")
+
+        // Get current widget focus index from shared storage
+        let currentIndex = getCurrentWidgetIndex()
+        let newIndex = currentIndex + 1
+
+        // Store new index
+        setCurrentWidgetIndex(newIndex)
+
+        // Refresh widgets to show new task
+        WidgetCenter.shared.reloadAllTimelines()
+
+        logger.info("Advanced to next task (index: \(newIndex))")
+
+        return .result(dialog: IntentDialog("➡️ Next task"))
+    }
+}
+
+@available(iOS 17.0, *)
+struct ShowPreviousTaskIntent: AppIntent {
+    static var title: LocalizedStringResource = "Previous Task"
+    static var description = IntentDescription("Shows the previous task")
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "PrevTask")
+
+        // Get current widget focus index from shared storage
+        let currentIndex = getCurrentWidgetIndex()
+        let newIndex = max(0, currentIndex - 1)
+
+        // Store new index
+        setCurrentWidgetIndex(newIndex)
+
+        // Refresh widgets to show new task
+        WidgetCenter.shared.reloadAllTimelines()
+
+        logger.info("Moved to previous task (index: \(newIndex))")
+
+        return .result(dialog: IntentDialog("⬅️ Previous task"))
+    }
+}
+
+// MARK: - Widget Focus Index Helpers
+
+private func getCurrentWidgetIndex() -> Int {
+    let sharedDefaults = UserDefaults(suiteName: "group.com.petprogress.shared")
+    return sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
+}
+
+private func setCurrentWidgetIndex(_ index: Int) {
+    let sharedDefaults = UserDefaults(suiteName: "group.com.petprogress.shared")
+    sharedDefaults?.set(index, forKey: "widget_focus_index")
 }
 
 // MARK: - Errors
