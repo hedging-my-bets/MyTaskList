@@ -9,7 +9,6 @@ jobs:
 
     env:
       PROJECT_DIR: ios-native
-      PROJECT_FILE: ios-native/MyTaskList.xcodeproj
       DEFAULT_SCHEME: PetProgress
       DERIVED_DATA: ${{ github.workspace }}/DerivedData
 
@@ -57,11 +56,24 @@ jobs:
           cd "$PROJECT_DIR"
           xcodegen generate
 
-      # ✅ Resolve scheme name and print available schemes
-      - name: Resolve scheme
-        id: scheme
+      # ✅ Auto-detect correct project file and resolve scheme
+      - name: Resolve project and scheme
+        id: project
         run: |
           set -euo pipefail
+          cd "$PROJECT_DIR"
+
+          # Pick the right .xcodeproj (prefer PetProgress.xcodeproj if present)
+          if [ -d "PetProgress.xcodeproj" ]; then
+            PROJECT_FILE="PetProgress.xcodeproj"
+          elif [ -d "MyTaskList.xcodeproj" ]; then
+            PROJECT_FILE="MyTaskList.xcodeproj"
+          else
+            PROJECT_FILE="$(ls -1d *.xcodeproj | head -1)"
+          fi
+          echo "project=$PROJECT_FILE" >> "$GITHUB_OUTPUT"
+          echo "Using project: $PROJECT_FILE"
+
           xcodebuild -list -project "$PROJECT_FILE" || true
           SCHEMES=$(xcodebuild -list -project "$PROJECT_FILE" | awk '/Schemes:/{p=1;next} p && NF{print $0}')
           if echo "$SCHEMES" | grep -qx "$DEFAULT_SCHEME"; then
@@ -85,59 +97,57 @@ jobs:
           echo "=== Available iOS Runtimes ==="
           xcrun simctl list runtimes
 
-          # Find iOS 17 or 18 runtime
-          RUNTIME=$(xcrun simctl list runtimes | awk -F'[()]' '/iOS (17\.|18\.)[0-9]/{print $2; exit}')
-          echo "Selected runtime: $RUNTIME"
+          # Select newest available iOS runtime id (your fix)
+          RUNTIME_ID="$(xcrun simctl list runtimes | \
+            grep -E 'iOS [0-9]+\.[0-9].*com\.apple\.CoreSimulator\.SimRuntime\.iOS-' | \
+            sed -E 's/.*(com\.apple\.CoreSimulator\.SimRuntime\.iOS-[0-9\-]+).*/\1/' | \
+            tail -1)"
 
-          # Create CI iPhone 15 simulator
-          DEVICE_ID=$(xcrun simctl create "CI iPhone 15" "iPhone 15" "$RUNTIME")
-          echo "Created device: $DEVICE_ID"
+          if [ -z "$RUNTIME_ID" ]; then
+            echo "::error::No iOS simulator runtime available on runner"
+            exit 1
+          fi
+          echo "RUNTIME_ID=$RUNTIME_ID" >> "$GITHUB_ENV"
+          echo "Selected runtime ID: $RUNTIME_ID"
 
-          # Boot the simulator
-          xcrun simctl boot "$DEVICE_ID" || true
+          # Create & boot a simulator; capture device id (your fix)
+          DEVICE_ID="$(xcrun simctl create 'CI iPhone 15' 'iPhone 15' "$RUNTIME_ID")"
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+          echo "Created device ID: $DEVICE_ID"
 
-          # Verify destination exists
-          xcodebuild -showdestinations -project "$PROJECT_FILE" -scheme "$DEFAULT_SCHEME"
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl list devices | grep "$DEVICE_ID" || true
 
-          echo "dest=platform=iOS Simulator,name=CI iPhone 15" >> "$GITHUB_OUTPUT"
+          echo "dest=id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
           echo "Using real CI iPhone 15 simulator for App Intents testing"
 
-      - name: Build SharedKit Framework
+      - name: Build Debug (Simulator)
         run: |
           set -euxo pipefail
+          cd "$PROJECT_DIR"
           xcodebuild \
-            -project "$PROJECT_FILE" \
-            -target "SharedKit" \
+            -project "${{ steps.project.outputs.project }}" \
+            -scheme "${{ steps.project.outputs.scheme }}" \
             -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
+            -configuration Debug \
             -derivedDataPath "$DERIVED_DATA" \
             build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | xcbeautify --renderer github-actions
 
-      - name: Build Widget Extension
+      - name: Build Release (for test framework check)
         run: |
           set -euxo pipefail
+          cd "$PROJECT_DIR"
           xcodebuild \
-            -project "$PROJECT_FILE" \
-            -target "PetProgressWidget" \
+            -project "${{ steps.project.outputs.project }}" \
+            -scheme "${{ steps.project.outputs.scheme }}" \
             -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
-            -derivedDataPath "$DERIVED_DATA" \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | xcbeautify --renderer github-actions
-
-      - name: Build Main App
-        run: |
-          set -euxo pipefail
-          xcodebuild \
-            -project "$PROJECT_FILE" \
-            -target "PetProgress" \
-            -destination "${{ steps.sim.outputs.dest }}" \
-            -sdk iphonesimulator \
+            -configuration Release \
             -derivedDataPath "$DERIVED_DATA" \
             build \
             CODE_SIGNING_ALLOWED=NO \
@@ -148,9 +158,10 @@ jobs:
         if: success()  # Only run tests if build succeeded
         run: |
           set -euxo pipefail
+          cd "$PROJECT_DIR"
           xcodebuild \
-            -project "$PROJECT_FILE" \
-            -scheme "${{ steps.scheme.outputs.scheme }}" \
+            -project "${{ steps.project.outputs.project }}" \
+            -scheme "${{ steps.project.outputs.scheme }}" \
             -destination "${{ steps.sim.outputs.dest }}" \
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$DERIVED_DATA/TestResults.xcresult" \
@@ -158,6 +169,15 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | xcbeautify --renderer github-actions
+
+      # ✅ Critical: Ensure Release builds don't embed test frameworks
+      - name: Validate Release build (no test frameworks)
+        if: success()
+        run: |
+          set -euxo pipefail
+          cd "$PROJECT_DIR"
+          chmod +x Scripts/ci/assert-no-test-frameworks.sh
+          Scripts/ci/assert-no-test-frameworks.sh
 
       - name: Show build logs on failure
         if: failure()
