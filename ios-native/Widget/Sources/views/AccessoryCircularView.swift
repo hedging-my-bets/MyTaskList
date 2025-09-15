@@ -66,14 +66,7 @@ struct AccessoryCircularView: View {
 
     private var petImageName: String? {
         let engine = PetEvolutionEngine()
-        let imageName = engine.imageName(for: entry.dayModel.points)
-
-        // Verify asset exists in bundle
-        guard Bundle.main.path(forResource: imageName, ofType: nil) != nil else {
-            return nil
-        }
-
-        return imageName
+        return engine.imageName(for: entry.dayModel.points)
     }
 }
 

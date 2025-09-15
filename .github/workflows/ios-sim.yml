@@ -72,34 +72,18 @@ jobs:
           echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
           echo "Resolved scheme: $SCHEME"
 
-      # ✅ Create & boot a concrete iPhone 15 on the newest iOS runtime available
-      - name: Prepare Simulator (create & boot)
+      # ✅ Use generic iOS Simulator destination for CI stability
+      - name: Prepare Simulator destination
         id: sim
         run: |
           set -euxo pipefail
 
-          echo "=== Available iOS runtimes ==="
-          xcrun simctl list runtimes | grep iOS
+          echo "=== Available iOS Simulators ==="
+          xcrun simctl list devices available
 
-          # Find newest iOS runtime identifier (e.g. com.apple.CoreSimulator.SimRuntime.iOS-17-5)
-          # Parse the identifier column, not the version
-          RUNTIME=$(xcrun simctl list runtimes | grep iOS | grep -v unavailable | tail -n1 | awk '{print $NF}')
-          echo "Using runtime identifier: $RUNTIME"
-
-          # Device type for iPhone 15
-          DEVTYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15"
-
-          # Create if missing (delete existing first to avoid conflicts)
-          DEVICE_NAME="CI iPhone 15"
-          xcrun simctl delete "$DEVICE_NAME" 2>/dev/null || true
-          xcrun simctl create "$DEVICE_NAME" "$DEVTYPE" "$RUNTIME"
-
-          # Boot & wait
-          xcrun simctl boot "$DEVICE_NAME"
-          xcrun simctl bootstatus "$DEVICE_NAME" -b
-
-          echo "dest=platform=iOS Simulator,name=${DEVICE_NAME}" >> "$GITHUB_OUTPUT"
-          echo "Successfully booted simulator: $DEVICE_NAME"
+          # Use generic destination that works on any CI runner
+          echo "dest=generic/platform=iOS Simulator" >> "$GITHUB_OUTPUT"
+          echo "Using generic iOS Simulator destination for CI stability"
 
       - name: Build SharedKit Framework
         run: |
