@@ -4,11 +4,13 @@ public struct PetState: Codable, Hashable {
     public var stageIndex: Int
     public var stageXP: Int
     public var lastCloseoutDayKey: String
+    public var lastCelebratedStage: Int
 
-    public init(stageIndex: Int, stageXP: Int, lastCloseoutDayKey: String) {
+    public init(stageIndex: Int, stageXP: Int, lastCloseoutDayKey: String, lastCelebratedStage: Int = -1) {
         self.stageIndex = stageIndex
         self.stageXP = stageXP
         self.lastCloseoutDayKey = lastCloseoutDayKey
+        self.lastCelebratedStage = lastCelebratedStage
     }
 
     /// Computed property for compatibility with widget point system

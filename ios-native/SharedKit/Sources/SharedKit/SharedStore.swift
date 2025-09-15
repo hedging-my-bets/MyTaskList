@@ -507,6 +507,9 @@ public final class SharedStore: ObservableObject {
                 // Also update the DayModel representation for widget consumption
                 self.updateDayModelFromAppState(state)
 
+                // Sync grace minutes to the key that SharedStoreActor reads
+                self.userDefaults.set(state.graceMinutes, forKey: "grace_minutes")
+
             } catch {
                 self.logger.error("Failed to encode AppState: \(error.localizedDescription)")
             }

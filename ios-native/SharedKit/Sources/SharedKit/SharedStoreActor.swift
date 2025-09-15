@@ -469,4 +469,78 @@ public actor SharedStoreActor {
     private func dayKey(_ key: String) -> String {
         return "day_\(key)"
     }
+
+    // MARK: - TaskEntity Support
+
+    public func findTask(withId id: String) -> TaskEntity? {
+        let todayKey = TimeSlot.todayKey()
+        guard let day = loadDay(key: todayKey) else { return nil }
+
+        guard let slot = day.slots.first(where: { $0.id == id }) else { return nil }
+        return TaskEntity(from: slot, dayKey: todayKey)
+    }
+
+    public func getNearestHourTasks() -> [TaskEntity] {
+        let now = Date()
+        let calendar = Calendar.current
+        let currentHour = calendar.component(.hour, from: now)
+        let currentMinute = calendar.component(.minute, from: now)
+        let todayKey = TimeSlot.todayKey()
+
+        guard let day = loadDay(key: todayKey) else { return [] }
+
+        // Get grace minutes from settings
+        let graceMinutes = userDefaults.integer(forKey: "grace_minutes")
+        let effectiveGraceMinutes = graceMinutes > 0 ? graceMinutes : 30
+
+        logger.debug("Materializing nearest-hour tasks: currentHour=\(currentHour), graceMinutes=\(effectiveGraceMinutes)")
+
+        // Calculate effective hour range based on grace period
+        let effectiveHour: Int
+        if currentMinute <= effectiveGraceMinutes {
+            // Still within grace period of current hour
+            effectiveHour = currentHour
+        } else {
+            // Past grace period, consider next hour
+            effectiveHour = (currentHour + 1) % 24
+        }
+
+        // Filter tasks to those relevant to current time window
+        let relevantTasks = day.slots.filter { slot in
+            // Include tasks for current effective hour
+            if slot.hour == effectiveHour {
+                return true
+            }
+
+            // Include tasks within ±1 hour for context
+            let hourDiff = abs(slot.hour - effectiveHour)
+            return hourDiff <= 1 || hourDiff >= 23  // Handle 24-hour wrap-around
+        }
+
+        // Sort by hour and prioritize incomplete tasks
+        let sortedTasks = relevantTasks.sorted { task1, task2 in
+            // Prioritize incomplete tasks
+            if task1.isDone != task2.isDone {
+                return !task1.isDone && task2.isDone
+            }
+            // Then sort by hour
+            return task1.hour < task2.hour
+        }
+
+        let taskEntities = sortedTasks.map { TaskEntity(from: $0, dayKey: todayKey) }
+        logger.debug("Found \(taskEntities.count) nearest-hour tasks for hour \(effectiveHour)")
+
+        return taskEntities
+    }
+
+    // MARK: - Health & Diagnostics
+
+    public func healthCheck() -> Bool {
+        // Verify basic functionality
+        let testKey = "health_check_\(Date().timeIntervalSince1970)"
+        userDefaults.set("test", forKey: testKey)
+        let result = userDefaults.string(forKey: testKey) != nil
+        userDefaults.removeObject(forKey: testKey)
+        return result
+    }
 }

@@ -292,8 +292,15 @@ public enum PetEngine {
         let thresholdValue = threshold(for: pet.stageIndex, cfg: cfg)
         guard thresholdValue > 0 else { return }
         if pet.stageXP >= thresholdValue {
+            let oldStage = pet.stageIndex
             pet.stageIndex = min(pet.stageIndex + 1, cfg.stages.count - 1)
             pet.stageXP = 0
+
+            // Log evolution for celebration system
+            if pet.stageIndex > oldStage {
+                logger.info("🎉 Pet evolved from stage \(oldStage) to stage \(pet.stageIndex)!")
+                behaviorLogger.info("Evolution milestone: stage \(oldStage) -> \(pet.stageIndex)")
+            }
         }
     }
 
@@ -307,5 +314,73 @@ public enum PetEngine {
                 pet.stageXP = 0
             }
         }
+    }
+
+    // MARK: - Celebration Management
+
+    /// Check if a celebration should be triggered for the current stage
+    /// Prevents duplicate celebrations for the same evolution level
+    /// - Parameters:
+    ///   - pet: Current pet state
+    ///   - shouldMarkCelebrated: Whether to mark this stage as celebrated
+    /// - Returns: True if celebration should be shown
+    public static func shouldCelebrate(pet: inout PetState, markAsCelebrated shouldMarkCelebrated: Bool = true) -> Bool {
+        // Only celebrate if we've reached a new stage that hasn't been celebrated
+        let shouldTrigger = pet.stageIndex > pet.lastCelebratedStage
+
+        if shouldTrigger && shouldMarkCelebrated {
+            pet.lastCelebratedStage = pet.stageIndex
+            logger.info("🎉 Marking stage \(pet.stageIndex) as celebrated")
+            behaviorLogger.info("Celebration triggered for stage \(pet.stageIndex)")
+        }
+
+        return shouldTrigger
+    }
+
+    /// Reset celebration state (useful for testing or debugging)
+    /// - Parameter pet: Pet state to reset
+    public static func resetCelebrationState(_ pet: inout PetState) {
+        pet.lastCelebratedStage = -1
+        logger.debug("Reset celebration state - all stages can now trigger celebrations")
+    }
+
+    /// Get celebration message for the current stage
+    /// - Parameters:
+    ///   - pet: Current pet state
+    ///   - cfg: Stage configuration
+    /// - Returns: Celebration message and stage name
+    public static func getCelebrationInfo(for pet: PetState, cfg: StageCfg) -> (title: String, message: String, stageName: String)? {
+        guard pet.stageIndex < cfg.stages.count else { return nil }
+
+        let stage = cfg.stages[pet.stageIndex]
+        let stageName = stage.name
+
+        // Generate contextual celebration messages
+        let celebrationTitles = [
+            "Level Up!",
+            "Evolution!",
+            "Great Progress!",
+            "Achievement Unlocked!",
+            "Well Done!",
+            "Milestone Reached!"
+        ]
+
+        let messages = [
+            "Your pet has evolved to \(stageName)!",
+            "\(stageName) unlocked through consistent effort!",
+            "Amazing! You've reached the \(stageName) stage!",
+            "Your dedication paid off - welcome to \(stageName)!",
+            "Fantastic progress! \(stageName) achieved!",
+            "Congratulations on reaching \(stageName)!"
+        ]
+
+        let titleIndex = min(pet.stageIndex, celebrationTitles.count - 1)
+        let messageIndex = min(pet.stageIndex, messages.count - 1)
+
+        return (
+            title: celebrationTitles[titleIndex],
+            message: messages[messageIndex],
+            stageName: stageName
+        )
     }
 }

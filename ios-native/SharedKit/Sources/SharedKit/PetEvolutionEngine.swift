@@ -607,6 +607,25 @@ public final class PetEvolutionEngine: ObservableObject {
         logger.debug("Behavior metrics saved")
     }
 
+    // MARK: - Threshold API for Widget Integration
+
+    /// Get the XP threshold for a specific stage index
+    /// - Parameter stageIndex: The stage index (0-based)
+    /// - Returns: XP threshold required to reach that stage
+    public func threshold(for stageIndex: Int) -> Int {
+        guard stageIndex >= 0 && stageIndex < config.stages.count else {
+            logger.warning("Invalid stage index: \(stageIndex), returning 0")
+            return 0
+        }
+        return config.stages[stageIndex].threshold
+    }
+
+    /// Get all stage thresholds for testing and validation
+    /// - Returns: Array of all stage thresholds
+    public func allThresholds() -> [Int] {
+        return config.stages.map { $0.threshold }
+    }
+
     // MARK: - Supporting Types
 
     /// Evolution event for analytics tracking

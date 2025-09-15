@@ -17,11 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ Pin Xcode for consistent builds - Use latest stable version
-      - name: Select Xcode 15.4
+      # ✅ Pin Xcode for consistent builds - Use Xcode 16.4 for iOS 17+ support
+      - name: Select Xcode 16.4
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.4'  # Latest stable version compatible with iOS 17.0 target
+          xcode-version: '16.4'  # Required for iOS 17+ interactive widgets
 
       # ✅ Python for asset pipeline (no pip cache = zero surprises)
       - name: Setup Python 3.11
@@ -72,18 +72,35 @@ jobs:
           echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
           echo "Resolved scheme: $SCHEME"
 
-      # ✅ Use generic iOS Simulator destination for CI stability
-      - name: Prepare Simulator destination
+      # ✅ Create real iOS Simulator for App Intents testing
+      - name: Create CI simulator
         id: sim
         run: |
           set -euxo pipefail
 
-          echo "=== Available iOS Simulators ==="
-          xcrun simctl list devices available
+          # Select Xcode and show version
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          xcodebuild -version
 
-          # Use generic destination that works on any CI runner
-          echo "dest=generic/platform=iOS Simulator" >> "$GITHUB_OUTPUT"
-          echo "Using generic iOS Simulator destination for CI stability"
+          echo "=== Available iOS Runtimes ==="
+          xcrun simctl list runtimes
+
+          # Find iOS 17 or 18 runtime
+          RUNTIME=$(xcrun simctl list runtimes | awk -F'[()]' '/iOS (17\.|18\.)[0-9]/{print $2; exit}')
+          echo "Selected runtime: $RUNTIME"
+
+          # Create CI iPhone 15 simulator
+          DEVICE_ID=$(xcrun simctl create "CI iPhone 15" "iPhone 15" "$RUNTIME")
+          echo "Created device: $DEVICE_ID"
+
+          # Boot the simulator
+          xcrun simctl boot "$DEVICE_ID" || true
+
+          # Verify destination exists
+          xcodebuild -showdestinations -project "$PROJECT_FILE" -scheme "$DEFAULT_SCHEME"
+
+          echo "dest=platform=iOS Simulator,name=CI iPhone 15" >> "$GITHUB_OUTPUT"
+          echo "Using real CI iPhone 15 simulator for App Intents testing"
 
       - name: Build SharedKit Framework
         run: |
@@ -91,7 +108,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -target "SharedKit" \
-            -destination "generic/platform=iOS Simulator" \
+            -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
             -derivedDataPath "$DERIVED_DATA" \
             build \
@@ -105,7 +122,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -target "PetProgressWidget" \
-            -destination "generic/platform=iOS Simulator" \
+            -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
             -derivedDataPath "$DERIVED_DATA" \
             build \
@@ -119,7 +136,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -target "PetProgress" \
-            -destination "generic/platform=iOS Simulator" \
+            -destination "${{ steps.sim.outputs.dest }}" \
             -sdk iphonesimulator \
             -derivedDataPath "$DERIVED_DATA" \
             build \
@@ -134,7 +151,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.scheme.outputs.scheme }}" \
-            -destination "generic/platform=iOS Simulator" \
+            -destination "${{ steps.sim.outputs.dest }}" \
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$DERIVED_DATA/TestResults.xcresult" \
             test \
