@@ -12,6 +12,9 @@ struct PetProgressApp: App {
                 .task {
                     await dataStore.launchApplyCloseoutIfNeeded()
                 }
+                .onOpenURL { url in
+                    URLRoutes.handle(url: url)
+                }
         }
     }
 }
