@@ -489,32 +489,20 @@ public actor SharedStoreActor {
 
         guard let day = loadDay(key: todayKey) else { return [] }
 
-        // Get grace minutes from settings
+        // Get grace minutes from settings (clamped to valid range)
         let graceMinutes = userDefaults.integer(forKey: "grace_minutes")
-        let effectiveGraceMinutes = graceMinutes > 0 ? graceMinutes : 30
+        let effectiveGraceMinutes = max(0, min(graceMinutes > 0 ? graceMinutes : 30, 120))
 
-        logger.debug("Materializing nearest-hour tasks: currentHour=\(currentHour), graceMinutes=\(effectiveGraceMinutes)")
+        logger.debug("Materializing nearest-hour tasks: currentHour=\(currentHour), currentMinute=\(currentMinute), graceMinutes=\(effectiveGraceMinutes)")
 
-        // Calculate effective hour range based on grace period
-        let effectiveHour: Int
-        if currentMinute <= effectiveGraceMinutes {
-            // Still within grace period of current hour
-            effectiveHour = currentHour
-        } else {
-            // Past grace period, consider next hour
-            effectiveHour = (currentHour + 1) % 24
-        }
-
-        // Filter tasks to those relevant to current time window
+        // Filter tasks based on grace window relative to their scheduled time
         let relevantTasks = day.slots.filter { slot in
-            // Include tasks for current effective hour
-            if slot.hour == effectiveHour {
-                return true
-            }
-
-            // Include tasks within ±1 hour for context
-            let hourDiff = abs(slot.hour - effectiveHour)
-            return hourDiff <= 1 || hourDiff >= 23  // Handle 24-hour wrap-around
+            return isTaskWithinGraceWindow(
+                taskHour: slot.hour,
+                currentHour: currentHour,
+                currentMinute: currentMinute,
+                graceMinutes: effectiveGraceMinutes
+            )
         }
 
         // Sort by hour and prioritize incomplete tasks
@@ -531,6 +519,39 @@ public actor SharedStoreActor {
         logger.debug("Found \(taskEntities.count) nearest-hour tasks for hour \(effectiveHour)")
 
         return taskEntities
+    }
+
+    // MARK: - Grace Period Logic
+
+    /// Determines if a task is within the grace window for completion
+    /// Task due at 1pm with 15-minute grace: completable from 12:45pm to 1:15pm
+    private func isTaskWithinGraceWindow(
+        taskHour: Int,
+        currentHour: Int,
+        currentMinute: Int,
+        graceMinutes: Int
+    ) -> Bool {
+        // Convert everything to minutes from midnight for easier calculation
+        let taskMinutes = taskHour * 60  // Task at 1pm = 780 minutes
+        let currentMinutes = currentHour * 60 + currentMinute  // 12:58 = 778 minutes
+
+        // Calculate the difference (handle 24-hour wrap-around)
+        let diff = taskMinutes - currentMinutes
+        let normalizedDiff: Int
+        if diff > 12 * 60 {
+            normalizedDiff = diff - 24 * 60  // Next day task, wrap backwards
+        } else if diff < -12 * 60 {
+            normalizedDiff = diff + 24 * 60  // Previous day task, wrap forwards
+        } else {
+            normalizedDiff = diff
+        }
+
+        // Task is "now" if it's within grace minutes before or after its scheduled time
+        let isWithinGrace = abs(normalizedDiff) <= graceMinutes
+
+        logger.debug("Grace check: task=\(taskHour):00, current=\(currentHour):\(String(format: "%02d", currentMinute)), diff=\(normalizedDiff)min, grace=\(graceMinutes)min, withinGrace=\(isWithinGrace)")
+
+        return isWithinGrace
     }
 
     // MARK: - Health & Diagnostics

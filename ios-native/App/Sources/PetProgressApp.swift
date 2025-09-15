@@ -1,5 +1,6 @@
 import SwiftUI
 import SharedKit
+import AppIntents
 
 @main
 struct PetProgressApp: App {
@@ -16,5 +17,14 @@ struct PetProgressApp: App {
                     URLRoutes.handle(url: url)
                 }
         }
+    }
+}
+
+// MARK: - App Shortcuts Configuration
+
+@available(iOS 17.0, *)
+extension PetProgressApp {
+    static var appShortcutsProvider: PetProgressAppShortcutsProvider {
+        PetProgressAppShortcutsProvider()
     }
 }

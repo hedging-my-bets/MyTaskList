@@ -171,15 +171,46 @@ public final class AppGroupStore: ObservableObject {
     public func getCurrentTasks(now: Date = Date()) -> [TaskItem] {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
+        let currentMinute = calendar.component(.minute, from: now)
         let graceMinutes = state.graceMinutes
 
         return state.tasks.filter { task in
             guard let taskHour = task.scheduledAt.hour else { return false }
 
-            // Check if task is within grace window
-            let hourDifference = abs(taskHour - currentHour)
-            return hourDifference * 60 <= graceMinutes
+            // Use the same grace window logic as SharedStoreActor
+            return isTaskWithinGraceWindow(
+                taskHour: taskHour,
+                currentHour: currentHour,
+                currentMinute: currentMinute,
+                graceMinutes: graceMinutes
+            )
         }
+    }
+
+    /// Shared grace period logic - identical to SharedStoreActor implementation
+    private func isTaskWithinGraceWindow(
+        taskHour: Int,
+        currentHour: Int,
+        currentMinute: Int,
+        graceMinutes: Int
+    ) -> Bool {
+        // Convert everything to minutes from midnight for easier calculation
+        let taskMinutes = taskHour * 60  // Task at 1pm = 780 minutes
+        let currentMinutes = currentHour * 60 + currentMinute  // 12:58 = 778 minutes
+
+        // Calculate the difference (handle 24-hour wrap-around)
+        let diff = taskMinutes - currentMinutes
+        let normalizedDiff: Int
+        if diff > 12 * 60 {
+            normalizedDiff = diff - 24 * 60  // Next day task, wrap backwards
+        } else if diff < -12 * 60 {
+            normalizedDiff = diff + 24 * 60  // Previous day task, wrap forwards
+        } else {
+            normalizedDiff = diff
+        }
+
+        // Task is "now" if it's within grace minutes before or after its scheduled time
+        return abs(normalizedDiff) <= graceMinutes
     }
 
     /// Get next upcoming task

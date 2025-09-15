@@ -169,14 +169,14 @@ struct TaskRowView: View {
                 // Action buttons only for current hour and incomplete tasks
                 if isCurrentHour && !taskSlot.isDone {
                     HStack(spacing: 2) {
-                        Button(intent: CompleteTaskIntent(taskId: taskSlot.id, dayKey: dayKey)) {
+                        Button(intent: CompleteTaskIntent(taskID: taskSlot.id)) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(.green)
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        Button(intent: SkipTaskIntent(taskId: taskSlot.id, dayKey: dayKey)) {
+                        Button(intent: SkipTaskIntent(taskID: taskSlot.id)) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(.red)

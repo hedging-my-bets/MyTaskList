@@ -52,7 +52,7 @@ struct AccessoryCircularTaskView: View {
 
             // Pet image in center with interactive complete button
             if let currentTask = entry.tasks.first(where: { !$0.isDone }) {
-                Button(intent: CompleteTaskIntent(task: currentTask)) {
+                Button(intent: CompleteTaskIntent(taskID: currentTask.id)) {
                     VStack(spacing: 2) {
                         if let petImageName = petImageName {
                             Image(petImageName)
@@ -177,14 +177,14 @@ struct AccessoryRectangularTaskView: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(entry.tasks.prefix(2), id: \.id) { task in
                     HStack(spacing: 6) {
-                        Button(intent: CompleteTaskIntent(task: task)) {
+                        Button(intent: CompleteTaskIntent(taskID: task.id)) {
                             Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                                 .font(.system(size: 12))
                                 .foregroundStyle(task.isDone ? .green : .secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        Button(intent: SkipTaskIntent(task: task)) {
+                        Button(intent: SkipTaskIntent(taskID: task.id)) {
                             Image(systemName: "xmark.circle")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.red)
@@ -362,7 +362,7 @@ struct SystemSmallTaskView: View {
             // Tasks (up to 3)
             ForEach(entry.tasks.prefix(3), id: \.id) { task in
                 HStack(spacing: 8) {
-                    Button(intent: CompleteTaskIntent(task: task)) {
+                    Button(intent: CompleteTaskIntent(taskID: task.id)) {
                         Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(task.isDone ? .green : .secondary)
                     }
@@ -376,7 +376,7 @@ struct SystemSmallTaskView: View {
                     Spacer()
 
                     if !task.isDone {
-                        Button(intent: SkipTaskIntent(task: task)) {
+                        Button(intent: SkipTaskIntent(taskID: task.id)) {
                             Image(systemName: "xmark.circle")
                                 .foregroundStyle(.red)
                         }
