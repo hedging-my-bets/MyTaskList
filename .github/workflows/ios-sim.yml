@@ -93,16 +93,43 @@ jobs:
           echo "dest=platform=iOS Simulator,name=${DEVICE_NAME}" >> "$GITHUB_OUTPUT"
           echo "Successfully booted simulator: $DEVICE_NAME"
 
-      - name: Build (Simulator)
+      - name: Build Main App
         run: |
           set -euxo pipefail
           xcodebuild \
             -project "$PROJECT_FILE" \
-            -scheme "${{ steps.scheme.outputs.scheme }}" \
+            -target "PetProgress" \
             -destination "generic/platform=iOS Simulator" \
             -sdk iphonesimulator \
             -derivedDataPath "$DERIVED_DATA" \
-            -parallelizeTargets \
+            build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions
+
+      - name: Build Widget Extension
+        run: |
+          set -euxo pipefail
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -target "PetProgressWidget" \
+            -destination "generic/platform=iOS Simulator" \
+            -sdk iphonesimulator \
+            -derivedDataPath "$DERIVED_DATA" \
+            build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions
+
+      - name: Build SharedKit Framework
+        run: |
+          set -euxo pipefail
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -target "SharedKit" \
+            -destination "generic/platform=iOS Simulator" \
+            -sdk iphonesimulator \
+            -derivedDataPath "$DERIVED_DATA" \
             build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
@@ -164,13 +191,23 @@ jobs:
           path: build_artifacts/MyTaskList.app
           if-no-files-found: warn
 
-      # ✅ Upload xcresult and logs for quick triage when tests fail
-      - name: Upload test results & logs
-        if: always()
+      # ✅ Upload xcresult and logs for quick triage when builds/tests fail
+      - name: Upload build/test results & logs
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: xcode-results-and-logs
+          name: xcode-failure-diagnostics
           path: |
             ${{ env.DERIVED_DATA }}/TestResults.xcresult
             ${{ env.DERIVED_DATA }}/Logs
+            ${{ env.DERIVED_DATA }}/Build/Intermediates.noindex
+          if-no-files-found: warn
+
+      - name: Upload xcresult on success
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-success-results
+          path: |
+            ${{ env.DERIVED_DATA }}/TestResults.xcresult
           if-no-files-found: ignore

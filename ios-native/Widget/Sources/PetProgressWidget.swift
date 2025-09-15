@@ -136,12 +136,37 @@ struct PetProgressWidgetEntryView: View {
         switch widgetFamily {
         case .accessoryCircular:
             CircularLockScreenView(entry: entry)
+                .widgetURL(deepLinkURL)
         case .accessoryRectangular:
             RectangularLockScreenView(entry: entry)
+                .widgetURL(deepLinkURL)
         case .systemSmall, .systemMedium:
             StandardWidgetView(entry: entry)
+                .widgetURL(deepLinkURL)
         default:
             StandardWidgetView(entry: entry)
+                .widgetURL(deepLinkURL)
+        }
+    }
+
+    private var deepLinkURL: URL? {
+        guard let currentTask = nextIncompleteTask else { return nil }
+
+        var components = URLComponents()
+        components.scheme = "petprogress"
+        components.host = "task"
+        components.queryItems = [
+            URLQueryItem(name: "dayKey", value: entry.dayModel.key),
+            URLQueryItem(name: "hour", value: String(currentTask.hour)),
+            URLQueryItem(name: "title", value: currentTask.title)
+        ]
+        return components.url
+    }
+
+    private var nextIncompleteTask: DayModel.Slot? {
+        let currentHour = Calendar.current.component(.hour, from: entry.date)
+        return entry.dayModel.slots.first { slot in
+            slot.hour >= currentHour && !slot.isDone
         }
     }
 }
