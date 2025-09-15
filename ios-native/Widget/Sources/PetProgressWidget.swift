@@ -22,7 +22,7 @@ struct PetProgressWidget: Widget {
         }
         .configurationDisplayName("Pet Progress")
         .description("Track your tasks and watch your pet evolve")
-        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .systemSmall, .systemMedium])
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline, .systemSmall, .systemMedium])
     }
 }
 
@@ -161,10 +161,13 @@ struct PetProgressWidgetEntryView: View {
     var body: some View {
         switch widgetFamily {
         case .accessoryCircular:
-            CircularLockScreenView(entry: entry)
+            AccessoryCircularView(entry: entry)
                 .widgetURL(deepLinkURL)
         case .accessoryRectangular:
-            RectangularLockScreenView(entry: entry)
+            AccessoryRectangularView(entry: entry)
+                .widgetURL(deepLinkURL)
+        case .accessoryInline:
+            AccessoryInlineView(entry: entry)
                 .widgetURL(deepLinkURL)
         case .systemSmall, .systemMedium:
             StandardWidgetView(entry: entry)
@@ -197,176 +200,6 @@ struct PetProgressWidgetEntryView: View {
     }
 }
 
-// MARK: - Circular Lock Screen
-
-struct CircularLockScreenView: View {
-    let entry: SimpleEntry
-    private let engine = PetEvolutionEngine()
-
-    var body: some View {
-        ZStack {
-            // Progress ring
-            Circle()
-                .stroke(.tertiary, lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: progressToNextStage)
-                .stroke(.blue, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-
-            // Pet stage number
-            Text("\(currentStage + 1)")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.primary)
-        }
-        .containerBackground(for: .widget) {
-            AccessoryWidgetBackground()
-        }
-    }
-
-    private var currentStage: Int {
-        // Always get fresh pet stage from current data, not cached entry
-        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
-            return engine.stageIndex(for: entry.dayModel.points)
-        }
-        return engine.stageIndex(for: currentDay.points)
-    }
-
-    private var progressToNextStage: Double {
-        // Use fresh data for accurate progress calculation
-        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
-            let progress = Double(entry.dayModel.points % 50) / 50.0
-            return max(0.0, min(1.0, progress))
-        }
-
-        let stage = engine.stageIndex(for: currentDay.points)
-        if stage >= 15 { return 1.0 }
-
-        let progress = Double(currentDay.points % 50) / 50.0
-        return max(0.0, min(1.0, progress))
-    }
-}
-
-// MARK: - Rectangular Lock Screen with Working Buttons
-
-struct RectangularLockScreenView: View {
-    let entry: SimpleEntry
-
-    var body: some View {
-        VStack(spacing: 4) {
-            // Pet status
-            HStack {
-                Text("Stage \(currentStage + 1)")
-                    .font(.system(size: 14, weight: .semibold))
-                Spacer()
-                Text("\(currentXP) XP")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-
-            // Next task
-            if let nextTask = nextIncompleteTask {
-                HStack {
-                    Text(nextTask.title)
-                        .font(.system(size: 12))
-                        .lineLimit(1)
-                    Spacer()
-                    Text("\(nextTask.hour):00")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            // Action buttons - THESE ACTUALLY WORK
-            if nextIncompleteTask != nil {
-                HStack(spacing: 6) {
-                    // Navigation
-                    Button(intent: ShowPreviousTaskIntent()) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Button(intent: ShowNextTaskIntent()) {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
-
-                    // Actions
-                    Button(intent: CompleteTaskIntent()) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.green)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Button(intent: SkipTaskIntent()) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-        }
-        .padding(.horizontal, 8)
-        .containerBackground(for: .widget) {
-            AccessoryWidgetBackground()
-        }
-    }
-
-    private var currentStage: Int {
-        // Always get fresh pet stage from current data, not cached entry
-        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
-            let engine = PetEvolutionEngine()
-            return engine.stageIndex(for: entry.dayModel.points)
-        }
-        let engine = PetEvolutionEngine()
-        return engine.stageIndex(for: currentDay.points)
-    }
-
-    private var currentXP: Int {
-        // Always get fresh XP from current data, not cached entry
-        return SharedStore.shared.getCurrentDayModel()?.points ?? entry.dayModel.points
-    }
-
-    private var nextIncompleteTask: DayModel.Slot? {
-        // Always use fresh data for task navigation
-        guard let currentDay = SharedStore.shared.getCurrentDayModel() else {
-            return entry.dayModel.slots.first { !$0.isDone }
-        }
-
-        // Get widget focus index from App Group
-        let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
-        let focusIndex = sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
-
-        // Get tasks for current hour or later using fresh data
-        let currentHour = Calendar.current.component(.hour, from: entry.date)
-        let availableTasks = currentDay.slots.filter { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }
-
-        // Validate and clamp focus index
-        guard !availableTasks.isEmpty else {
-            // Reset focus when no tasks available
-            sharedDefaults?.set(0, forKey: "widget_focus_index")
-            return nil
-        }
-
-        // Clamp focus index to valid range
-        let validIndex = min(max(0, focusIndex), availableTasks.count - 1)
-        if validIndex != focusIndex {
-            // Auto-correct invalid focus index
-            sharedDefaults?.set(validIndex, forKey: "widget_focus_index")
-        }
-
-        return availableTasks[validIndex]
-    }
-}
 
 // MARK: - Standard Widget
 

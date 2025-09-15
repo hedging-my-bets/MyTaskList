@@ -2,6 +2,28 @@ import SwiftUI
 import UIKit
 import AVFoundation
 
+// MARK: - Enhanced Haptic Feedback
+
+enum HapticFeedback {
+    case success
+    case warning
+    case error
+    case impact(UIImpactFeedbackGenerator.FeedbackStyle)
+
+    func trigger() {
+        switch self {
+        case .success:
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        case .warning:
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        case .error:
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+        case .impact(let style):
+            UIImpactFeedbackGenerator(style: style).impactOccurred()
+        }
+    }
+}
+
 // MARK: - Celebration System
 
 @MainActor
@@ -38,13 +60,13 @@ final class CelebrationSystem: ObservableObject {
             }
         }
 
-        var hapticPattern: [UINotificationFeedbackGenerator.FeedbackType] {
+        var hapticPattern: [HapticFeedback] {
             switch self {
             case .taskComplete: return [.success]
-            case .levelUp: return [.success, .success]
-            case .perfectDay: return [.success, .success, .success]
-            case .streak: return [.success, .success]
-            case .milestone: return [.success, .success, .success]
+            case .levelUp: return [.impact(.medium), .success, .impact(.heavy)]
+            case .perfectDay: return [.success, .impact(.heavy), .success, .impact(.heavy), .success]
+            case .streak: return [.impact(.medium), .success, .impact(.medium)]
+            case .milestone: return [.impact(.heavy), .success, .impact(.heavy), .success, .impact(.heavy)]
             }
         }
 
@@ -93,6 +115,13 @@ final class CelebrationSystem: ObservableObject {
         celebrate(.levelUp, message: message)
     }
 
+    func celebrateLevelUp(from oldStage: Int, to newStage: Int) {
+        let stageNames = ["Baby", "Toddler", "Frog", "Hermit", "Seahorse", "Beaver", "Dolphin", "Wolf", "Bear", "Bison", "Elephant", "Rhino", "Alligator", "Adult", "Gold", "CEO"]
+        let petName = stageNames.indices.contains(newStage) ? stageNames[newStage] : "Pet"
+        let message = "🎉 Level up! Your pet evolved to \(petName)!"
+        celebrate(.levelUp, message: message)
+    }
+
     func celebratePerfectDay() {
         celebrate(.perfectDay, message: "🌟 Perfect day! All tasks completed!")
     }
@@ -137,11 +166,11 @@ final class CelebrationSystem: ObservableObject {
         }
     }
 
-    private func playHapticSequence(_ pattern: [UINotificationFeedbackGenerator.FeedbackType]) async {
-        for feedback in pattern {
-            hapticGenerator.notificationOccurred(feedback)
-            if pattern.count > 1 {
-                try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 second delay
+    private func playHapticSequence(_ pattern: [HapticFeedback]) async {
+        for (index, feedback) in pattern.enumerated() {
+            feedback.trigger()
+            if index < pattern.count - 1 {
+                try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 second delay
             }
         }
     }

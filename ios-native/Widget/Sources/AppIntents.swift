@@ -10,8 +10,14 @@ import UIKit
 @available(iOS 17.0, *)
 struct CompleteTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Complete Task"
-    static var description = IntentDescription("Marks the next scheduled task as complete")
+    static var description = IntentDescription("Marks a task as complete")
     static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Task ID")
+    var taskId: String?
+
+    @Parameter(title: "Day Key")
+    var dayKey: String?
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "CompleteTask")
@@ -21,7 +27,7 @@ struct CompleteTaskIntent: AppIntent {
         let timeout: CFAbsoluteTime = 5.0
 
         let now = Date()
-        let dayKey = TimeSlot.dayKey(for: now)
+        let targetDayKey = dayKey ?? TimeSlot.dayKey(for: now)
 
         // Check execution time budget
         if CFAbsoluteTimeGetCurrent() - startTime > timeout {
@@ -29,20 +35,41 @@ struct CompleteTaskIntent: AppIntent {
             throw AppIntentError.executionTimeout
         }
 
-        // Use SharedStore's proper method for marking next task done
-        guard let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) else {
-            logger.warning("No tasks available to complete")
-            throw AppIntentError.noTasksAvailable
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+
+        let updatedDay: DayModel?
+        if let specificTaskId = taskId {
+            // Complete specific task by ID
+            updatedDay = await sharedStore.markTaskComplete(taskId: specificTaskId, dayKey: targetDayKey)
+        } else {
+            // Fallback to completing next available task
+            guard let currentDay = await sharedStore.getCurrentDayModel() else {
+                logger.warning("No day model available")
+                throw AppIntentError.noTasksAvailable
+            }
+
+            let currentHour = Calendar.current.component(.hour, from: now)
+            guard let nextTask = currentDay.slots.first(where: { $0.hour >= currentHour && !$0.isDone }) else {
+                logger.warning("No tasks available to complete")
+                throw AppIntentError.allTasksComplete
+            }
+
+            updatedDay = await sharedStore.markTaskComplete(taskId: nextTask.id, dayKey: targetDayKey)
+        }
+
+        guard let day = updatedDay else {
+            logger.error("Failed to complete task")
+            throw AppIntentError.operationFailed
         }
 
         // Find the completed task for feedback
-        let completedTasks = updatedDay.slots.filter { $0.isDone }
-        let taskName = completedTasks.last?.title ?? "Task"
+        let taskName = day.slots.first(where: { $0.id == taskId })?.title ?? "Task"
 
         // Check for level up and provide appropriate feedback
-        let oldPoints = updatedDay.points - 5  // Points before this completion
+        let oldPoints = day.points - 5  // Points before this completion
         let oldStage = PetEvolutionEngine().stageIndex(for: oldPoints)
-        let newStage = PetEvolutionEngine().stageIndex(for: updatedDay.points)
+        let newStage = PetEvolutionEngine().stageIndex(for: day.points)
 
         // Provide haptic feedback
         if newStage > oldStage {
@@ -56,10 +83,11 @@ struct CompleteTaskIntent: AppIntent {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
 
-        // Refresh widgets immediately
+        // Trigger atomic widget reload
+        await sharedStore.triggerWidgetReload()
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Task '\(taskName)' completed via SharedStore.markNextDone")
+        logger.info("Task '\(taskName)' completed via SharedStoreActor.markTaskComplete")
 
         let dialogText = newStage > oldStage ?
             "🎉 \(taskName) completed! Level up to Stage \(newStage + 1)!" :
@@ -74,8 +102,14 @@ struct CompleteTaskIntent: AppIntent {
 @available(iOS 17.0, *)
 struct SkipTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Skip Task"
-    static var description = IntentDescription("Skips the current task without marking it done")
+    static var description = IntentDescription("Skips a task without awarding points")
     static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Task ID")
+    var taskId: String?
+
+    @Parameter(title: "Day Key")
+    var dayKey: String?
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "SkipTask")
@@ -85,7 +119,7 @@ struct SkipTaskIntent: AppIntent {
         let timeout: CFAbsoluteTime = 5.0
 
         let now = Date()
-        let dayKey = TimeSlot.dayKey(for: now)
+        let targetDayKey = dayKey ?? TimeSlot.dayKey(for: now)
 
         // Check execution time budget
         if CFAbsoluteTimeGetCurrent() - startTime > timeout {
@@ -93,43 +127,107 @@ struct SkipTaskIntent: AppIntent {
             throw AppIntentError.executionTimeout
         }
 
-        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
-              !currentDay.slots.isEmpty else {
-            logger.warning("No tasks available to skip")
-            throw AppIntentError.noTasksAvailable
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+
+        let updatedDay: DayModel?
+        if let specificTaskId = taskId {
+            // Skip specific task by ID
+            updatedDay = await sharedStore.skipTask(taskId: specificTaskId, dayKey: targetDayKey)
+        } else {
+            // Fallback to skipping next available task
+            guard let currentDay = await sharedStore.getCurrentDayModel() else {
+                logger.warning("No day model available")
+                throw AppIntentError.noTasksAvailable
+            }
+
+            let currentHour = Calendar.current.component(.hour, from: now)
+            guard let nextTask = currentDay.slots.first(where: { $0.hour >= currentHour && !$0.isDone }) else {
+                logger.warning("No tasks available to skip")
+                throw AppIntentError.allTasksComplete
+            }
+
+            updatedDay = await sharedStore.skipTask(taskId: nextTask.id, dayKey: targetDayKey)
         }
 
-        let currentHour = TimeSlot.hourIndex(for: now)
-        guard let taskToSkip = currentDay.slots.first(where: { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }) else {
-            logger.info("No incomplete tasks to skip")
-            throw AppIntentError.allTasksComplete
+        guard let day = updatedDay else {
+            logger.error("Failed to skip task")
+            throw AppIntentError.operationFailed
         }
 
-        // Check execution time budget before operations
-        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
-            logger.error("SkipTask execution exceeded time budget")
-            throw AppIntentError.executionTimeout
-        }
-
-        // Advance the widget focus index to skip this task
-        let currentIndex = getCurrentWidgetIndex()
-        setCurrentWidgetIndex(currentIndex + 1)
+        // Find the skipped task for feedback
+        let taskName = day.slots.first(where: { $0.id == taskId })?.title ?? "Task"
 
         // Provide subtle haptic feedback for skip action
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
-        // Refresh widgets to show next task
+        // Trigger atomic widget reload
+        await sharedStore.triggerWidgetReload()
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Skipped task '\(taskToSkip.title)' by advancing widget index")
+        logger.info("Skipped task '\(taskName)' via SharedStoreActor.skipTask")
 
-        return .result(dialog: IntentDialog("⏭️ Skipped: \(taskToSkip.title)"))
+        return .result(dialog: IntentDialog("⏭️ Skipped: \(taskName)"))
     }
 }
 
 // MARK: - Navigation Intents
+
+@available(iOS 17.0, *)
+struct NextWindowIntent: AppIntent {
+    static var title: LocalizedStringResource = "Next Hour Window"
+    static var description = IntentDescription("Move widget view to next hour window")
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "NextWindow")
+
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+        let currentOffset = await sharedStore.getWindowOffset()
+        let newOffset = min(currentOffset + 1, 12) // Clamp to +12 hours max
+
+        await sharedStore.updateWindowOffset(newOffset)
+
+        // Provide subtle haptic feedback
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        // Trigger widget reload
+        await sharedStore.triggerWidgetReload()
+        WidgetCenter.shared.reloadAllTimelines()
+
+        logger.info("Advanced window offset to: \(newOffset)")
+        return .result(dialog: IntentDialog(""))
+    }
+}
+
+@available(iOS 17.0, *)
+struct PrevWindowIntent: AppIntent {
+    static var title: LocalizedStringResource = "Previous Hour Window"
+    static var description = IntentDescription("Move widget view to previous hour window")
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "PrevWindow")
+
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+        let currentOffset = await sharedStore.getWindowOffset()
+        let newOffset = max(currentOffset - 1, -12) // Clamp to -12 hours min
+
+        await sharedStore.updateWindowOffset(newOffset)
+
+        // Provide subtle haptic feedback
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        // Trigger widget reload
+        await sharedStore.triggerWidgetReload()
+        WidgetCenter.shared.reloadAllTimelines()
+
+        logger.info("Moved window offset to: \(newOffset)")
+        return .result(dialog: IntentDialog(""))
+    }
+}
 
 @available(iOS 17.0, *)
 struct ShowNextTaskIntent: AppIntent {
@@ -152,43 +250,23 @@ struct ShowNextTaskIntent: AppIntent {
             throw AppIntentError.executionTimeout
         }
 
-        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
-              !currentDay.slots.isEmpty else {
-            logger.warning("No tasks available")
-            throw AppIntentError.noTasksAvailable
-        }
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+        let currentOffset = await sharedStore.getWindowOffset()
+        let newOffset = min(currentOffset + 1, 12)
 
-        // Get available tasks for bounds checking
-        let currentHour = TimeSlot.hourIndex(for: now)
-        let availableTasks = currentDay.slots.filter { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }
-
-        guard !availableTasks.isEmpty else {
-            logger.info("No incomplete tasks available")
-            throw AppIntentError.allTasksComplete
-        }
-
-        // Check execution time budget before operations
-        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
-            logger.error("NextTask execution exceeded time budget")
-            throw AppIntentError.executionTimeout
-        }
-
-        // Get current index and advance with bounds checking
-        let currentIndex = getCurrentWidgetIndex()
-        let newIndex = min(currentIndex + 1, availableTasks.count - 1)
-
-        setCurrentWidgetIndex(newIndex)
+        await sharedStore.updateWindowOffset(newOffset)
 
         // Provide subtle haptic feedback for navigation
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
+        // Trigger widget reload
+        await sharedStore.triggerWidgetReload()
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Advanced to next task (index: \(newIndex)/\(availableTasks.count))")
+        logger.info("Advanced task view window offset to: \(newOffset)")
 
-        return .result(dialog: IntentDialog("➡️ Next task"))
+        return .result(dialog: IntentDialog(""))
     }
 }
 
@@ -213,43 +291,23 @@ struct ShowPreviousTaskIntent: AppIntent {
             throw AppIntentError.executionTimeout
         }
 
-        guard let currentDay = SharedStore.shared.getCurrentDayModel(),
-              !currentDay.slots.isEmpty else {
-            logger.warning("No tasks available")
-            throw AppIntentError.noTasksAvailable
-        }
+        // Use atomic SharedStoreActor for thread-safe operations
+        let sharedStore = SharedStoreActor.shared
+        let currentOffset = await sharedStore.getWindowOffset()
+        let newOffset = max(currentOffset - 1, -12)
 
-        // Get available tasks for bounds checking
-        let currentHour = TimeSlot.hourIndex(for: now)
-        let availableTasks = currentDay.slots.filter { slot in
-            slot.hour >= currentHour && !slot.isDone
-        }
-
-        guard !availableTasks.isEmpty else {
-            logger.info("No incomplete tasks available")
-            throw AppIntentError.allTasksComplete
-        }
-
-        // Check execution time budget before operations
-        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
-            logger.error("PrevTask execution exceeded time budget")
-            throw AppIntentError.executionTimeout
-        }
-
-        // Get current index and go back with bounds checking
-        let currentIndex = getCurrentWidgetIndex()
-        let newIndex = max(0, currentIndex - 1)
-
-        setCurrentWidgetIndex(newIndex)
+        await sharedStore.updateWindowOffset(newOffset)
 
         // Provide subtle haptic feedback for navigation
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
+        // Trigger widget reload
+        await sharedStore.triggerWidgetReload()
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Moved to previous task (index: \(newIndex)/\(availableTasks.count))")
+        logger.info("Moved task view window offset to: \(newOffset)")
 
-        return .result(dialog: IntentDialog("⬅️ Previous task"))
+        return .result(dialog: IntentDialog(""))
     }
 }
 
@@ -295,6 +353,8 @@ struct PetProgressAppIntentsProvider: AppIntentsProvider {
         return [
             CompleteTaskIntent.self,
             SkipTaskIntent.self,
+            NextWindowIntent.self,
+            PrevWindowIntent.self,
             ShowNextTaskIntent.self,
             ShowPreviousTaskIntent.self
         ]
