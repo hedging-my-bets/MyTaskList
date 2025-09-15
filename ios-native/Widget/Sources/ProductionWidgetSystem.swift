@@ -185,7 +185,7 @@ class ProductionWidgetSystem {
     private func loadCachedData() -> DayModel? {
         // Implement cache retrieval logic
         // This could use UserDefaults, Core Data, or file system caching
-        let defaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+        let defaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
         guard let data = defaults?.data(forKey: "cached_day_model"),
               let cached = try? JSONDecoder().decode(DayModel.self, from: data) else {
             return nil
@@ -303,7 +303,7 @@ private class WidgetPerformanceMonitor {
 
     private func trackPerformanceTrend(type: OperationType, duration: TimeInterval) {
         // Store performance metrics for trend analysis
-        let defaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+        let defaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
         let key = "perf_\(type)"
 
         var durations = defaults?.array(forKey: key) as? [Double] ?? []

@@ -314,12 +314,12 @@ struct ShowPreviousTaskIntent: AppIntent {
 // MARK: - Widget Focus Index Helpers
 
 private func getCurrentWidgetIndex() -> Int {
-    let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+    let sharedDefaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
     return sharedDefaults?.integer(forKey: "widget_focus_index") ?? 0
 }
 
 private func setCurrentWidgetIndex(_ index: Int) {
-    let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+    let sharedDefaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
     sharedDefaults?.set(index, forKey: "widget_focus_index")
 }
 

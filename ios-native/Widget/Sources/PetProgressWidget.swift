@@ -64,48 +64,27 @@ struct Provider: AppIntentTimelineProvider {
         let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
 
         let now = Date()
+        let topOfCurrentHour = now.topOfHour
+        let topOfNextHour = topOfCurrentHour.addingTimeInterval(3600)
 
-        // Calculate next top of hour for timeline alignment
-        let nextHour = Calendar.current.nextDate(
-            after: now,
-            matching: DateComponents(minute: 0, second: 0),
-            matchingPolicy: .nextTime,
-            direction: .forward
-        ) ?? now.addingTimeInterval(3600)
+        logger.info("Building hourly timeline: current hour \(topOfCurrentHour), next hour \(topOfNextHour)")
 
-        logger.info("Building timeline from \(now) to next hour at \(nextHour)")
-
-        // Build entries for next 12 hours, aligned to top of hour
+        // Build exactly 2 entries: current hour and next hour
         var entries: [SimpleEntry] = []
-        var entryDate = nextHour
 
-        for hourOffset in 0..<12 {
-            // Check execution budget periodically
-            if CFAbsoluteTimeGetCurrent() - startTime > timeout {
-                logger.warning("Timeline generation exceeded time budget at hour \(hourOffset)")
-                // Create minimal fallback timeline with current data
-                let fallbackModel = loadOrCreateDayModel()
-                let fallbackEntry = SimpleEntry(date: now, dayModel: fallbackModel)
-                let fallbackTimeline = Timeline(entries: [fallbackEntry], policy: .after(nextHour))
-                completion(fallbackTimeline)
-                return
-            }
+        // Entry for current hour (shows nearest-hour filtered tasks)
+        let currentHourModel = loadNearestHourDayModel(for: topOfCurrentHour)
+        entries.append(SimpleEntry(date: topOfCurrentHour, dayModel: currentHourModel))
 
-            let dayModel = loadDayModelForDate(entryDate)
-            let entry = SimpleEntry(date: entryDate, dayModel: dayModel)
-            entries.append(entry)
+        // Entry for next hour
+        let nextHourModel = loadNearestHourDayModel(for: topOfNextHour)
+        entries.append(SimpleEntry(date: topOfNextHour, dayModel: nextHourModel))
 
-            entryDate = Calendar.current.date(byAdding: .hour, value: 1, to: entryDate) ?? entryDate.addingTimeInterval(3600)
-        }
+        // Timeline policy: refresh at top of next hour
+        let timeline = Timeline(entries: entries, policy: .after(topOfNextHour))
 
-        // Add current entry if we're not at top of hour yet
-        if Calendar.current.component(.minute, from: now) != 0 || Calendar.current.component(.second, from: now) != 0 {
-            let currentEntry = SimpleEntry(date: now, dayModel: loadOrCreateDayModel())
-            entries.insert(currentEntry, at: 0)
-        }
-
-        let timeline = Timeline(entries: entries, policy: .after(nextHour))
-        logger.info("Timeline built with \(entries.count) entries, next refresh at \(nextHour)")
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        logger.info("Hourly timeline built with \(entries.count) entries in \(String(format: "%.3f", duration))s, next refresh at \(topOfNextHour)")
 
         completion(timeline)
     }
@@ -118,6 +97,28 @@ struct Provider: AppIntentTimelineProvider {
     private func loadDayModelForDate(_ date: Date) -> DayModel {
         let dayKey = TimeSlot.dayKey(for: date)
         return SharedStore.shared.loadDay(key: dayKey) ?? createPlaceholderModelForDate(date)
+    }
+
+    private func loadNearestHourDayModel(for date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        let targetHour = Calendar.current.component(.hour, from: date)
+
+        // Load full day model
+        guard let fullDayModel = SharedStore.shared.loadDay(key: dayKey) ?? SharedStore.shared.getCurrentDayModel() else {
+            return createPlaceholderModelForDate(date)
+        }
+
+        // Filter to tasks nearest to target hour (±2 hour window)
+        let nearestTasks = fullDayModel.slots.filter { slot in
+            let hourDiff = abs(slot.hour - targetHour)
+            return hourDiff <= 2 || hourDiff >= 22  // Handle 24-hour wrap-around
+        }
+
+        return DayModel(
+            key: fullDayModel.key,
+            slots: nearestTasks,
+            points: fullDayModel.points
+        )
     }
 
     private func createPlaceholderModel() -> DayModel {
@@ -242,4 +243,14 @@ struct StandardWidgetView: View {
         ],
         points: 35
     ))
+}
+
+// MARK: - Date Extensions
+
+extension Date {
+    var topOfHour: Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour], from: self)
+        return calendar.date(from: components) ?? self
+    }
 }

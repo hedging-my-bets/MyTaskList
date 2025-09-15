@@ -64,7 +64,7 @@ public actor SharedStoreActor {
     public static let shared = SharedStoreActor()
 
     // MARK: - Configuration
-    private let appGroupID = "group.hedging-my-bets.mytasklist"
+    private let appGroupID = "group.com.hedgingmybets.PetProgress"
     private let maxRetryAttempts = 3
     private let operationTimeout: TimeInterval = 10.0
 

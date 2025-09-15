@@ -62,46 +62,55 @@ struct AccessoryRectangularView: View {
         let windowOffset = getCurrentWindowOffset()
         let targetHour = currentHour + windowOffset
 
+        // Filter dayModel.slots to nearest-hour tasks only (±2 hour window)
+        let nearestSlots = entry.dayModel.slots.filter { slot in
+            let hourDiff = abs(slot.hour - targetHour)
+            return hourDiff <= 2 || hourDiff >= 22  // Handle 24-hour wrap-around
+        }.sorted { $0.hour < $1.hour }
+
         var tasks: [TaskDisplayItem] = []
 
-        // Previous hour task
-        if let prevTask = findTaskForHour(targetHour - 1) {
+        // Previous hour task (from filtered nearest tasks)
+        let prevHour = (targetHour - 1 + 24) % 24
+        if let prevTask = nearestSlots.first(where: { $0.hour == prevHour }) {
             tasks.append(TaskDisplayItem(
                 task: prevTask,
-                timeLabel: String(format: "%02d:00", (targetHour - 1 + 24) % 24),
+                timeLabel: String(format: "%02d:00", prevHour),
                 position: .previous
             ))
         } else {
             tasks.append(TaskDisplayItem.empty(
-                timeLabel: String(format: "%02d:00", (targetHour - 1 + 24) % 24),
+                timeLabel: String(format: "%02d:00", prevHour),
                 position: .previous
             ))
         }
 
-        // Current hour task
-        if let currentTask = findTaskForHour(targetHour) {
+        // Current hour task (from filtered nearest tasks)
+        let currentTargetHour = targetHour % 24
+        if let currentTask = nearestSlots.first(where: { $0.hour == currentTargetHour }) {
             tasks.append(TaskDisplayItem(
                 task: currentTask,
-                timeLabel: String(format: "%02d:00", targetHour % 24),
+                timeLabel: String(format: "%02d:00", currentTargetHour),
                 position: .current
             ))
         } else {
             tasks.append(TaskDisplayItem.empty(
-                timeLabel: String(format: "%02d:00", targetHour % 24),
+                timeLabel: String(format: "%02d:00", currentTargetHour),
                 position: .current
             ))
         }
 
-        // Next hour task
-        if let nextTask = findTaskForHour(targetHour + 1) {
+        // Next hour task (from filtered nearest tasks)
+        let nextHour = (targetHour + 1) % 24
+        if let nextTask = nearestSlots.first(where: { $0.hour == nextHour }) {
             tasks.append(TaskDisplayItem(
                 task: nextTask,
-                timeLabel: String(format: "%02d:00", (targetHour + 1) % 24),
+                timeLabel: String(format: "%02d:00", nextHour),
                 position: .next
             ))
         } else {
             tasks.append(TaskDisplayItem.empty(
-                timeLabel: String(format: "%02d:00", (targetHour + 1) % 24),
+                timeLabel: String(format: "%02d:00", nextHour),
                 position: .next
             ))
         }
@@ -115,7 +124,7 @@ struct AccessoryRectangularView: View {
     }
 
     private func getCurrentWindowOffset() -> Int {
-        let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+        let sharedDefaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
         return sharedDefaults?.integer(forKey: "widget_window_offset") ?? 0
     }
 }

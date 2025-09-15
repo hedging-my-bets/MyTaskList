@@ -8,7 +8,7 @@ public final class SharedStore: ObservableObject {
     public static let shared = SharedStore()
 
     // MARK: - Configuration
-    private let appGroupID = "group.hedging-my-bets.mytasklist"
+    private let appGroupID = "group.com.hedgingmybets.PetProgress"
     private let backupSuffix = ".backup"
     private let tempSuffix = ".tmp"
     private let maxRetryAttempts = 3

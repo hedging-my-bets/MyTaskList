@@ -45,10 +45,16 @@ struct AccessoryInlineView: View {
         let windowOffset = getCurrentWindowOffset()
         let targetHour = currentHour + windowOffset
 
-        // Find the next incomplete task starting from current hour
+        // Filter to nearest-hour tasks only (±2 hour window)
+        let nearestSlots = entry.dayModel.slots.filter { slot in
+            let hourDiff = abs(slot.hour - targetHour)
+            return hourDiff <= 2 || hourDiff >= 22  // Handle 24-hour wrap-around
+        }.sorted { $0.hour < $1.hour }
+
+        // Find the next incomplete task from filtered nearest tasks
         for offset in 0..<24 {
             let checkHour = (targetHour + offset) % 24
-            if let task = findTaskForHour(checkHour), !task.isDone {
+            if let task = nearestSlots.first(where: { $0.hour == checkHour && !$0.isDone }) {
                 return TaskDisplayItem(
                     task: task,
                     timeLabel: String(format: "%02d:00", checkHour),
@@ -66,7 +72,7 @@ struct AccessoryInlineView: View {
     }
 
     private func getCurrentWindowOffset() -> Int {
-        let sharedDefaults = UserDefaults(suiteName: "group.hedging-my-bets.mytasklist")
+        let sharedDefaults = UserDefaults(suiteName: "group.com.hedgingmybets.PetProgress")
         return sharedDefaults?.integer(forKey: "widget_window_offset") ?? 0
     }
 }
