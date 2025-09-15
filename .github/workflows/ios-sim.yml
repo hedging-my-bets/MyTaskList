@@ -10,7 +10,7 @@ jobs:
     env:
       PROJECT_DIR: ios-native
       PROJECT_FILE: ios-native/MyTaskList.xcodeproj
-      DEFAULT_SCHEME: App
+      DEFAULT_SCHEME: PetProgress
       DERIVED_DATA: ${{ github.workspace }}/DerivedData
 
     steps:

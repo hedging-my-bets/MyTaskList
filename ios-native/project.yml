@@ -121,6 +121,9 @@ targets:
         embed: true
     entitlements:
       path: App/PetProgress.entitlements
+    attributes:
+      SystemCapabilities:
+        com.apple.ApplicationGroups.iOS: true
     settings:
       base:
         PRODUCT_NAME: PetProgress
@@ -145,6 +148,9 @@ targets:
       - target: SharedKit
     entitlements:
       path: Widget/PetProgressWidget.entitlements
+    attributes:
+      SystemCapabilities:
+        com.apple.ApplicationGroups.iOS: true
     settings:
       base:
         PRODUCT_NAME: PetProgressWidget
