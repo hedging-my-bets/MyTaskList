@@ -73,21 +73,9 @@ struct SettingsView: View {
                 Text("This will permanently delete all your tasks and reset your pet. This cannot be undone.")
             }
             .sheet(isPresented: $showingPrivacyPolicy) {
-                SafariView(url: URL(string: "https://www.example.com/privacy-policy")!)
-                    .ignoresSafeArea()
+                PrivacyPolicyView()
             }
         }
     }
 }
 
-struct SafariView: UIViewControllerRepresentable {
-    let url: URL
-
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        return SFSafariViewController(url: url)
-    }
-
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {
-        // No updates needed
-    }
-}

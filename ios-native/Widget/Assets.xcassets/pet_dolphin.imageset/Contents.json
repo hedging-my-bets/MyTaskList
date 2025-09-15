@@ -2,17 +2,17 @@
   "images": [
     {
       "filename": "pet_dolphin.png",
-      "idiom": "universal",
+      "idiom": "iphone",
       "scale": "1x"
     },
     {
       "filename": "pet_dolphin@2x.png",
-      "idiom": "universal",
+      "idiom": "iphone",
       "scale": "2x"
     },
     {
       "filename": "pet_dolphin@3x.png",
-      "idiom": "universal",
+      "idiom": "iphone",
       "scale": "3x"
     }
   ],

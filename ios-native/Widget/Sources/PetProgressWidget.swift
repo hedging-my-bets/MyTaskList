@@ -43,11 +43,26 @@ struct Provider: AppIntentTimelineProvider {
     }
 
     func getSnapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), dayModel: loadOrCreateDayModel())
+        // Respect widget preview constraints - limit execution time
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 2.0 // Shorter timeout for snapshots
+
+        let dayModel: DayModel
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.warning("Snapshot generation exceeded time budget, using placeholder")
+            dayModel = createPlaceholderModel()
+        } else {
+            dayModel = loadOrCreateDayModel()
+        }
+
+        let entry = SimpleEntry(date: Date(), dayModel: dayModel)
         completion(entry)
     }
 
     func getTimeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
+
         let now = Date()
 
         // Calculate next top of hour for timeline alignment
@@ -65,6 +80,17 @@ struct Provider: AppIntentTimelineProvider {
         var entryDate = nextHour
 
         for hourOffset in 0..<12 {
+            // Check execution budget periodically
+            if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+                logger.warning("Timeline generation exceeded time budget at hour \(hourOffset)")
+                // Create minimal fallback timeline with current data
+                let fallbackModel = loadOrCreateDayModel()
+                let fallbackEntry = SimpleEntry(date: now, dayModel: fallbackModel)
+                let fallbackTimeline = Timeline(entries: [fallbackEntry], policy: .after(nextHour))
+                completion(fallbackTimeline)
+                return
+            }
+
             let dayModel = loadDayModelForDate(entryDate)
             let entry = SimpleEntry(date: entryDate, dayModel: dayModel)
             entries.append(entry)

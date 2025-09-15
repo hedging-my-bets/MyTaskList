@@ -50,8 +50,24 @@ class AppViewModel: ObservableObject {
 
     func completeTask(_ task: TaskFeedItem) {
         let dayKey = todaysKey
+        let oldStage = petStage
+
         if let updatedDay = store.markNextDone(for: dayKey, now: Date()) {
             updateUI(with: updatedDay)
+
+            // Trigger celebrations
+            let celebrationSystem = CelebrationSystem.shared
+            let newStage = petStage
+
+            if newStage > oldStage {
+                // Level up celebration
+                let petStages = ["Baby", "Toddler", "Frog", "Hermit", "Seahorse", "Beaver", "Dolphin", "Wolf", "Bear", "Bison", "Elephant", "Rhino", "Alligator", "Adult", "Gold", "CEO"]
+                let petName = petStages.indices.contains(newStage) ? petStages[newStage] : "Pet"
+                celebrationSystem.celebrateLevelUp(newStage: newStage, petName: petName)
+            } else {
+                // Regular task completion
+                celebrationSystem.celebrateTaskCompletion(taskName: task.title, isOnTime: true)
+            }
         }
     }
 

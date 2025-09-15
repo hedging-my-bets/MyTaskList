@@ -368,11 +368,34 @@ public final class SharedStore: ObservableObject {
             return day // No incomplete tasks found
         }
 
+        let task = day.slots[slotIndex]
+
+        // Check grace period from current app state
+        guard let currentState = getCurrentState() else {
+            // Fallback to immediate completion if state unavailable
+            day.slots[slotIndex].isDone = true
+            day.points += 5
+            saveDay(day)
+            return day
+        }
+
+        // Determine if task completion is within grace period
+        let isWithinGrace = isOnTime(task: TaskItem(
+            id: task.id,
+            title: task.title,
+            scheduledAt: DateComponents(hour: task.hour),
+            isDone: false
+        ), now: now, graceMinutes: currentState.graceMinutes)
+
         // Mark the task as done
         day.slots[slotIndex].isDone = true
 
-        // Award points for completion (basic +5 points)
-        day.points += 5
+        // Award points: full points if within grace period, reduced otherwise
+        if isWithinGrace {
+            day.points += 5 // Full points for on-time completion
+        } else {
+            day.points += 2 // Reduced points for late completion
+        }
 
         saveDay(day)
         return day

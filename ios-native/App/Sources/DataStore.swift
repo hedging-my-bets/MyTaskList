@@ -91,8 +91,11 @@ final class DataStore: ObservableObject {
             showSuccessMessage("Task completed")
         }
 
-        // Level up celebration
+        // Level up celebration with advanced celebration system
         if petCopy.stageIndex > oldStage {
+            if #available(iOS 17.0, *) {
+                CelebrationSystem.shared.celebrateLevelUp(from: oldStage, to: petCopy.stageIndex)
+            }
             triggerHapticFeedback(.success)
             showSuccessMessage("🎉 Your pet leveled up to Stage \(petCopy.stageIndex)!")
         }
@@ -267,6 +270,15 @@ final class DataStore: ObservableObject {
             } else if missedTasks.count > 0 {
                 showErrorMessage("Your pet lost XP due to \(missedTasks.count) missed tasks")
                 triggerHapticFeedback(.warning)
+            }
+        }
+
+        // Check for perfect day celebration
+        let totalTasks = yesterdayTasks.count
+        let completedTasks = yesterdayTasks.filter { $0.isCompleted }.count
+        if totalTasks > 0 && completedTasks == totalTasks {
+            if #available(iOS 17.0, *) {
+                CelebrationSystem.shared.celebrate(.perfectDay)
             }
         }
     }

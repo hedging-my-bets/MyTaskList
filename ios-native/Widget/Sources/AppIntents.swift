@@ -16,8 +16,18 @@ struct CompleteTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "CompleteTask")
 
+        // Respect system execution budgets - timeout after 5 seconds
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 5.0
+
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
+
+        // Check execution time budget
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("CompleteTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
+        }
 
         // Use SharedStore's proper method for marking next task done
         guard let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) else {
@@ -70,8 +80,18 @@ struct SkipTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "SkipTask")
 
+        // Respect system execution budgets - timeout after 5 seconds
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 5.0
+
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
+
+        // Check execution time budget
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("SkipTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
+        }
 
         guard let currentDay = SharedStore.shared.getCurrentDayModel(),
               !currentDay.slots.isEmpty else {
@@ -85,6 +105,12 @@ struct SkipTaskIntent: AppIntent {
         }) else {
             logger.info("No incomplete tasks to skip")
             throw AppIntentError.allTasksComplete
+        }
+
+        // Check execution time budget before operations
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("SkipTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
         }
 
         // Advance the widget focus index to skip this task
@@ -114,7 +140,17 @@ struct ShowNextTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "NextTask")
 
+        // Respect system execution budgets - timeout after 5 seconds
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 5.0
+
         let now = Date()
+
+        // Check execution time budget
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("NextTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
+        }
 
         guard let currentDay = SharedStore.shared.getCurrentDayModel(),
               !currentDay.slots.isEmpty else {
@@ -131,6 +167,12 @@ struct ShowNextTaskIntent: AppIntent {
         guard !availableTasks.isEmpty else {
             logger.info("No incomplete tasks available")
             throw AppIntentError.allTasksComplete
+        }
+
+        // Check execution time budget before operations
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("NextTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
         }
 
         // Get current index and advance with bounds checking
@@ -159,7 +201,17 @@ struct ShowPreviousTaskIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let logger = Logger(subsystem: "com.petprogress.AppIntents", category: "PrevTask")
 
+        // Respect system execution budgets - timeout after 5 seconds
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 5.0
+
         let now = Date()
+
+        // Check execution time budget
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("PrevTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
+        }
 
         guard let currentDay = SharedStore.shared.getCurrentDayModel(),
               !currentDay.slots.isEmpty else {
@@ -176,6 +228,12 @@ struct ShowPreviousTaskIntent: AppIntent {
         guard !availableTasks.isEmpty else {
             logger.info("No incomplete tasks available")
             throw AppIntentError.allTasksComplete
+        }
+
+        // Check execution time budget before operations
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.error("PrevTask execution exceeded time budget")
+            throw AppIntentError.executionTimeout
         }
 
         // Get current index and go back with bounds checking
@@ -212,6 +270,8 @@ private func setCurrentWidgetIndex(_ index: Int) {
 enum AppIntentError: Error, LocalizedError {
     case noTasksAvailable
     case allTasksComplete
+    case executionTimeout
+    case operationFailed
 
     var errorDescription: String? {
         switch self {
@@ -219,6 +279,10 @@ enum AppIntentError: Error, LocalizedError {
             return "No tasks scheduled"
         case .allTasksComplete:
             return "All tasks completed"
+        case .executionTimeout:
+            return "Operation timed out. Try again."
+        case .operationFailed:
+            return "Something went wrong. Try again."
         }
     }
 }
