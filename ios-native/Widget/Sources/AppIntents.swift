@@ -222,3 +222,17 @@ enum AppIntentError: Error, LocalizedError {
         }
     }
 }
+
+// MARK: - App Intents Provider
+
+@available(iOS 17.0, *)
+struct PetProgressAppIntentsProvider: AppIntentsProvider {
+    static var appIntents: [any AppIntent.Type] {
+        return [
+            CompleteTaskIntent.self,
+            SkipTaskIntent.self,
+            ShowNextTaskIntent.self,
+            ShowPreviousTaskIntent.self
+        ]
+    }
+}

@@ -22,6 +22,7 @@ settings:
     SWIFT_VERSION: "5.10"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     SUPPORTS_MACCATALYST: false
+    SUPPORTED_PLATFORMS: iphoneos iphonesimulator
     TARGETED_DEVICE_FAMILY: "1"  # iPhone only (1=iPhone, 2=iPad, 1,2=Universal)
 
     # Code Signing & Security

@@ -99,7 +99,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.scheme.outputs.scheme }}" \
-            -destination "${{ steps.sim.outputs.dest }}" \
+            -destination "generic/platform=iOS Simulator" \
             -sdk iphonesimulator \
             -derivedDataPath "$DERIVED_DATA" \
             -parallelizeTargets \
@@ -115,7 +115,7 @@ jobs:
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "${{ steps.scheme.outputs.scheme }}" \
-            -destination "${{ steps.sim.outputs.dest }}" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$DERIVED_DATA/TestResults.xcresult" \
             test \
