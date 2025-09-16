@@ -12,6 +12,9 @@ public struct Stage: Codable, Equatable, Hashable {
         self.threshold = threshold
         self.asset = asset
     }
+
+    // Shim for older call sites that expect imageName
+    public var imageName: String { asset }
 }
 
 public struct StageCfg: Codable {

@@ -101,7 +101,7 @@ final class CelebrationSystem: ObservableObject {
 
         // Execute celebration sequence
         Task {
-            await performCelebration(type)
+            await self.performCelebration(type)
         }
     }
 

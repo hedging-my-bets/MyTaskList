@@ -32,6 +32,28 @@ public struct TaskEntity: AppEntity, Identifiable {
         )
     }
 
+    /// Convert from TaskItem to TaskEntity
+    public init(from taskItem: TaskItem) {
+        self.init(
+            id: taskItem.id.uuidString,
+            title: taskItem.title,
+            dueHour: taskItem.scheduledAt.hour ?? 0,
+            isDone: taskItem.isCompleted,
+            dayKey: taskItem.dayKey
+        )
+    }
+
+    /// Convert from MaterializedTask to TaskEntity
+    public init(from materializedTask: MaterializedTask, dayKey: String) {
+        self.init(
+            id: materializedTask.id.uuidString,
+            title: materializedTask.title,
+            dueHour: materializedTask.time.hour ?? 0,
+            isDone: materializedTask.isCompleted,
+            dayKey: dayKey
+        )
+    }
+
     public var displayRepresentation: DisplayRepresentation {
         let subtitle = isDone ? "✅ Completed" : "⏳ \(String(format: "%02d:00", dueHour))"
         return DisplayRepresentation(

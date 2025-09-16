@@ -73,7 +73,8 @@ public final class CDNManager: ObservableObject {
             source: .cdn
         )
 
-        logger.debug("Asset loaded: \(assetName) (\(data.count) bytes, \(loadTime, specifier: "%.1f")ms)")
+        let ms = String(format: "%.1f", loadTime)
+        logger.debug("Asset loaded: \(assetName) (\(data.count) bytes, \(ms)ms)")
         return data
     }
 

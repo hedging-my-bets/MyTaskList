@@ -1,6 +1,9 @@
 import Foundation
 import os.log
 import UIKit
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /// Enterprise-grade error handling and recovery system
 /// Zero-downtime production experience with graceful fallbacks and automatic recovery
@@ -156,7 +159,6 @@ public final class ProductionErrorHandler {
         DispatchQueue.main.async {
             if #available(iOS 14.0, *) {
                 #if canImport(WidgetKit)
-                import WidgetKit
                 WidgetCenter.shared.reloadAllTimelines()
                 #endif
             }
@@ -204,7 +206,6 @@ public final class ProductionErrorHandler {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if #available(iOS 14.0, *) {
                 #if canImport(WidgetKit)
-                import WidgetKit
                 WidgetCenter.shared.reloadAllTimelines()
                 #endif
             }

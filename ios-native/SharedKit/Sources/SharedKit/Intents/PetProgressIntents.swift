@@ -214,6 +214,8 @@ public struct PetProgressTaskEntity: AppEntity, Identifiable {
 
 @available(iOS 17.0, *)
 public struct PetProgressTaskQuery: EntityQuery {
+    public init() {}
+
     public func entities(for identifiers: [UUID]) async throws -> [PetProgressTaskEntity] {
         let store = AppGroupStore.shared
         let dayKey = TimeSlot.dayKey(for: Date())

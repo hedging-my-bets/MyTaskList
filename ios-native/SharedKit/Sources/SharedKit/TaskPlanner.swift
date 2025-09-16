@@ -154,10 +154,4 @@ public enum TaskStatus {
     }
 }
 
-// MARK: - Array Extension
-
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        return (0..<count).contains(index) ? self[index] : nil
-    }
-}
+// Array extension moved to Extensions.swift to avoid duplicates

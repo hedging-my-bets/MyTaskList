@@ -147,7 +147,8 @@ public final class PetEvolutionEngine: ObservableObject {
             milestoneAchievements: calculateMilestoneAchievements(points: points)
         )
 
-        logger.info("Generated evolution analysis: Stage \(currentStage), Progress: \(progressInCurrentStage * 100, specifier: "%.1f")%")
+        let pct = String(format: "%.1f", progressInCurrentStage * 100)
+        logger.info("Generated evolution analysis: Stage \(currentStage), Progress: \(pct)%")
         return analysis
     }
 
@@ -651,10 +652,4 @@ public final class PetEvolutionEngine: ObservableObject {
     }
 }
 
-// MARK: - Array Extension
-
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        return (0..<count).contains(index) ? self[index] : nil
-    }
-}
+// Array extension moved to Extensions.swift to avoid duplicates

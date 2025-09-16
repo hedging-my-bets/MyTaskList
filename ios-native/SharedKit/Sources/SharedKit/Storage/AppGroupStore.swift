@@ -257,14 +257,15 @@ public final class AppGroupStore: ObservableObject {
     // MARK: - Widget Support
 
     /// Get materialized tasks for widget display (paginated)
-    public func getMaterializedTasksForWidget(page: Int = 0, pageSize: Int = 3) -> [TaskItem] {
+    public func getMaterializedTasksForWidget(page: Int = 0, pageSize: Int = 3) -> [MaterializedTask] {
         let currentTasks = getCurrentTasks()
         let startIndex = page * pageSize
         let endIndex = min(startIndex + pageSize, currentTasks.count)
 
         guard startIndex < currentTasks.count else { return [] }
 
-        return Array(currentTasks[startIndex..<endIndex])
+        let paginatedTasks = Array(currentTasks[startIndex..<endIndex])
+        return paginatedTasks.map { MaterializedTask(from: $0) }
     }
 
     /// Get pet image name for current stage

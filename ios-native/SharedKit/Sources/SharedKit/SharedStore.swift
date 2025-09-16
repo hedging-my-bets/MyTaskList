@@ -371,7 +371,7 @@ public final class SharedStore: ObservableObject {
         let task = day.slots[slotIndex]
 
         // Check grace period from current app state
-        guard let currentState = getCurrentState() else {
+        guard let currentState = loadAppState() else {
             // Fallback to immediate completion if state unavailable
             day.slots[slotIndex].isDone = true
             day.points += 5
