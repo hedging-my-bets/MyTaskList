@@ -120,7 +120,7 @@ public final class SharedStore: ObservableObject {
             let validationTime = CFAbsoluteTimeGetCurrent() - startTime
 
             if validationIssues.isEmpty {
-                logger.info("Storage integrity validation passed in \(validationTime * 1000, specifier: "%.2f")ms")
+                logger.info("Storage integrity validation passed in \(validationTime * 1000)))ms")
             } else {
                 logger.warning("Storage integrity issues found: \(validationIssues.joined(separator: ", "))")
             }

@@ -198,7 +198,7 @@ public final class AssetPipeline: ObservableObject {
         }
 
         let validationTime = CFAbsoluteTimeGetCurrent() - startTime
-        logger.info("Asset validation completed in \(validationTime * 1000, specifier: "%.2f")ms")
+        logger.info("Asset validation completed in \(validationTime * 1000)))ms")
 
         return AssetValidationResult(
             totalStages: stageNames.count,
@@ -493,7 +493,7 @@ final class PerformanceMonitor {
 
         // Log slow loads
         if loadTimeMs > 100 {
-            logger.warning("Slow image load: \(imageName) took \(loadTimeMs, specifier: "%.2f")ms")
+            logger.warning("Slow image load: \(imageName) took \(loadTimeMs)))ms")
         }
     }
 

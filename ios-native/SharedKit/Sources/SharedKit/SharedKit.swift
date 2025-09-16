@@ -5,6 +5,7 @@ import Foundation
 // Export all public types and functions from SharedKit
 public typealias TimeSlot = TimeSlot
 public typealias DayModel = DayModel
+public typealias TaskEntity = TaskEntity
 public typealias StageConfig = StageConfig
 public typealias PetEvolutionEngine = PetEvolutionEngine
 public typealias SharedStore = SharedStore
