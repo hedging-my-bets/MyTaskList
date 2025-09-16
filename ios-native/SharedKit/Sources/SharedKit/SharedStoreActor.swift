@@ -341,7 +341,7 @@ public actor SharedStoreActor {
 
     /// Gets the current day model with fresh data
     public func getCurrentDayModel() -> DayModel? {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return loadDay(key: todayKey)
     }
 
@@ -473,7 +473,7 @@ public actor SharedStoreActor {
     // MARK: - TaskEntity Support
 
     public func findTask(withId id: String) -> TaskEntity? {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         guard let day = loadDay(key: todayKey) else { return nil }
 
         guard let slot = day.slots.first(where: { $0.id == id }) else { return nil }
@@ -485,7 +485,7 @@ public actor SharedStoreActor {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
 
         guard let day = loadDay(key: todayKey) else { return [] }
 
@@ -516,7 +516,7 @@ public actor SharedStoreActor {
         }
 
         let taskEntities = sortedTasks.map { TaskEntity(from: $0, dayKey: todayKey) }
-        logger.debug("Found \(taskEntities.count) nearest-hour tasks for hour \(effectiveHour)")
+        logger.debug("Found \(taskEntities.count) nearest-hour tasks for hour \(currentHour)")
 
         return taskEntities
     }

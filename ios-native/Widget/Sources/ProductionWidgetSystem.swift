@@ -167,7 +167,7 @@ class ProductionWidgetSystem {
 
     private func createFallbackTimeline() -> Timeline<SimpleEntry> {
         let fallbackModel = DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(hour: 9, title: "Add tasks in app", isDone: false),
                 DayModel.Slot(hour: 14, title: "Check progress", isDone: false),
@@ -198,7 +198,7 @@ class ProductionWidgetSystem {
 
     private func createPlaceholderData() -> DayModel {
         return DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(hour: 9, title: "Open app to sync", isDone: false)
             ],

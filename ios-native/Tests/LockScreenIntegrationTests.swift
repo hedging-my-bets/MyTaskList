@@ -17,7 +17,7 @@ final class LockScreenIntegrationTests: XCTestCase {
         let sharedStore = SharedStoreActor.shared
 
         // Setup: Create a test day with tasks
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let testTasks = [
             DayModel.Slot(id: "test1", title: "Morning Task", hour: 9, isDone: false),
             DayModel.Slot(id: "test2", title: "Afternoon Task", hour: 14, isDone: false)
@@ -61,7 +61,7 @@ final class LockScreenIntegrationTests: XCTestCase {
         let sharedStore = SharedStoreActor.shared
 
         // Setup: Create a test day
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let testTask = DayModel.Slot(id: "skip-test", title: "Skip Me", hour: 10, isDone: false)
         let initialDay = DayModel(key: dayKey, slots: [testTask], points: 25)
         await sharedStore.saveDayModel(initialDay)
@@ -90,7 +90,7 @@ final class LockScreenIntegrationTests: XCTestCase {
         let sharedStore = SharedStoreActor.shared
 
         // Create tasks at different hours
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let tasks = [
             DayModel.Slot(id: "early", title: "Early Task", hour: 8, isDone: false),
             DayModel.Slot(id: "current", title: "Current Hour", hour: 10, isDone: false),
@@ -131,7 +131,7 @@ final class LockScreenIntegrationTests: XCTestCase {
         let engine = PetEvolutionEngine()
 
         // Start with zero points
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         var currentDay = DayModel(key: dayKey, slots: [], points: 0)
         await sharedStore.saveDayModel(currentDay)
 
@@ -178,7 +178,7 @@ final class LockScreenIntegrationTests: XCTestCase {
         let sharedStore = SharedStoreActor.shared
 
         // Create test state
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let testDay = DayModel(
             key: dayKey,
             slots: [
@@ -225,7 +225,7 @@ extension LockScreenIntegrationTests {
         let sharedStore = SharedStoreActor.shared
 
         // Setup test data
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let testDay = DayModel(
             key: dayKey,
             slots: [DayModel.Slot(id: "perf-test", title: "Performance Test", hour: 13, isDone: false)],
@@ -249,7 +249,7 @@ extension LockScreenIntegrationTests {
         let sharedStore = SharedStoreActor.shared
 
         // Create many tasks to test performance
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let manyTasks = (0..<100).map { i in
             DayModel.Slot(id: "perf\(i)", title: "Task \(i)", hour: i % 24, isDone: false)
         }

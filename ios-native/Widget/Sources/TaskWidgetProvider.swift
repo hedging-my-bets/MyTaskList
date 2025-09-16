@@ -94,7 +94,7 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
     }
 
     private func convertTaskItemsToTaskEntities(_ taskItems: [TaskItem]) -> [TaskEntity] {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return taskItems.compactMap { taskItem in
             guard let hour = taskItem.scheduledAt.hour else { return nil }
             return TaskEntity(
@@ -108,7 +108,7 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
     }
 
     private func createPlaceholderTasks() -> [TaskEntity] {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return [
             TaskEntity(id: "placeholder1", title: "Add tasks in app", dueHour: 9, isDone: false, dayKey: todayKey),
             TaskEntity(id: "placeholder2", title: "Check your progress", dueHour: 14, isDone: false, dayKey: todayKey),

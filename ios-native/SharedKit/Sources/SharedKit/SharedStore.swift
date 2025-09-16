@@ -585,7 +585,7 @@ public final class SharedStore: ObservableObject {
         }
 
         // Fallback to DayModel storage
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return loadDay(key: todayKey)
     }
 

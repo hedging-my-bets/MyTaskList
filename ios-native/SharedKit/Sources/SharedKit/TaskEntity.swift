@@ -47,9 +47,7 @@ public struct TaskQuery: EntityQuery {
 
     public func entities(for identifiers: [TaskEntity.ID]) async throws -> [TaskEntity] {
         // Load tasks by specific IDs
-        guard let sharedStore = try? await SharedStoreActor.shared else {
-            return []
-        }
+        let sharedStore = SharedStoreActor.shared
 
         var tasks: [TaskEntity] = []
 
@@ -64,9 +62,7 @@ public struct TaskQuery: EntityQuery {
 
     public func suggestedEntities() async throws -> [TaskEntity] {
         // Provide nearest-hour tasks for suggestions
-        guard let sharedStore = try? await SharedStoreActor.shared else {
-            return []
-        }
+        let sharedStore = SharedStoreActor.shared
 
         return await sharedStore.getNearestHourTasks()
     }

@@ -38,7 +38,7 @@ final class AppIntentHandlerTests: XCTestCase {
         let result = try await intent.perform()
 
         // Verify task is marked as completed
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         XCTAssertTrue(mockStore.isTaskCompleted(taskToComplete.id, dayKey: dayKey), "Task should be marked as completed")
 
         // Verify result indicates success
@@ -93,7 +93,7 @@ final class AppIntentHandlerTests: XCTestCase {
         let result = try await intent.perform()
 
         // Verify task is marked as skipped (implementation-dependent)
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         XCTAssertTrue(mockStore.isTaskCompleted(taskToSkip.id, dayKey: dayKey), "Skipped task should be marked in completions")
 
         XCTAssertNotNil(result, "Intent should return a result")
@@ -305,7 +305,7 @@ final class AppIntentHandlerTests: XCTestCase {
         // Verify state changes are persisted
         XCTAssertEqual(mockStore.state.tasks.count, originalTaskCount, "Task count should remain the same")
 
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         let completions = mockStore.state.completions[dayKey] ?? Set<UUID>()
         XCTAssertTrue(completions.contains(taskToComplete.id), "Task should be in completions set")
     }
@@ -321,7 +321,7 @@ final class AppIntentHandlerTests: XCTestCase {
         let _ = try await intent1.perform()
         let _ = try await intent2.perform()
 
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
         XCTAssertTrue(mockStore.isTaskCompleted(task1.id, dayKey: dayKey), "First task should be completed")
         XCTAssertTrue(mockStore.isTaskCompleted(task2.id, dayKey: dayKey), "Second task should be skipped")
     }

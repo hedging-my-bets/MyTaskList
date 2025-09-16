@@ -60,8 +60,6 @@ public enum TimeSlot {
 
         // Calculate current hour and upcoming top-of-hour times
         let calendar = Calendar.autoupdatingCurrent
-        let currentHour = calendar.component(.hour, from: referenceTime)
-        let currentMinute = calendar.component(.minute, from: referenceTime)
 
         // Generate upcoming top-of-hour timestamps within look-ahead window
         var upcomingHours: [Date] = []
@@ -83,7 +81,6 @@ public enum TimeSlot {
 
             // Calculate task's on-time window end
             let taskHour = timeSlot.hour ?? 0
-            let taskMinute = timeSlot.minute ?? 0
 
             // Find which upcoming hour this task's window closes at
             for upcomingHour in upcomingHours {
@@ -274,7 +271,6 @@ public enum TimeSlot {
     ///   - tz: Timezone to analyze
     /// - Returns: Diagnostic information about potential issues
     public static func diagnoseTimezoneIssues(for date: Date, tz: TimeZone = TimeZone.current) -> TimezoneeDiagnosticInfo {
-        let calendar = getCachedCalendar(for: tz)
         let isProblematic = problematicTimezones.contains(tz.identifier)
         let isDSTTransition = isDSTTransitionPeriod(date: date, timezone: tz)
         let nextTransition = findNextDSTTransition(after: date, timezone: tz)

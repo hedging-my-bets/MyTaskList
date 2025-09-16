@@ -249,7 +249,7 @@ public final class AppGroupStore: ObservableObject {
 
     /// Get completion count for today
     public func getTodayCompletionCount() -> Int {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return state.completions[todayKey]?.count ?? 0
     }
 

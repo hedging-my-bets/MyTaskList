@@ -10,7 +10,7 @@ final class NearestHourTests: XCTestCase {
 
         // Mock a day with tasks at different hours
         let testDay = DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(id: "task1", title: "9 AM Task", hour: 9, isDone: false),
                 DayModel.Slot(id: "task2", title: "10 AM Task", hour: 10, isDone: false),
@@ -100,7 +100,7 @@ final class NearestHourTests: XCTestCase {
     func test24HourWrapAround() {
         // Test edge case: tasks around midnight
         let midnightDay = DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(id: "task1", title: "11 PM Task", hour: 23, isDone: false),
                 DayModel.Slot(id: "task2", title: "12 AM Task", hour: 0, isDone: false),
@@ -132,7 +132,7 @@ final class NearestHourTests: XCTestCase {
     func testTaskPrioritization() {
         // Test that incomplete tasks are prioritized over completed ones
         let testDay = DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(id: "done1", title: "Completed 10 AM", hour: 10, isDone: true),
                 DayModel.Slot(id: "todo1", title: "Pending 10 AM", hour: 10, isDone: false),

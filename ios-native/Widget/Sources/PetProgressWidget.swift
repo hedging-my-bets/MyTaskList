@@ -94,7 +94,7 @@ struct Provider: AppIntentTimelineProvider {
     }
 
     private func loadOrCreateDayModel() -> DayModel {
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return SharedStore.shared.getCurrentDayModel() ?? createPlaceholderModel()
     }
 
@@ -127,7 +127,7 @@ struct Provider: AppIntentTimelineProvider {
 
     private func createPlaceholderModel() -> DayModel {
         return DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(hour: 9, title: "Morning task", isDone: false),
                 DayModel.Slot(hour: 14, title: "Afternoon task", isDone: true),

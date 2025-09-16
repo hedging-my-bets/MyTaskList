@@ -27,7 +27,7 @@ public struct MarkNextTaskDoneIntent: AppIntent {
         // Get the next upcoming task
         let store = AppGroupStore.shared
         let currentTasks = store.getCurrentTasks()
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
 
         guard let nextTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
             logger.info("No incomplete tasks available")
@@ -74,7 +74,7 @@ public struct SkipCurrentTaskIntent: AppIntent {
         // Get the current task that's within grace window
         let store = AppGroupStore.shared
         let currentTasks = store.getCurrentTasks()
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
 
         guard let currentTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
             logger.info("No current task to skip")
@@ -216,7 +216,7 @@ public struct PetProgressTaskEntity: AppEntity, Identifiable {
 public struct PetProgressTaskQuery: EntityQuery {
     public func entities(for identifiers: [UUID]) async throws -> [PetProgressTaskEntity] {
         let store = AppGroupStore.shared
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
 
         return store.state.tasks.compactMap { task in
             guard identifiers.contains(task.id) else { return nil }
@@ -234,7 +234,7 @@ public struct PetProgressTaskQuery: EntityQuery {
     public func suggestedEntities() async throws -> [PetProgressTaskEntity] {
         let store = AppGroupStore.shared
         let currentTasks = store.getCurrentTasks()
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
 
         return currentTasks.prefix(5).compactMap { task in
             guard let hour = task.scheduledAt.hour else { return nil }
@@ -251,7 +251,7 @@ public struct PetProgressTaskQuery: EntityQuery {
     public func defaultResult() async -> PetProgressTaskEntity? {
         let store = AppGroupStore.shared
         let currentTasks = store.getCurrentTasks()
-        let dayKey = TimeSlot.todayKey()
+        let dayKey = TimeSlot.dayKey(for: Date())
 
         guard let firstTask = currentTasks.first,
               let hour = firstTask.scheduledAt.hour else { return nil }
