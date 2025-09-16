@@ -156,6 +156,12 @@ public final class AppGroupStore: ObservableObject {
         var newState = state
         newState.graceMinutes = max(0, min(120, minutes)) // Clamp to 0-120
         saveState(newState)
+
+        // Trigger widget reload since grace minutes affects which tasks appear
+        #if canImport(WidgetKit)
+        import WidgetKit
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
     }
 
     /// Update current page for widget pagination
@@ -163,6 +169,12 @@ public final class AppGroupStore: ObservableObject {
         var newState = state
         newState.currentPage = max(0, page) // Ensure non-negative
         saveState(newState)
+
+        // Trigger widget reload for pagination changes
+        #if canImport(WidgetKit)
+        import WidgetKit
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
     }
 
     // MARK: - Query Methods
