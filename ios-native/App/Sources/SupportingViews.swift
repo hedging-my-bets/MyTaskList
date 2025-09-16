@@ -295,7 +295,6 @@ struct TaskDetailView: View {
 
 struct EnhancedSettingsView: View {
     @StateObject private var assetPipeline = AssetPipeline.shared
-    @StateObject private var taskPlanningEngine = TaskPlanningEngine.shared
     @State private var assetValidationResult: AssetValidationResult?
     @State private var isValidatingAssets = false
 
@@ -597,33 +596,6 @@ extension TimeSlot {
 
 // MARK: - Placeholder Views
 
-struct TaskPlanningView: View {
-    @ObservedObject var engine: TaskPlanningEngine
-
-    var body: some View {
-        List {
-            Section("Planning State") {
-                Text(engine.planningState.description)
-                    .fontWeight(.medium)
-            }
-
-            if !engine.insights.isEmpty {
-                Section("Recent Insights") {
-                    ForEach(engine.insights.prefix(3), id: \.id) { insight in
-                        VStack(alignment: .leading) {
-                            Text(insight.title)
-                                .fontWeight(.medium)
-                            Text(insight.description)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
-        }
-        .navigationTitle("AI Planning Engine")
-    }
-}
 
 struct PerformanceMetricsView: View {
     var body: some View {

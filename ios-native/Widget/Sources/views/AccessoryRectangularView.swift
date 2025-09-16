@@ -9,7 +9,7 @@ struct AccessoryRectangularView: View {
         VStack(alignment: .leading, spacing: 2) {
             // Header with navigation arrows
             HStack {
-                Button(intent: PrevWindowIntent()) {
+                Button(intent: GoToPreviousTaskIntent()) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -24,7 +24,7 @@ struct AccessoryRectangularView: View {
 
                 Spacer()
 
-                Button(intent: NextWindowIntent()) {
+                Button(intent: GoToNextTaskIntent()) {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -169,14 +169,14 @@ struct TaskRowView: View {
                 // Action buttons only for current hour and incomplete tasks
                 if isCurrentHour && !taskSlot.isDone {
                     HStack(spacing: 2) {
-                        Button(intent: CompleteTaskIntent(taskID: taskSlot.id)) {
+                        Button(intent: MarkNextTaskDoneIntent()) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(.green)
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        Button(intent: SkipTaskIntent(taskID: taskSlot.id)) {
+                        Button(intent: SkipCurrentTaskIntent()) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(.red)

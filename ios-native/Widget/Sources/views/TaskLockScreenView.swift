@@ -52,7 +52,7 @@ struct AccessoryCircularTaskView: View {
 
             // Pet image in center with interactive complete button
             if let currentTask = entry.tasks.first(where: { !$0.isDone }) {
-                Button(intent: CompleteTaskIntent(taskID: currentTask.id)) {
+                Button(intent: MarkNextTaskDoneIntent()) {
                     VStack(spacing: 2) {
                         if let petImageName = petImageName {
                             Image(petImageName)
@@ -177,14 +177,14 @@ struct AccessoryRectangularTaskView: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(entry.tasks.prefix(2), id: \.id) { task in
                     HStack(spacing: 6) {
-                        Button(intent: CompleteTaskIntent(taskID: task.id)) {
+                        Button(intent: MarkNextTaskDoneIntent()) {
                             Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                                 .font(.system(size: 12))
                                 .foregroundStyle(task.isDone ? .green : .secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        Button(intent: SkipTaskIntent(taskID: task.id)) {
+                        Button(intent: SkipCurrentTaskIntent()) {
                             Image(systemName: "xmark.circle")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.red)
@@ -200,7 +200,7 @@ struct AccessoryRectangularTaskView: View {
 
                 // Navigation controls
                 HStack {
-                    Button(intent: PreviousPageIntent()) {
+                    Button(intent: GoToPreviousTaskIntent()) {
                         Image(systemName: "chevron.left")
                             .font(.footnote)
                     }
@@ -208,7 +208,7 @@ struct AccessoryRectangularTaskView: View {
 
                     Spacer(minLength: 0)
 
-                    Button(intent: NextPageIntent()) {
+                    Button(intent: GoToNextTaskIntent()) {
                         Image(systemName: "chevron.right")
                             .font(.footnote)
                     }
@@ -362,7 +362,7 @@ struct SystemSmallTaskView: View {
             // Tasks (up to 3)
             ForEach(entry.tasks.prefix(3), id: \.id) { task in
                 HStack(spacing: 8) {
-                    Button(intent: CompleteTaskIntent(taskID: task.id)) {
+                    Button(intent: MarkNextTaskDoneIntent()) {
                         Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(task.isDone ? .green : .secondary)
                     }
@@ -376,7 +376,7 @@ struct SystemSmallTaskView: View {
                     Spacer()
 
                     if !task.isDone {
-                        Button(intent: SkipTaskIntent(taskID: task.id)) {
+                        Button(intent: SkipCurrentTaskIntent()) {
                             Image(systemName: "xmark.circle")
                                 .foregroundStyle(.red)
                         }

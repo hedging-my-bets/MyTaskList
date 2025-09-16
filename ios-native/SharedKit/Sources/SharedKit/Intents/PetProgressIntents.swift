@@ -6,44 +6,36 @@ import os.log
 /// Enterprise-grade App Intents for Lock Screen widget interactivity
 /// Built by world-class engineers for sub-1-second Lock Screen response
 @available(iOS 17.0, *)
-public struct CompleteTaskIntent: AppIntent {
-    public static let title: LocalizedStringResource = "Complete Task"
-    public static let description = IntentDescription("Complete a task and update pet progress")
+public struct MarkNextTaskDoneIntent: AppIntent {
+    public static let title: LocalizedStringResource = "Mark Next Task Done"
+    public static let description = IntentDescription("Mark the next upcoming task as complete")
 
-    @Parameter(title: "Task ID")
-    public var taskID: String
+    public init() {}
 
-    public init() {
-        self.taskID = ""
-    }
-
-    public init(taskID: String) {
-        self.taskID = taskID
-    }
-
-    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "CompleteTask")
+    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "MarkNextTaskDone")
 
     public func perform() async throws -> some IntentResult {
         let startTime = CFAbsoluteTimeGetCurrent()
-        logger.info("Executing CompleteTaskIntent for task: \(taskID)")
+        logger.info("Executing MarkNextTaskDoneIntent")
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.info("CompleteTaskIntent completed in \(String(format: "%.3f", duration))s")
-            ProductionTelemetry.shared.trackWidgetAction("CompleteTask", duration: duration)
+            logger.info("MarkNextTaskDoneIntent completed in \(String(format: "%.3f", duration))s")
+            ProductionTelemetry.shared.trackWidgetAction("MarkNextTaskDone", duration: duration)
         }
 
-        guard let uuid = UUID(uuidString: taskID) else {
-            logger.error("Invalid task ID format: \(taskID)")
-            throw IntentError.invalidTaskID
-        }
-
-        // Update state via App Group store
+        // Get the next upcoming task
         let store = AppGroupStore.shared
+        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.todayKey()
 
+        guard let nextTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
+            logger.info("No incomplete tasks available")
+            return .result(dialog: IntentDialog("No tasks to complete right now."))
+        }
+
         // Mark task as completed (includes XP calculation)
-        store.markTaskCompleted(uuid, dayKey: dayKey)
+        store.markTaskCompleted(nextTask.id, dayKey: dayKey)
 
         // Trigger haptic feedback (if running in main app context)
         await MainActor.run {
@@ -54,51 +46,43 @@ public struct CompleteTaskIntent: AppIntent {
         // Force widget timeline reload for immediate visual update
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Task \(taskID) completed successfully with XP reward")
+        logger.info("Task \(nextTask.id) completed successfully with XP reward")
 
-        return .result(dialog: IntentDialog("Task completed! Pet gained XP."))
+        return .result(dialog: IntentDialog("\(nextTask.title) completed! Pet gained XP."))
     }
 }
 
 @available(iOS 17.0, *)
-public struct SkipTaskIntent: AppIntent {
-    public static let title: LocalizedStringResource = "Skip Task"
-    public static let description = IntentDescription("Skip a task without XP penalty")
+public struct SkipCurrentTaskIntent: AppIntent {
+    public static let title: LocalizedStringResource = "Skip Current Task"
+    public static let description = IntentDescription("Skip the current task without XP penalty")
 
-    @Parameter(title: "Task ID")
-    public var taskID: String
+    public init() {}
 
-    public init() {
-        self.taskID = ""
-    }
-
-    public init(taskID: String) {
-        self.taskID = taskID
-    }
-
-    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "SkipTask")
+    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "SkipCurrentTask")
 
     public func perform() async throws -> some IntentResult {
         let startTime = CFAbsoluteTimeGetCurrent()
-        logger.info("Executing SkipTaskIntent for task: \(taskID)")
+        logger.info("Executing SkipCurrentTaskIntent")
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.info("SkipTaskIntent completed in \(String(format: "%.3f", duration))s")
-            ProductionTelemetry.shared.trackWidgetAction("SkipTask", duration: duration)
+            logger.info("SkipCurrentTaskIntent completed in \(String(format: "%.3f", duration))s")
+            ProductionTelemetry.shared.trackWidgetAction("SkipCurrentTask", duration: duration)
         }
 
-        guard let uuid = UUID(uuidString: taskID) else {
-            logger.error("Invalid task ID format: \(taskID)")
-            throw IntentError.invalidTaskID
-        }
-
-        // Update state via App Group store
+        // Get the current task that's within grace window
         let store = AppGroupStore.shared
+        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.todayKey()
 
+        guard let currentTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
+            logger.info("No current task to skip")
+            return .result(dialog: IntentDialog("No current task to skip."))
+        }
+
         // Skip task (no XP reward)
-        store.skipTask(uuid, dayKey: dayKey)
+        store.skipTask(currentTask.id, dayKey: dayKey)
 
         // Subtle haptic feedback
         await MainActor.run {
@@ -109,54 +93,29 @@ public struct SkipTaskIntent: AppIntent {
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
 
-        logger.info("Task \(taskID) skipped successfully")
+        logger.info("Task \(currentTask.id) skipped successfully")
 
-        return .result(dialog: IntentDialog("Task skipped."))
+        return .result(dialog: IntentDialog("\(currentTask.title) skipped."))
     }
 }
 
 @available(iOS 17.0, *)
-public struct AdvancePageIntent: AppIntent {
-    public static let title: LocalizedStringResource = "Navigate Tasks"
-    public static let description = IntentDescription("Navigate between tasks in widget")
+public struct GoToNextTaskIntent: AppIntent {
+    public static let title: LocalizedStringResource = "Go To Next Task"
+    public static let description = IntentDescription("Navigate to next task in widget")
 
-    public enum Direction: String, AppEnum {
-        case next = "next"
-        case previous = "prev"
+    public init() {}
 
-        public static var typeDisplayRepresentation: TypeDisplayRepresentation {
-            "Direction"
-        }
-
-        public static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
-            [
-                .next: "Next",
-                .previous: "Previous"
-            ]
-        }
-    }
-
-    @Parameter(title: "Direction")
-    public var direction: Direction
-
-    public init() {
-        self.direction = .next
-    }
-
-    public init(direction: Direction) {
-        self.direction = direction
-    }
-
-    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "AdvancePage")
+    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "GoToNextTask")
 
     public func perform() async throws -> some IntentResult {
         let startTime = CFAbsoluteTimeGetCurrent()
-        logger.info("Executing AdvancePageIntent: \(direction.rawValue)")
+        logger.info("Executing GoToNextTaskIntent")
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.info("AdvancePageIntent completed in \(String(format: "%.3f", duration))s")
-            ProductionTelemetry.shared.trackWidgetAction("AdvancePage", duration: duration)
+            logger.info("GoToNextTaskIntent completed in \(String(format: "%.3f", duration))s")
+            ProductionTelemetry.shared.trackWidgetAction("GoToNextTask", duration: duration)
         }
 
         let store = AppGroupStore.shared
@@ -165,14 +124,7 @@ public struct AdvancePageIntent: AppIntent {
         let pageSize = 3 // Tasks per page
 
         let maxPages = max(0, (totalTasks - 1) / pageSize)
-        let newPage: Int
-
-        switch direction {
-        case .next:
-            newPage = (currentPage + 1) % (maxPages + 1) // Wrap around
-        case .previous:
-            newPage = currentPage > 0 ? currentPage - 1 : maxPages // Wrap around
-        }
+        let newPage = (currentPage + 1) % (maxPages + 1) // Wrap around
 
         // Update current page
         store.updateCurrentPage(newPage)
@@ -188,8 +140,52 @@ public struct AdvancePageIntent: AppIntent {
 
         logger.info("Page advanced from \(currentPage) to \(newPage)")
 
-        let message = direction == .next ? "Next tasks" : "Previous tasks"
-        return .result(dialog: IntentDialog(message))
+        return .result(dialog: IntentDialog("Next tasks"))
+    }
+}
+
+@available(iOS 17.0, *)
+public struct GoToPreviousTaskIntent: AppIntent {
+    public static let title: LocalizedStringResource = "Go To Previous Task"
+    public static let description = IntentDescription("Navigate to previous task in widget")
+
+    public init() {}
+
+    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "GoToPreviousTask")
+
+    public func perform() async throws -> some IntentResult {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        logger.info("Executing GoToPreviousTaskIntent")
+
+        defer {
+            let duration = CFAbsoluteTimeGetCurrent() - startTime
+            logger.info("GoToPreviousTaskIntent completed in \(String(format: "%.3f", duration))s")
+            ProductionTelemetry.shared.trackWidgetAction("GoToPreviousTask", duration: duration)
+        }
+
+        let store = AppGroupStore.shared
+        let currentPage = store.state.currentPage
+        let totalTasks = store.getCurrentTasks().count
+        let pageSize = 3 // Tasks per page
+
+        let maxPages = max(0, (totalTasks - 1) / pageSize)
+        let newPage = currentPage > 0 ? currentPage - 1 : maxPages // Wrap around
+
+        // Update current page
+        store.updateCurrentPage(newPage)
+
+        // Navigation haptic feedback
+        await MainActor.run {
+            let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
+            hapticGenerator.impactOccurred()
+        }
+
+        // Force widget timeline reload
+        WidgetCenter.shared.reloadAllTimelines()
+
+        logger.info("Page advanced from \(currentPage) to \(newPage)")
+
+        return .result(dialog: IntentDialog("Previous tasks"))
     }
 }
 
@@ -298,23 +294,41 @@ public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
     public static var appShortcuts: [AppShortcut] {
         [
             AppShortcut(
-                intent: CompleteTaskIntent(),
+                intent: MarkNextTaskDoneIntent(),
                 phrases: [
-                    "Complete task in \(.applicationName)",
-                    "Mark done in \(.applicationName)",
-                    "Finish task in \(.applicationName)"
+                    "Mark next task done in \(.applicationName)",
+                    "Complete next task in \(.applicationName)",
+                    "Finish next task in \(.applicationName)"
                 ],
-                shortTitle: "Complete Task",
+                shortTitle: "Mark Next Done",
                 systemImageName: "checkmark.circle"
             ),
             AppShortcut(
-                intent: SkipTaskIntent(),
+                intent: SkipCurrentTaskIntent(),
                 phrases: [
-                    "Skip task in \(.applicationName)",
-                    "Skip current task"
+                    "Skip current task in \(.applicationName)",
+                    "Skip task in \(.applicationName)"
                 ],
-                shortTitle: "Skip Task",
+                shortTitle: "Skip Current",
                 systemImageName: "xmark.circle"
+            ),
+            AppShortcut(
+                intent: GoToNextTaskIntent(),
+                phrases: [
+                    "Go to next task in \(.applicationName)",
+                    "Next task in \(.applicationName)"
+                ],
+                shortTitle: "Next Task",
+                systemImageName: "chevron.right.circle"
+            ),
+            AppShortcut(
+                intent: GoToPreviousTaskIntent(),
+                phrases: [
+                    "Go to previous task in \(.applicationName)",
+                    "Previous task in \(.applicationName)"
+                ],
+                shortTitle: "Previous Task",
+                systemImageName: "chevron.left.circle"
             )
         ]
     }

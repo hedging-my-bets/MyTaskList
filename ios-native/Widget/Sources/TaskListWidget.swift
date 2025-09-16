@@ -19,12 +19,7 @@ struct TaskListWidget: Widget {
         }
         .configurationDisplayName("Today's Tasks")
         .description("Check off tasks from your Lock Screen and watch your pet evolve")
-        .supportedFamilies([
-            .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline,
-            .systemSmall
-        ])
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline, .systemSmall])
     }
 
     private func deepLinkURL(for entry: TaskEntry) -> URL? {
@@ -43,12 +38,4 @@ struct TaskListWidget: Widget {
     }
 }
 
-/// Widget bundle containing all PetProgress widgets
-@main
-struct PetProgressWidgets: WidgetBundle {
-    var body: some Widget {
-        if #available(iOS 17.0, *) {
-            TaskListWidget()
-        }
-    }
-}
+// Widget bundle moved to PetProgressWidget.swift to avoid duplicate @main declarations

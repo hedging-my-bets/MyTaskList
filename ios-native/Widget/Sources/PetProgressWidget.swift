@@ -4,11 +4,15 @@ import SharedKit
 import AppIntents
 import os.log
 
-/// Pet Progress Widget - Simple and Functional
+/// Pet Progress Widget Bundle - All Widgets in One Bundle (Steve Jobs Architecture)
 @main
 struct PetProgressWidgetBundle: WidgetBundle {
     var body: some Widget {
-        PetProgressWidget()
+        if #available(iOS 17.0, *) {
+            PetProgressWidget()
+            TaskListWidget()
+            PetProgressInteractiveLockScreenWidget()
+        }
     }
 }
 

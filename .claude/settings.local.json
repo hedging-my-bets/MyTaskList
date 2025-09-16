@@ -20,7 +20,9 @@
       "Bash(cat:*)",
       "Bash(sed:*)",
       "Bash(git reset:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(bash:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

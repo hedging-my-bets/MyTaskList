@@ -108,13 +108,8 @@ struct InteractiveCircularLockScreenView: View {
         }
     }
 
-    private var completeTaskIntent: CompleteTaskIntent {
-        if let currentTask = entry.currentTask {
-            return CompleteTaskIntent(taskID: currentTask.id.uuidString)
-        } else {
-            // No-op intent for non-actionable states
-            return CompleteTaskIntent(taskID: "")
-        }
+    private var completeTaskIntent: MarkNextTaskDoneIntent {
+        return MarkNextTaskDoneIntent()
     }
 }
 
@@ -133,7 +128,7 @@ struct InteractiveRectangularLockScreenView: View {
                 // Navigation and status
                 HStack {
                     // Previous button
-                    Button(intent: AdvancePageIntent(direction: .previous)) {
+                    Button(intent: GoToPreviousTaskIntent()) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.secondary)
@@ -162,7 +157,7 @@ struct InteractiveRectangularLockScreenView: View {
                         }
 
                         // Next button
-                        Button(intent: AdvancePageIntent(direction: .next)) {
+                        Button(intent: GoToNextTaskIntent()) {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.secondary)
@@ -173,7 +168,7 @@ struct InteractiveRectangularLockScreenView: View {
 
                 // Task title (tappable for completion if current task)
                 if let currentTask = entry.currentTask {
-                    Button(intent: CompleteTaskIntent(taskID: currentTask.id.uuidString)) {
+                    Button(intent: MarkNextTaskDoneIntent()) {
                         Text(currentTask.title)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.primary)
@@ -251,12 +246,8 @@ struct InteractiveRectangularLockScreenView: View {
         }
     }
 
-    private var skipTaskIntent: SkipTaskIntent {
-        if let currentTask = entry.currentTask {
-            return SkipTaskIntent(taskID: currentTask.id.uuidString)
-        } else {
-            return SkipTaskIntent(taskID: "")
-        }
+    private var skipTaskIntent: SkipCurrentTaskIntent {
+        return SkipCurrentTaskIntent()
     }
 }
 
@@ -272,7 +263,7 @@ struct InteractiveInlineLockScreenView: View {
 
             // Main text content
             if let currentTask = entry.currentTask {
-                Button(intent: CompleteTaskIntent(taskID: currentTask.id.uuidString)) {
+                Button(intent: MarkNextTaskDoneIntent()) {
                     Text("Now: \(currentTask.title)")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.primary)
@@ -314,7 +305,7 @@ struct PetProgressInteractiveLockScreenWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(
             kind: kind,
-            intent: ConfigurationIntent.self,
+            intent: ConfigurationAppIntent.self,
             provider: TaskTimelineProvider()
         ) { entry in
             PetProgressLockScreenWidgetEntryView(entry: entry)
@@ -351,15 +342,7 @@ struct PetProgressLockScreenWidgetEntryView: View {
     }
 }
 
-// MARK: - Configuration Intent (Simple)
-
-@available(iOS 17.0, *)
-struct ConfigurationIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Configuration"
-    static var description = IntentDescription("Configure your PetProgress widget.")
-
-    // No parameters needed for basic configuration
-}
+// Configuration intent moved to PetProgressWidget.swift to avoid duplicates
 
 // MARK: - Preview Provider
 

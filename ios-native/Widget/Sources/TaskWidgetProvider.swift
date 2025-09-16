@@ -53,15 +53,15 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
 
         logger.debug("Building hourly timeline: current=\(current), next=\(next)")
 
-        // Get shared store
-        let sharedStore = SharedStoreActor.shared
+        // Use AppGroupStore for optimal Lock Screen widget performance
+        let store = AppGroupStore.shared
 
         // Load current tasks and pet stage
-        let tasks = await sharedStore.getNearestHourTasks()
-        let currentDay = await sharedStore.getCurrentDayModel()
+        let currentTasks = store.getCurrentTasks(now: current)
+        let tasks = convertTaskItemsToTaskEntities(currentTasks)
         let petStage = PetStage(
-            points: currentDay?.points ?? 0,
-            stageIndex: PetEvolutionEngine().stageIndex(for: currentDay?.points ?? 0)
+            points: store.state.pet.stageXP,
+            stageIndex: store.state.pet.stageIndex
         )
 
         // Create single entry for current hour
@@ -93,6 +93,20 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
         return Timeline(entries: [entry], policy: .after(retryDate))
     }
 
+    private func convertTaskItemsToTaskEntities(_ taskItems: [TaskItem]) -> [TaskEntity] {
+        let todayKey = TimeSlot.todayKey()
+        return taskItems.compactMap { taskItem in
+            guard let hour = taskItem.scheduledAt.hour else { return nil }
+            return TaskEntity(
+                id: taskItem.id.uuidString,
+                title: taskItem.title,
+                dueHour: hour,
+                isDone: taskItem.isDone,
+                dayKey: todayKey
+            )
+        }
+    }
+
     private func createPlaceholderTasks() -> [TaskEntity] {
         let todayKey = TimeSlot.todayKey()
         return [
@@ -113,11 +127,4 @@ extension Date {
     }
 }
 
-// MARK: - Configuration Intent
-
-struct ConfigurationAppIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Configuration"
-    static var description = IntentDescription("Configure your PetProgress widget")
-
-    init() {}
-}
+// Configuration intent moved to PetProgressWidget.swift to avoid duplicates

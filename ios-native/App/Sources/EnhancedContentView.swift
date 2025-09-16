@@ -5,15 +5,12 @@ import SharedKit
 @available(iOS 17.0, *)
 struct EnhancedContentView: View {
     @StateObject private var viewModel = AppViewModel()
-    @StateObject private var taskPlanningEngine = TaskPlanningEngine.shared
     @StateObject private var assetPipeline = AssetPipeline.shared
 
-    @State private var showingInsights = false
     @State private var showingSettings = false
     @State private var animationPhase: AnimationPhase = .idle
     @State private var heroAnimationTrigger = false
     @State private var sparkleAnimationTrigger = false
-    @State private var currentInsightIndex = 0
 
     @Namespace private var heroNamespace
 
@@ -26,9 +23,6 @@ struct EnhancedContentView: View {
                         heroSection(geometry: geometry)
                             .id("hero")
 
-                        // AI Insights Panel
-                        aiInsightsSection
-                            .animation(.spring(response: 0.8, dampingFraction: 0.8), value: taskPlanningEngine.insights.count)
 
                         // Interactive Task Management
                         taskManagementSection
@@ -38,9 +32,6 @@ struct EnhancedContentView: View {
                         performanceSection
                             .animation(.easeInOut(duration: 0.5), value: viewModel.completedTasks)
 
-                        // AI Recommendations
-                        recommendationsSection
-                            .animation(.spring(response: 0.7, dampingFraction: 0.8), value: taskPlanningEngine.recommendations.count)
 
                         // Bottom spacing for tab bar
                         Color.clear.frame(height: 100)
@@ -55,18 +46,9 @@ struct EnhancedContentView: View {
             .background(backgroundGradient)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    insightsButton
-                }
-
                 ToolbarItem(placement: .topBarTrailing) {
                     settingsButton
                 }
-            }
-            .sheet(isPresented: $showingInsights) {
-                AIInsightsView(insights: taskPlanningEngine.insights)
-                    .presentationDetents([.height(400), .large])
-                    .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
@@ -133,47 +115,6 @@ struct EnhancedContentView: View {
         }
     }
 
-    // MARK: - AI Insights Section
-
-    @ViewBuilder
-    private var aiInsightsSection: some View {
-        if !taskPlanningEngine.insights.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: "brain.head.profile")
-                        .foregroundStyle(.purple)
-                        .font(.title3)
-
-                    Text("AI Insights")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-
-                    Spacer()
-
-                    Text("\(taskPlanningEngine.insights.count)")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.purple.opacity(0.2))
-                        .foregroundStyle(.purple)
-                        .clipShape(Capsule())
-                }
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(taskPlanningEngine.insights.prefix(3), id: \.id) { insight in
-                            InsightCard(insight: insight)
-                        }
-                    }
-                    .padding(.horizontal, 1)
-                }
-            }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 20)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        }
-    }
 
     // MARK: - Task Management Section
 
@@ -263,36 +204,6 @@ struct EnhancedContentView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
     }
 
-    // MARK: - Recommendations Section
-
-    @ViewBuilder
-    private var recommendationsSection: some View {
-        if !taskPlanningEngine.recommendations.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: "lightbulb.fill")
-                        .foregroundStyle(.yellow)
-                        .font(.title3)
-
-                    Text("Smart Recommendations")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-
-                    Spacer()
-                }
-
-                ForEach(taskPlanningEngine.recommendations.prefix(2), id: \.id) { recommendation in
-                    RecommendationCard(recommendation: recommendation) {
-                        // Handle recommendation action
-                        handleRecommendationAction(recommendation)
-                    }
-                }
-            }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 20)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        }
-    }
 
     // MARK: - UI Components
 
@@ -308,14 +219,6 @@ struct EnhancedContentView: View {
         .ignoresSafeArea()
     }
 
-    private var insightsButton: some View {
-        Button(action: { showingInsights = true }) {
-            Image(systemName: "brain.head.profile")
-                .font(.title3)
-                .foregroundStyle(.purple)
-        }
-        .accessibilityLabel("AI Insights")
-    }
 
     private var settingsButton: some View {
         Button(action: { showingSettings = true }) {
@@ -331,8 +234,6 @@ struct EnhancedContentView: View {
         Task {
             await viewModel.loadTodaysData()
 
-            // Load AI recommendations
-            _ = await taskPlanningEngine.getPersonalizedRecommendations()
 
             // Delayed hero animation trigger
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -344,7 +245,6 @@ struct EnhancedContentView: View {
 
     private func refreshData() async {
         await viewModel.refreshData()
-        _ = await taskPlanningEngine.getPersonalizedRecommendations()
 
         // Refresh animations
         withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -370,21 +270,6 @@ struct EnhancedContentView: View {
             }
         }
 
-        // Update AI recommendations based on completion
-        Task {
-            let completions = [TaskCompletion(
-                taskId: task.id,
-                completedAt: Date(),
-                scheduledTime: task.scheduledTime,
-                actualDuration: 30 * 60, // 30 minutes
-                estimatedDuration: 45 * 60, // 45 minutes estimated
-                difficultyRating: task.difficulty,
-                satisfactionScore: 8
-            )]
-
-            // Adapt the task plan based on completion
-            // This would update recommendations in real-time
-        }
     }
 
     private func triggerPetInteraction() {
@@ -397,33 +282,6 @@ struct EnhancedContentView: View {
         impactFeedback.impactOccurred()
     }
 
-    private func handleRecommendationAction(_ recommendation: TaskRecommendation) {
-        // Handle different recommendation types
-        switch recommendation.type {
-        case .timeOptimization:
-            // Show time optimization UI
-            break
-        case .batching:
-            // Group similar tasks
-            break
-        case .breaks:
-            // Schedule break reminders
-            break
-        case .reordering:
-            // Suggest task reorder
-            break
-        case .timeBlocking:
-            // Create time blocks
-            break
-        case .energyAlignment:
-            // Align tasks with energy levels
-            break
-        }
-
-        // Provide haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
-    }
 }
 
 // MARK: - Animation Phase

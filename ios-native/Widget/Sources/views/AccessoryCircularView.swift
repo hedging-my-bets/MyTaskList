@@ -6,6 +6,15 @@ struct AccessoryCircularView: View {
     let entry: SimpleEntry
 
     var body: some View {
+        // Make entire circular widget tappable to complete next task
+        Button(intent: MarkNextTaskDoneIntent()) {
+            widgetContent
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var widgetContent: some View {
         ZStack {
             // Background ring
             Circle()

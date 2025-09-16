@@ -140,6 +140,12 @@ struct GraceMinutesControl: View {
                     .disabled(store.state.graceMinutes == preset)
                 }
             }
+
+            // Help text explaining grace minutes
+            Text("Grace period allows tasks to appear \"current\" within this time window. For example, with 30 minutes grace, a 2:00 PM task stays actionable from 1:30 PM to 2:30 PM.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.top, 8)
         }
         .padding(.vertical, 4)
     }
