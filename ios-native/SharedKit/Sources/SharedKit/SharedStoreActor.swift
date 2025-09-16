@@ -181,7 +181,7 @@ public actor SharedStoreActor {
             lastSuccessfulWrite = Date()
             logger.debug("Successfully saved day model for key: \(day.key)")
         } else {
-            logger.error("Failed to save day model after \(maxRetryAttempts) attempts for key: \(day.key)")
+            logger.error("Failed to save day model after \(self.maxRetryAttempts) attempts for key: \(day.key)")
         }
     }
 
