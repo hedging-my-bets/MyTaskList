@@ -586,7 +586,7 @@ public final class PetEvolutionEngine: ObservableObject {
         let averageTime = totalCalculationTime / Double(calculationCount)
 
         if duration > 0.01 { // Log operations > 10ms
-            performanceLogger.warning("\(operation) took \(duration * 1000, specifier: "%.3f")ms (avg: \(averageTime * 1000, specifier: "%.3f")ms)")
+            performanceLogger.warning("\(operation) took \(String(format: "%.3f", duration * 1000))ms (avg: \(String(format: "%.3f", averageTime * 1000))ms)")
         }
     }
 

@@ -66,7 +66,7 @@ public final class AssetOptimizer: ObservableObject {
         let optimizationTime = CFAbsoluteTimeGetCurrent() - startTime
         let savings = Double(imageData.count - optimizedData.count) / Double(imageData.count) * 100
 
-        logger.info("Optimization complete: \(savings, specifier: "%.1f")% size reduction, quality: \(qualityScore, specifier: "%.3f")")
+        logger.info("Optimization complete: \(String(format: "%.1f", savings))% size reduction, quality: \(String(format: "%.3f", qualityScore))")
 
         return OptimizedAsset(
             data: optimizedData,
@@ -337,7 +337,7 @@ final class QualityAnalyzer {
         // Higher compression = lower quality score, but not linearly
         let qualityScore = min(1.0, max(0.0, 0.5 + compressionRatio * 0.5))
 
-        logger.debug("Quality assessment: \(qualityScore, specifier: "%.3f")")
+        logger.debug("Quality assessment: \(String(format: "%.3f", qualityScore))")
         return qualityScore
     }
 }

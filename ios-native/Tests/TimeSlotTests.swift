@@ -133,7 +133,7 @@ final class TimeSlotTests: XCTestCase {
             // Performance requirement: < 1ms per call
             XCTAssertLessThan(averageDuration, 0.001, "Algorithm should perform under 1ms per call")
 
-            testLogger.info("✅ Performance requirement validated: \(averageDuration * 1000, specifier: "%.3f")ms avg")
+            testLogger.info("✅ Performance requirement validated: \(String(format: "%.3f", averageDuration * 1000))ms avg")
         }
     }
 
