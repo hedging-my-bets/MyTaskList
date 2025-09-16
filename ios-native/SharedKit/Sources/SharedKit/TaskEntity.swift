@@ -23,11 +23,13 @@ public struct TaskEntity: AppEntity, Identifiable {
 
     /// Convert from DayModel.Slot to TaskEntity
     public init(from slot: DayModel.Slot, dayKey: String) {
-        self.id = slot.id
-        self.title = slot.title
-        self.dueHour = slot.hour
-        self.isDone = slot.isDone
-        self.dayKey = dayKey
+        self.init(
+            id: slot.id,
+            title: slot.title,
+            dueHour: slot.hour,
+            isDone: slot.isDone,
+            dayKey: dayKey
+        )
     }
 
     public var displayRepresentation: DisplayRepresentation {
