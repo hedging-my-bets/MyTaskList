@@ -190,7 +190,7 @@ public actor SharedStoreActor {
     /// Validates task ID format and existence
     private func validateTaskId(_ taskId: String) -> Bool {
         return !taskId.isEmpty && taskId.count <= 100 && taskId.allSatisfy { char in
-            char.isAlphanumeric || char == "-" || char == "_"
+            char.isLetter || char.isNumber || char == "-" || char == "_"
         }
     }
 
@@ -460,9 +460,9 @@ public actor SharedStoreActor {
         let averageTime = totalOperationTime / Double(operationCount)
 
         if duration > 0.1 { // Log slow operations
-            logger.warning("\(operation) took \(duration * 1000, specifier: "%.2f")ms (avg: \(averageTime * 1000, specifier: "%.2f")ms)")
+            logger.warning("\(operation) took \(String(format: "%.2f", duration * 1000))ms (avg: \(String(format: "%.2f", averageTime * 1000))ms)")
         } else {
-            logger.debug("\(operation) completed in \(duration * 1000, specifier: "%.2f")ms")
+            logger.debug("\(operation) completed in \(String(format: "%.2f", duration * 1000))ms")
         }
     }
 

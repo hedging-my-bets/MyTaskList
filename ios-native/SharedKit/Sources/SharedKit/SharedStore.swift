@@ -345,9 +345,9 @@ public final class SharedStore: ObservableObject {
         let averageTime = totalOperationTime / Double(operationCount)
 
         if duration > 0.1 { // Log slow operations
-            performanceLogger.warning("\(operation) took \(duration * 1000, specifier: "%.2f")ms (avg: \(averageTime * 1000, specifier: "%.2f")ms)")
+            performanceLogger.warning("\(operation) took \(String(format: "%.2f", duration * 1000))ms (avg: \(String(format: "%.2f", averageTime * 1000))ms)")
         } else {
-            performanceLogger.debug("\(operation) completed in \(duration * 1000, specifier: "%.2f")ms")
+            performanceLogger.debug("\(operation) completed in \(String(format: "%.2f", duration * 1000))ms")
         }
     }
 
@@ -521,12 +521,7 @@ public final class SharedStore: ObservableObject {
         let dayKey = appState.dayKey
 
         // Get materialized tasks for today
-        let materializedTasks = TaskMaterialization.materializeTasks(
-            tasks: appState.tasks,
-            series: appState.series,
-            overrides: appState.overrides,
-            dayKey: dayKey
-        )
+        let materializedTasks = materializeTasks(for: dayKey, in: appState)
 
         // Create slots from materialized tasks (limit to 24 for widget)
         var slots: [DayModel.Slot] = []
@@ -557,12 +552,7 @@ public final class SharedStore: ObservableObject {
     public func getCurrentDayModel() -> DayModel? {
         // First try to get from AppState (authoritative)
         if let appState = loadAppState() {
-            let materializedTasks = TaskMaterialization.materializeTasks(
-                tasks: appState.tasks,
-                series: appState.series,
-                overrides: appState.overrides,
-                dayKey: appState.dayKey
-            )
+            let materializedTasks = materializeTasks(for: appState.dayKey, in: appState)
 
             var slots: [DayModel.Slot] = []
             let completedTasks = appState.completions[appState.dayKey] ?? Set<UUID>()
@@ -597,12 +587,7 @@ public final class SharedStore: ObservableObject {
         }
 
         let targetDayKey = dayKey ?? appState.dayKey
-        let materializedTasks = TaskMaterialization.materializeTasks(
-            tasks: appState.tasks,
-            series: appState.series,
-            overrides: appState.overrides,
-            dayKey: targetDayKey
-        )
+        let materializedTasks = materializeTasks(for: targetDayKey, in: appState)
 
         guard taskIndex < materializedTasks.count else {
             logger.error("Task index \(taskIndex) out of bounds")
@@ -658,7 +643,7 @@ public final class SharedStore: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
         var result: T?
 
-        let operationComplete = storageQueue.sync {
+        storageQueue.sync {
             // Timeout protection
             let timeoutSource = DispatchSource.makeTimerSource(queue: storageQueue)
             var isTimedOut = false
