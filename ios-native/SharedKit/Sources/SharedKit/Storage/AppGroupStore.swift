@@ -1,6 +1,9 @@
 import Foundation
 import os.log
 import Combine
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /// Enterprise-grade App Group shared store for app↔widget state synchronization
 /// Built by world-class engineers for zero-data-loss production apps
@@ -159,7 +162,6 @@ public final class AppGroupStore: ObservableObject {
 
         // Trigger widget reload since grace minutes affects which tasks appear
         #if canImport(WidgetKit)
-        import WidgetKit
         WidgetCenter.shared.reloadAllTimelines()
         #endif
     }
@@ -172,7 +174,6 @@ public final class AppGroupStore: ObservableObject {
 
         // Trigger widget reload for pagination changes
         #if canImport(WidgetKit)
-        import WidgetKit
         WidgetCenter.shared.reloadAllTimelines()
         #endif
     }
@@ -272,7 +273,7 @@ public final class AppGroupStore: ObservableObject {
         guard state.pet.stageIndex < stageCfg.stages.count else {
             return "pet_stage_0" // Fallback
         }
-        return stageCfg.stages[state.pet.stageIndex].imageName
+        return stageCfg.stages[state.pet.stageIndex].asset
     }
 
     // MARK: - Performance Monitoring

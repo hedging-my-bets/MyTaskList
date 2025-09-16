@@ -17,15 +17,15 @@ jobs:
       - name: Generate Xcode project
         run: cd ios-native && xcodegen generate
 
-      - name: Build (iPhone 15)
+      - name: Build (iOS Simulator)
         run: |
           cd ios-native
-          xcodebuild -scheme PetProgress -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 15" build
+          xcodebuild -scheme PetProgress -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,OS=17.0" build
 
-      - name: Test (iPhone 15)
+      - name: Test (iOS Simulator)
         run: |
           cd ios-native
-          xcodebuild test -scheme PetProgress -destination "platform=iOS Simulator,name=iPhone 15"
+          xcodebuild test -scheme PetProgress -destination "platform=iOS Simulator,OS=17.0"
 
       # - name: Upload to Appetize (optional)
       #   if: ${{ secrets.APPETIZE_API_TOKEN != '' }}

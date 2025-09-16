@@ -418,8 +418,10 @@ final class AssetCacheManager {
     func cacheImage(_ image: Image, named name: String) {
         cacheQueue.async(flags: .barrier) {
             if self.imageCache.count >= self.maxCacheSize {
-                // LRU eviction would go here
-                self.imageCache.removeFirst()
+                // LRU eviction - remove a random entry since we don't track access order
+                if let firstKey = self.imageCache.keys.first {
+                    self.imageCache.removeValue(forKey: firstKey)
+                }
             }
             self.imageCache[name] = image
         }

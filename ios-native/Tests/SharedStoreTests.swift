@@ -168,7 +168,7 @@ final class SharedStoreTests: XCTestCase {
             XCTAssertLessThan(avgSaveTime, 0.05, "Average save time should be under 50ms")
             XCTAssertLessThan(avgLoadTime, 0.02, "Average load time should be under 20ms")
 
-            testLogger.info("✅ Storage performance requirements validated - Save: \(avgSaveTime * 1000, specifier: "%.2f")ms, Load: \(avgLoadTime * 1000, specifier: "%.2f")ms")
+            testLogger.info("✅ Storage performance requirements validated - Save: \(String(format: "%.2f", avgSaveTime * 1000))ms, Load: \(String(format: "%.2f", avgLoadTime * 1000))ms")
         }
     }
 

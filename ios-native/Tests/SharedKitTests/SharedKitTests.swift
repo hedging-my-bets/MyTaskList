@@ -665,7 +665,7 @@ final class PerformanceMeasurer {
             let minTime = times.min() ?? 0
             let maxTime = times.max() ?? 0
 
-            logger.info("\(test): avg=\(avgTime * 1000, specifier: \"%.2f\")ms, min=\(minTime * 1000, specifier: \"%.2f\")ms, max=\(maxTime * 1000, specifier: \"%.2f\")ms")
+            logger.info("\(test): avg=\(String(format: "%.2f", avgTime * 1000))ms, min=\(String(format: "%.2f", minTime * 1000))ms, max=\(String(format: "%.2f", maxTime * 1000))ms")
         }
 
         for (test, bytes) in memoryMeasurements {
