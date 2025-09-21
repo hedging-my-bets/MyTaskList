@@ -174,7 +174,7 @@ public final class PerformanceProfiler {
             applyOptimization(optimization)
         }
 
-        batteryLogger.info("Applied \(recommendations.count) battery optimizations for level: \(batteryOptimizationLevel.rawValue)")
+        batteryLogger.info("Applied \(recommendations.count) battery optimizations for level: \(self.batteryOptimizationLevel.rawValue)")
     }
 
     // MARK: - Memory Optimization
@@ -220,7 +220,7 @@ public final class PerformanceProfiler {
             applyMemoryOptimization(optimization)
         }
 
-        memoryLogger.info("Applied \(recommendations.count) memory optimizations for level: \(memoryPressureLevel.rawValue)")
+        memoryLogger.info("Applied \(recommendations.count) memory optimizations for level: \(self.memoryPressureLevel.rawValue)")
     }
 
     // MARK: - Performance Analysis
@@ -327,17 +327,17 @@ public final class PerformanceProfiler {
 
         // Determine optimization level
         if batteryLevel < 0.2 && !isCharging {
-            batteryOptimizationLevel = .aggressive
+            self.batteryOptimizationLevel = .aggressive
         } else if batteryLevel < 0.5 && !isCharging {
-            batteryOptimizationLevel = .conservative
+            self.batteryOptimizationLevel = .conservative
         } else {
-            batteryOptimizationLevel = .normal
+            self.batteryOptimizationLevel = .normal
         }
 
-        isLowPowerModeActive = ProcessInfo.processInfo.isLowPowerModeEnabled
-        lastBatteryCheck = Date()
+        self.isLowPowerModeActive = ProcessInfo.processInfo.isLowPowerModeEnabled
+        self.lastBatteryCheck = Date()
 
-        batteryLogger.debug("Battery: \(String(format: "%.1f", batteryLevel * 100))%, optimization: \(batteryOptimizationLevel.rawValue)")
+        batteryLogger.debug("Battery: \(String(format: "%.1f", batteryLevel * 100))%, optimization: \(self.batteryOptimizationLevel.rawValue)")
     }
 
     private func updateMemoryStatus() {
@@ -350,14 +350,14 @@ public final class PerformanceProfiler {
 
         // Determine memory pressure (rough thresholds)
         if currentUsage > 150 { // > 150MB
-            memoryPressureLevel = .critical
+            self.memoryPressureLevel = .critical
         } else if currentUsage > 100 { // > 100MB
-            memoryPressureLevel = .warning
+            self.memoryPressureLevel = .warning
         } else {
-            memoryPressureLevel = .normal
+            self.memoryPressureLevel = .normal
         }
 
-        memoryLogger.debug("Memory: \(String(format: "%.2f", currentUsage))MB, pressure: \(memoryPressureLevel.rawValue)")
+        memoryLogger.debug("Memory: \(String(format: "%.2f", currentUsage))MB, pressure: \(self.memoryPressureLevel.rawValue)")
     }
 
     private func getCurrentMemoryUsage() -> Double {
@@ -535,8 +535,8 @@ public final class PerformanceProfiler {
     }
 
     private func handleMemoryWarning() {
-        memoryWarningCount += 1
-        memoryLogger.warning("Memory warning #\(memoryWarningCount) - applying emergency optimizations")
+        self.memoryWarningCount += 1
+        memoryLogger.warning("Memory warning #\(self.memoryWarningCount) - applying emergency optimizations")
 
         applyMemoryOptimization(.clearImageCache)
         applyMemoryOptimization(.freeUnusedMemory)
@@ -544,11 +544,11 @@ public final class PerformanceProfiler {
     }
 
     private func handlePowerStateChange() {
-        isLowPowerModeActive = ProcessInfo.processInfo.isLowPowerModeEnabled
-        batteryLogger.info("Power state changed - Low power mode: \(isLowPowerModeActive)")
+        self.isLowPowerModeActive = ProcessInfo.processInfo.isLowPowerModeEnabled
+        batteryLogger.info("Power state changed - Low power mode: \(self.isLowPowerModeActive)")
 
-        if isLowPowerModeActive {
-            batteryOptimizationLevel = .aggressive
+        if self.isLowPowerModeActive {
+            self.batteryOptimizationLevel = .aggressive
             applyBatteryOptimizations()
         }
     }
