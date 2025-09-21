@@ -281,7 +281,7 @@ final class DataStore: ObservableObject {
 
         // Check for perfect day celebration with streak tracking
         if #available(iOS 17.0, *) {
-            let perfectDayResult = PerfectDayTracker.shared.checkPerfectDay(for: yesterday)
+            let perfectDayResult = PerfectDayTracker.shared.checkPerfectDay(for: yesterdayKey)
 
             if perfectDayResult.isPerfect {
                 // Award bonus XP
