@@ -329,7 +329,7 @@ public enum IntentError: Swift.Error, LocalizedError {
 
 @available(iOS 17.0, *)
 public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
-    public static var appShortcuts: [AppShortcut] {
+    public var appShortcuts: [AppShortcut] {
         [
             AppShortcut(
                 intent: MarkNextTaskDoneIntent(),
