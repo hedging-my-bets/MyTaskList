@@ -1,0 +1,60 @@
+{
+  "" : {
+    "const-values" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master.swiftconstvalues",
+    "dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master.d",
+    "diagnostics" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master.dia",
+    "emit-module-dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master-emit-module.dia",
+    "swift-dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget-master.swiftdeps"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/PetProgressWidget.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/PetProgressWidget.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/ProductionWidgetSystem.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/ProductionWidgetSystem.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/ProductionWidgetSystem.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/ProductionWidgetSystem.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/TaskListWidget.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskListWidget.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskListWidget.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskListWidget.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/TaskTimelineProvider.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskTimelineProvider.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskTimelineProvider.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskTimelineProvider.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/TaskWidgetProvider.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskWidgetProvider.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskWidgetProvider.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskWidgetProvider.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/views/AccessoryCircularView.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryCircularView.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryCircularView.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryCircularView.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/views/AccessoryInlineView.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryInlineView.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryInlineView.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryInlineView.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/views/AccessoryRectangularView.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryRectangularView.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryRectangularView.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/AccessoryRectangularView.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/views/InteractiveLockScreenViews.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/InteractiveLockScreenViews.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/InteractiveLockScreenViews.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/InteractiveLockScreenViews.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/Widget/Sources/views/TaskLockScreenView.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskLockScreenView.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskLockScreenView.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/PetProgressWidget.build/Objects-normal/arm64/TaskLockScreenView.o"
+  }
+}

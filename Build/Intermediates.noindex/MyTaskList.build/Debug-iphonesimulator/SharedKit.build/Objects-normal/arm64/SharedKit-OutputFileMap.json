@@ -1,0 +1,175 @@
+{
+  "" : {
+    "const-values" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master.swiftconstvalues",
+    "dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master.d",
+    "diagnostics" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master.dia",
+    "emit-module-dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master-emit-module.dia",
+    "swift-dependencies" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-master.swiftdeps"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/AssetOptimizer.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetOptimizer.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetOptimizer.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetOptimizer.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/AssetPipeline.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetPipeline.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetPipeline.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AssetPipeline.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/CDNManager.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/CDNManager.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/CDNManager.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/CDNManager.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/DayModel.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DayModel.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DayModel.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DayModel.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Intents/PetProgressIntents.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetProgressIntents.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetProgressIntents.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetProgressIntents.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/AppState.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppState.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppState.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppState.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/MaterializedTask.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/MaterializedTask.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/MaterializedTask.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/MaterializedTask.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/PetState.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetState.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetState.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetState.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/Stage.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Stage.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Stage.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Stage.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/TaskInstanceOverride.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskInstanceOverride.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskInstanceOverride.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskInstanceOverride.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/TaskItem.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskItem.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskItem.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskItem.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Models/TaskSeries.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskSeries.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskSeries.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskSeries.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/PerfectDayTracker.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerfectDayTracker.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerfectDayTracker.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerfectDayTracker.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/PetEvolutionEngine.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEvolutionEngine.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEvolutionEngine.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEvolutionEngine.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/SharedKit.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/SharedStore.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStore.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStore.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStore.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/SharedStoreActor.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStoreActor.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStoreActor.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedStoreActor.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/StageConfig.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfig.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfig.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfig.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Storage/AppGroupStore.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppGroupStore.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppGroupStore.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/AppGroupStore.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Storage/StageConfigLoader.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfigLoader.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfigLoader.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/StageConfigLoader.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/TaskEntity.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskEntity.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskEntity.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskEntity.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/TaskPlanner.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskPlanner.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskPlanner.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskPlanner.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Telemetry/ProductionTelemetry.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionTelemetry.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionTelemetry.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionTelemetry.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/TestValidation.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TestValidation.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TestValidation.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TestValidation.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/TimeSlot.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TimeSlot.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TimeSlot.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TimeSlot.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/UI/EmptyStateManager.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/EmptyStateManager.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/EmptyStateManager.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/EmptyStateManager.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/DateHelpers.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DateHelpers.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DateHelpers.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/DateHelpers.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/Extensions.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Extensions.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Extensions.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/Extensions.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/PerformanceProfiler.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerformanceProfiler.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerformanceProfiler.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PerformanceProfiler.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/PetEngine.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEngine.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEngine.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/PetEngine.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/ProductionErrorHandler.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionErrorHandler.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionErrorHandler.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/ProductionErrorHandler.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/Utils/TaskMaterialization.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskMaterialization.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskMaterialization.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/TaskMaterialization.o"
+  },
+  "/Users/runner/work/MyTaskList/MyTaskList/ios-native/SharedKit/Sources/SharedKit/WidgetImageOptimizer.swift" : {
+    "index-unit-output-path" : "/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/WidgetImageOptimizer.o",
+    "llvm-bc" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/WidgetImageOptimizer.bc",
+    "object" : "/Users/runner/work/MyTaskList/MyTaskList/DerivedData/Build/Intermediates.noindex/MyTaskList.build/Debug-iphonesimulator/SharedKit.build/Objects-normal/arm64/WidgetImageOptimizer.o"
+  }
+}
