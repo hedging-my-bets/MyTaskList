@@ -66,9 +66,9 @@ extension MaterializedTask {
         )
     }
 
-    /// TimeSlot compatibility property
-    public var timeSlot: TimeSlot {
-        return TimeSlot(hour: time.hour ?? 0)
+    /// Hour index for TimeSlot compatibility
+    public var hourIndex: Int {
+        return time.hour ?? 0
     }
 
     /// Scheduled hour compatibility property

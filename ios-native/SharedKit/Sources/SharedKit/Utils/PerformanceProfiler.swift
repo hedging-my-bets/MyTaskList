@@ -45,7 +45,7 @@ public final class PerformanceProfiler {
         case normal = "NORMAL"           // < 60% memory usage
     }
 
-    private struct PerformanceMetric {
+    public struct PerformanceMetric {
         var totalTime: TimeInterval = 0
         var callCount: Int = 0
         var maxTime: TimeInterval = 0

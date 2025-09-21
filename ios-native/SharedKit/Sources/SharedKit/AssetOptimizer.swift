@@ -164,6 +164,9 @@ public final class AssetOptimizer: ObservableObject {
             recommendedFormat = .heic
         case .webp:
             recommendedFormat = .webp
+        case .unknown:
+            // Default to PNG for unknown formats
+            recommendedFormat = .png
         }
 
         let compressionSettings = CompressionSettings(
