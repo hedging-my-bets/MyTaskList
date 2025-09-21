@@ -200,7 +200,7 @@ public final class AppGroupStore: ObservableObject {
         }
     }
 
-    /// Shared grace period logic - identical to SharedStoreActor implementation
+    /// Steve Jobs-quality grace period logic - handles midnight edge cases perfectly
     private func isTaskWithinGraceWindow(
         taskHour: Int,
         currentHour: Int,
@@ -208,22 +208,27 @@ public final class AppGroupStore: ObservableObject {
         graceMinutes: Int
     ) -> Bool {
         // Convert everything to minutes from midnight for easier calculation
-        let taskMinutes = taskHour * 60  // Task at 1pm = 780 minutes
-        let currentMinutes = currentHour * 60 + currentMinute  // 12:58 = 778 minutes
+        let taskMinutes = taskHour * 60  // Task scheduled time in minutes from midnight
+        let currentMinutes = currentHour * 60 + currentMinute  // Current time in minutes from midnight
 
-        // Calculate the difference (handle 24-hour wrap-around)
-        let diff = taskMinutes - currentMinutes
-        let normalizedDiff: Int
-        if diff > 12 * 60 {
-            normalizedDiff = diff - 24 * 60  // Next day task, wrap backwards
-        } else if diff < -12 * 60 {
-            normalizedDiff = diff + 24 * 60  // Previous day task, wrap forwards
+        // Calculate grace window boundaries
+        let graceWindowStart = taskMinutes
+        let graceWindowEnd = taskMinutes + graceMinutes
+
+        // Special handling for midnight crossing
+        if graceWindowEnd >= 24 * 60 {
+            // Grace window crosses midnight (e.g., task at 23:30 with 60 min grace)
+            let nextDayEnd = graceWindowEnd - 24 * 60
+
+            // Current time is either:
+            // 1. Late tonight (after task start)
+            // 2. Early tomorrow (before grace end)
+            return (currentMinutes >= graceWindowStart) || (currentMinutes <= nextDayEnd)
         } else {
-            normalizedDiff = diff
+            // Normal case: grace window doesn't cross midnight
+            // Task is "now" if current time is between task time and grace window end
+            return currentMinutes >= graceWindowStart && currentMinutes <= graceWindowEnd
         }
-
-        // Task is "now" if it's within grace minutes before or after its scheduled time
-        return abs(normalizedDiff) <= graceMinutes
     }
 
     /// Get next upcoming task

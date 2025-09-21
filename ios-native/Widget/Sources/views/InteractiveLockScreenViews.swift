@@ -69,9 +69,11 @@ struct InteractiveCircularLockScreenView: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(petColor)
         } else if let nextTask = entry.nextTask {
-            // Show pet with time until next task
-            Text(nextTaskTimeText)
-                .foregroundColor(petColor)
+            // Show optimized pet image with stage
+            WidgetImageOptimizer.shared.widgetImage(for: entry.petState.stageIndex)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
         } else {
             // Show celebrating pet (all done)
             Image(systemName: "star.fill")
@@ -119,7 +121,7 @@ struct InteractiveRectangularLockScreenView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // Pet image
+            // Pet image - optimized for instant loading
             petImageView
                 .frame(width: 24, height: 24)
 
@@ -193,20 +195,11 @@ struct InteractiveRectangularLockScreenView: View {
 
     @ViewBuilder
     private var petImageView: some View {
-        let stageCfg = StageConfigLoader.shared.loadStageConfig()
-        let stageIndex = entry.petState.stageIndex
-
-        if stageIndex < stageCfg.stages.count {
-            // Use actual pet stage image (would be loaded from assets)
-            Image(systemName: stageCfg.stages[stageIndex].iconName)
-                .foregroundColor(petColor)
-                .font(.system(size: 18, weight: .bold))
-        } else {
-            // Fallback pet image
-            Image(systemName: "heart.fill")
-                .foregroundColor(.pink)
-                .font(.system(size: 18, weight: .bold))
-        }
+        // Steve Jobs-level instant image loading
+        WidgetImageOptimizer.shared.widgetImage(for: entry.petState.stageIndex)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .foregroundColor(petColor)
     }
 
     private var petColor: Color {

@@ -46,6 +46,15 @@ public struct MarkNextTaskDoneIntent: AppIntent {
         // Force widget timeline reload for immediate visual update
         WidgetCenter.shared.reloadAllTimelines()
 
+        // Also force immediate timeline update with current date
+        WidgetCenter.shared.getCurrentConfigurations { result in
+            if case .success(let configs) = result {
+                for config in configs {
+                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
+                }
+            }
+        }
+
         logger.info("Task \(nextTask.id) completed successfully with XP reward")
 
         return .result(dialog: IntentDialog("\(nextTask.title) completed! Pet gained XP."))
@@ -93,6 +102,15 @@ public struct SkipCurrentTaskIntent: AppIntent {
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
 
+        // Also force immediate timeline update
+        WidgetCenter.shared.getCurrentConfigurations { result in
+            if case .success(let configs) = result {
+                for config in configs {
+                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
+                }
+            }
+        }
+
         logger.info("Task \(currentTask.id) skipped successfully")
 
         return .result(dialog: IntentDialog("\(currentTask.title) skipped."))
@@ -138,6 +156,15 @@ public struct GoToNextTaskIntent: AppIntent {
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
 
+        // Also force immediate timeline update
+        WidgetCenter.shared.getCurrentConfigurations { result in
+            if case .success(let configs) = result {
+                for config in configs {
+                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
+                }
+            }
+        }
+
         logger.info("Page advanced from \(currentPage) to \(newPage)")
 
         return .result(dialog: IntentDialog("Next tasks"))
@@ -182,6 +209,15 @@ public struct GoToPreviousTaskIntent: AppIntent {
 
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
+
+        // Also force immediate timeline update
+        WidgetCenter.shared.getCurrentConfigurations { result in
+            if case .success(let configs) = result {
+                for config in configs {
+                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
+                }
+            }
+        }
 
         logger.info("Page advanced from \(currentPage) to \(newPage)")
 

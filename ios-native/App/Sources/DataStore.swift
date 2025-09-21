@@ -204,6 +204,12 @@ final class DataStore: ObservableObject {
             // CRITICAL FIX: Also sync to unified SharedStore for widget visibility
             SharedStore.shared.saveAppState(state)
 
+            // CRITICAL FIX: Ensure AppGroupStore is synced for widget intents
+            if #available(iOS 17.0, *) {
+                let appGroupState = convertToAppGroupState(from: state)
+                AppGroupStore.shared.saveState(appGroupState)
+            }
+
             // Refresh widget timeline immediately to show changes
             WidgetCenter.shared.reloadAllTimelines()
 
@@ -273,12 +279,28 @@ final class DataStore: ObservableObject {
             }
         }
 
-        // Check for perfect day celebration
-        let totalTasks = yesterdayTasks.count
-        let completedTasks = yesterdayTasks.filter { $0.isCompleted }.count
-        if totalTasks > 0 && completedTasks == totalTasks {
-            if #available(iOS 17.0, *) {
-                CelebrationSystem.shared.celebrate(.perfectDay)
+        // Check for perfect day celebration with streak tracking
+        if #available(iOS 17.0, *) {
+            let perfectDayResult = PerfectDayTracker.shared.checkPerfectDay(for: yesterday)
+
+            if perfectDayResult.isPerfect {
+                // Award bonus XP
+                if perfectDayResult.bonusXP > 0 {
+                    petCopy.stageXP += perfectDayResult.bonusXP
+                    state.pet = petCopy
+                }
+
+                // Trigger celebration with streak info
+                let streakAchievement = StreakAchievement(streakDays: perfectDayResult.streakDays)
+                if !streakAchievement.emoji.isEmpty {
+                    CelebrationSystem.shared.celebrate(.perfectDay,
+                        message: "🌟 Perfect day! \(streakAchievement.emoji) \(streakAchievement.title)")
+                } else {
+                    CelebrationSystem.shared.celebrate(.perfectDay)
+                }
+
+                // Log the achievement
+                print("Perfect day achieved! Streak: \(perfectDayResult.streakDays), Bonus XP: \(perfectDayResult.bonusXP)")
             }
         }
     }
@@ -289,6 +311,20 @@ final class DataStore: ObservableObject {
     }
 
     func routeToPlanner() { showPlanner = true }
+
+    // MARK: - AppGroup Synchronization
+
+    @available(iOS 17.0, *)
+    private func convertToAppGroupState(from appState: AppState) -> AppGroupState {
+        return AppGroupState(
+            tasks: appState.tasks,
+            pet: appState.pet,
+            completions: appState.completions,
+            graceMinutes: appState.graceMinutes,
+            currentPage: 0, // Default for widget pagination
+            rolloverEnabled: appState.rolloverEnabled
+        )
+    }
 
     func addTask(_ task: TaskItem) {
         // Validate task before adding

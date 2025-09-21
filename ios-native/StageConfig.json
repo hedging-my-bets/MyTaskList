@@ -93,7 +93,7 @@
     {
       "index": 15,
       "name": "Gold",
-      "threshold": 0,
+      "threshold": 500,
       "asset": "pet_gold"
     }
   ]

@@ -56,7 +56,8 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
 
     private func buildLockScreenTimeline() async throws -> Timeline<TaskTimelineEntry> {
         let now = Date()
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: now) ?? now.addingTimeInterval(900)
+        // Steve Jobs-level responsiveness: Refresh every 5 minutes for Lock Screen widgets
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: now) ?? now.addingTimeInterval(300)
 
         // Load data from App Group store (faster than SharedStoreActor for Lock Screen)
         let store = AppGroupStore.shared
@@ -76,7 +77,7 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             emptyStateMessage: currentTasks.isEmpty ? "Add tasks in app" : nil
         )
 
-        // Lock Screen widgets refresh more frequently (every 15 min) for better user experience
+        // Lock Screen widgets refresh more frequently (every 5 min) for better user experience
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
 
         logger.debug("Lock Screen timeline: current=\(currentTask?.title ?? "none"), next=\(nextTask?.title ?? "none")")
@@ -109,20 +110,25 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
     }
 
     private func isTaskWithinGraceWindow(taskHour: Int, currentHour: Int, currentMinute: Int, graceMinutes: Int) -> Bool {
+        // Steve Jobs-quality grace period logic matching AppGroupStore implementation
         let taskMinutes = taskHour * 60
         let currentMinutes = currentHour * 60 + currentMinute
-        let diff = taskMinutes - currentMinutes
 
-        let normalizedDiff: Int
-        if diff > 12 * 60 {
-            normalizedDiff = diff - 24 * 60
-        } else if diff < -12 * 60 {
-            normalizedDiff = diff + 24 * 60
+        // Calculate grace window boundaries
+        let graceWindowStart = taskMinutes
+        let graceWindowEnd = taskMinutes + graceMinutes
+
+        // Special handling for midnight crossing
+        if graceWindowEnd >= 24 * 60 {
+            // Grace window crosses midnight (e.g., task at 23:30 with 60 min grace)
+            let nextDayEnd = graceWindowEnd - 24 * 60
+
+            // Current time is either late tonight or early tomorrow
+            return (currentMinutes >= graceWindowStart) || (currentMinutes <= nextDayEnd)
         } else {
-            normalizedDiff = diff
+            // Normal case: grace window doesn't cross midnight
+            return currentMinutes >= graceWindowStart && currentMinutes <= graceWindowEnd
         }
-
-        return abs(normalizedDiff) <= graceMinutes
     }
 
     private func createLockScreenFallbackTimeline() -> Timeline<TaskTimelineEntry> {

@@ -524,7 +524,9 @@ public actor SharedStoreActor {
     // MARK: - Grace Period Logic
 
     /// Determines if a task is within the grace window for completion
-    /// Task due at 1pm with 15-minute grace: completable from 12:45pm to 1:15pm
+    /// Steve Jobs-quality grace period logic - handles midnight edge cases perfectly
+    /// Task due at 1pm with 60-minute grace: completable from 1:00pm to 2:00pm
+    /// Task due at 11:30pm with 120-minute grace: completable from 11:30pm to 1:30am
     private func isTaskWithinGraceWindow(
         taskHour: Int,
         currentHour: Int,
@@ -532,24 +534,30 @@ public actor SharedStoreActor {
         graceMinutes: Int
     ) -> Bool {
         // Convert everything to minutes from midnight for easier calculation
-        let taskMinutes = taskHour * 60  // Task at 1pm = 780 minutes
-        let currentMinutes = currentHour * 60 + currentMinute  // 12:58 = 778 minutes
+        let taskMinutes = taskHour * 60  // Task scheduled time in minutes from midnight
+        let currentMinutes = currentHour * 60 + currentMinute  // Current time in minutes from midnight
 
-        // Calculate the difference (handle 24-hour wrap-around)
-        let diff = taskMinutes - currentMinutes
-        let normalizedDiff: Int
-        if diff > 12 * 60 {
-            normalizedDiff = diff - 24 * 60  // Next day task, wrap backwards
-        } else if diff < -12 * 60 {
-            normalizedDiff = diff + 24 * 60  // Previous day task, wrap forwards
+        // Calculate grace window boundaries
+        let graceWindowStart = taskMinutes
+        let graceWindowEnd = taskMinutes + graceMinutes
+
+        // Special handling for midnight crossing
+        let isWithinGrace: Bool
+        if graceWindowEnd >= 24 * 60 {
+            // Grace window crosses midnight (e.g., task at 23:30 with 60 min grace)
+            let nextDayEnd = graceWindowEnd - 24 * 60
+
+            // Current time is either:
+            // 1. Late tonight (after task start)
+            // 2. Early tomorrow (before grace end)
+            isWithinGrace = (currentMinutes >= graceWindowStart) || (currentMinutes <= nextDayEnd)
         } else {
-            normalizedDiff = diff
+            // Normal case: grace window doesn't cross midnight
+            // Task is "now" if current time is between task time and grace window end
+            isWithinGrace = currentMinutes >= graceWindowStart && currentMinutes <= graceWindowEnd
         }
 
-        // Task is "now" if it's within grace minutes before or after its scheduled time
-        let isWithinGrace = abs(normalizedDiff) <= graceMinutes
-
-        logger.debug("Grace check: task=\(taskHour):00, current=\(currentHour):\(String(format: "%02d", currentMinute)), diff=\(normalizedDiff)min, grace=\(graceMinutes)min, withinGrace=\(isWithinGrace)")
+        logger.debug("Grace check: task=\(taskHour):00, current=\(currentHour):\(String(format: "%02d", currentMinute)), grace=\(graceMinutes)min, withinGrace=\(isWithinGrace)")
 
         return isWithinGrace
     }

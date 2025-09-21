@@ -8,10 +8,16 @@ import SharedKit
 struct PetProgressAppIntentProvider: AppIntentsProvider {
     static var appIntents: [any AppIntent.Type] {
         return [
+            // Legacy app intents (for backwards compatibility)
             CompleteTaskIntent.self,
             SnoozeTaskIntent.self,
             MarkNextIntent.self,
-            AdminRegressIntent.self
+            AdminRegressIntent.self,
+            // Widget Lock Screen intents (CRITICAL for widget functionality)
+            MarkNextTaskDoneIntent.self,
+            SkipCurrentTaskIntent.self,
+            GoToNextTaskIntent.self,
+            GoToPreviousTaskIntent.self
         ]
     }
 }
