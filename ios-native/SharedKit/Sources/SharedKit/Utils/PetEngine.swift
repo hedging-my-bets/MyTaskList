@@ -32,8 +32,6 @@ public enum PetEngine {
         let recoveryGracePeriod: Int
     }
 
-    private static var behaviorAnalysis = BehaviorAnalysis()
-
     private class BehaviorAnalysis {
         private var performanceHistory: [String: [TaskPerformance]] = [:]
         private var lastAnalysisDate: Date?
