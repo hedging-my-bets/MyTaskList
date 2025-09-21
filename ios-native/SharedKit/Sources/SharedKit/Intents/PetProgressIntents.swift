@@ -2,6 +2,9 @@ import AppIntents
 import Foundation
 import WidgetKit
 import os.log
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Enterprise-grade App Intents for Lock Screen widget interactivity
 /// Built by world-class engineers for sub-1-second Lock Screen response
@@ -38,10 +41,12 @@ public struct MarkNextTaskDoneIntent: AppIntent {
         store.markTaskCompleted(nextTask.id, dayKey: dayKey)
 
         // Trigger haptic feedback (if running in main app context)
+        #if canImport(UIKit)
         await MainActor.run {
             let hapticGenerator = UINotificationFeedbackGenerator()
             hapticGenerator.notificationOccurred(.success)
         }
+        #endif
 
         // Force widget timeline reload for immediate visual update
         WidgetCenter.shared.reloadAllTimelines()
@@ -94,10 +99,12 @@ public struct SkipCurrentTaskIntent: AppIntent {
         store.skipTask(currentTask.id, dayKey: dayKey)
 
         // Subtle haptic feedback
+        #if canImport(UIKit)
         await MainActor.run {
             let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
             hapticGenerator.impactOccurred()
         }
+        #endif
 
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
@@ -148,10 +155,12 @@ public struct GoToNextTaskIntent: AppIntent {
         store.updateCurrentPage(newPage)
 
         // Navigation haptic feedback
+        #if canImport(UIKit)
         await MainActor.run {
             let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
             hapticGenerator.impactOccurred()
         }
+        #endif
 
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
@@ -202,10 +211,12 @@ public struct GoToPreviousTaskIntent: AppIntent {
         store.updateCurrentPage(newPage)
 
         // Navigation haptic feedback
+        #if canImport(UIKit)
         await MainActor.run {
             let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
             hapticGenerator.impactOccurred()
         }
+        #endif
 
         // Force widget timeline reload
         WidgetCenter.shared.reloadAllTimelines()
@@ -371,9 +382,3 @@ public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
         ]
     }
 }
-
-// MARK: - Import needed for haptic feedback
-
-#if canImport(UIKit)
-import UIKit
-#endif
