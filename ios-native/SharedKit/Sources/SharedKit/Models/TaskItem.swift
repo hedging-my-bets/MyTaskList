@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TaskItem: Identifiable, Codable, Hashable {
+public struct TaskItem: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public var title: String
     public var scheduledAt: DateComponents

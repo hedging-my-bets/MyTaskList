@@ -1,7 +1,7 @@
 import Foundation
 
-public struct DayModel: Codable, Equatable {
-    public struct Slot: Codable, Equatable, Identifiable {
+public struct DayModel: Codable, Equatable, Sendable {
+    public struct Slot: Codable, Equatable, Identifiable, Sendable {
         public var id: String
         public var hour: Int
         public var title: String

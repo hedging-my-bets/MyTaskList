@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PetState: Codable, Hashable {
+public struct PetState: Codable, Hashable, Sendable {
     public var stageIndex: Int
     public var stageXP: Int
     public var lastCloseoutDayKey: String

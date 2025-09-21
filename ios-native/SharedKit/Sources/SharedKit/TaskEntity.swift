@@ -3,7 +3,7 @@ import AppIntents
 
 /// Task entity for App Intents system - represents a task that can be used in widgets and shortcuts
 @available(iOS 17.0, *)
-public struct TaskEntity: AppEntity, Identifiable {
+public struct TaskEntity: AppEntity, Identifiable, Sendable {
     public static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Task")
     public static var defaultQuery = TaskQuery()
 
