@@ -32,7 +32,7 @@ struct PetProgressWidget: Widget {
 
 // MARK: - Configuration Intent
 
-struct ConfigurationAppIntent: WidgetConfigurationIntent {
+struct ConfigurationAppIntent: WidgetConfigurationIntent, Sendable {
     static var title: LocalizedStringResource = "Configuration"
     static var description = IntentDescription("This is an example widget.")
 }
