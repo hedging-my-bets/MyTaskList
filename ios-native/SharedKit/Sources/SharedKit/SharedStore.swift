@@ -381,10 +381,11 @@ public final class SharedStore: ObservableObject {
 
         // Determine if task completion is within grace period
         let isWithinGrace = isOnTime(task: TaskItem(
-            id: task.id,
+            id: UUID(),
             title: task.title,
             scheduledAt: DateComponents(hour: task.hour),
-            isDone: false
+            dayKey: currentState.dayKey,
+            isCompleted: false
         ), now: now, graceMinutes: currentState.graceMinutes)
 
         // Mark the task as done
@@ -530,7 +531,7 @@ public final class SharedStore: ObservableObject {
         for (index, task) in materializedTasks.prefix(24).enumerated() {
             let isCompleted = completedTasks.contains(task.id)
             let slot = DayModel.Slot(
-                hour: task.timeSlot?.hour ?? index,
+                hour: task.hourIndex,
                 title: task.title,
                 isDone: isCompleted
             )
@@ -560,7 +561,7 @@ public final class SharedStore: ObservableObject {
             for (index, task) in materializedTasks.prefix(24).enumerated() {
                 let isCompleted = completedTasks.contains(task.id)
                 let slot = DayModel.Slot(
-                    hour: task.timeSlot?.hour ?? index,
+                    hour: task.hourIndex,
                     title: task.title,
                     isDone: isCompleted
                 )

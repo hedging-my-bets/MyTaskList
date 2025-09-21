@@ -443,7 +443,7 @@ public final class ProductionErrorHandler {
     private func saveEmergencyState() {
         // Save minimal critical state for crash recovery
         if let appState = SharedStore.shared.loadAppState() {
-            let emergencyState = [
+            let emergencyState: [String: Any] = [
                 "petStage": appState.pet.stageIndex,
                 "petXP": appState.pet.stageXP,
                 "dayKey": appState.dayKey,
