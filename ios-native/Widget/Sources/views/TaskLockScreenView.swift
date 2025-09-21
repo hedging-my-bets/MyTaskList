@@ -425,13 +425,13 @@ struct SystemSmallTaskView: View {
 
 // MARK: - Task Entry Model
 
-struct TaskEntry: TimelineEntry {
+struct TaskEntry: TimelineEntry, Sendable {
     let date: Date
     let tasks: [TaskEntity]
     let petStage: PetStage
 }
 
-struct PetStage {
+struct PetStage: Sendable {
     let points: Int
     let stageIndex: Int
 }

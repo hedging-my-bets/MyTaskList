@@ -177,7 +177,7 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
 
 // MARK: - TaskTimelineEntry Model
 
-struct TaskTimelineEntry: TimelineEntry {
+struct TaskTimelineEntry: TimelineEntry, Sendable {
     let date: Date
     let currentTask: TaskItem?
     let nextTask: TaskItem?

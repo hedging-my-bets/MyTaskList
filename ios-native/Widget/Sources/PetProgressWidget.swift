@@ -152,7 +152,7 @@ struct Provider: AppIntentTimelineProvider {
     }
 }
 
-struct SimpleEntry: TimelineEntry {
+struct SimpleEntry: TimelineEntry, Sendable {
     let date: Date
     let dayModel: DayModel
 }

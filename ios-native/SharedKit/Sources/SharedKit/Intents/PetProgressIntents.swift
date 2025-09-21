@@ -9,7 +9,7 @@ import UIKit
 /// Enterprise-grade App Intents for Lock Screen widget interactivity
 /// Built by world-class engineers for sub-1-second Lock Screen response
 @available(iOS 17.0, *)
-public struct MarkNextTaskDoneIntent: AppIntent {
+public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
     public static let title: LocalizedStringResource = "Mark Next Task Done"
     public static let description = IntentDescription("Mark the next upcoming task as complete")
 
@@ -67,7 +67,7 @@ public struct MarkNextTaskDoneIntent: AppIntent {
 }
 
 @available(iOS 17.0, *)
-public struct SkipCurrentTaskIntent: AppIntent {
+public struct SkipCurrentTaskIntent: AppIntent, Sendable {
     public static let title: LocalizedStringResource = "Skip Current Task"
     public static let description = IntentDescription("Skip the current task without XP penalty")
 
@@ -125,7 +125,7 @@ public struct SkipCurrentTaskIntent: AppIntent {
 }
 
 @available(iOS 17.0, *)
-public struct GoToNextTaskIntent: AppIntent {
+public struct GoToNextTaskIntent: AppIntent, Sendable {
     public static let title: LocalizedStringResource = "Go To Next Task"
     public static let description = IntentDescription("Navigate to next task in widget")
 
@@ -181,7 +181,7 @@ public struct GoToNextTaskIntent: AppIntent {
 }
 
 @available(iOS 17.0, *)
-public struct GoToPreviousTaskIntent: AppIntent {
+public struct GoToPreviousTaskIntent: AppIntent, Sendable {
     public static let title: LocalizedStringResource = "Go To Previous Task"
     public static let description = IntentDescription("Navigate to previous task in widget")
 
@@ -239,7 +239,7 @@ public struct GoToPreviousTaskIntent: AppIntent {
 // MARK: - Task Entity for App Intents
 
 @available(iOS 17.0, *)
-public struct PetProgressTaskEntity: AppEntity, Identifiable {
+public struct PetProgressTaskEntity: AppEntity, Identifiable, Sendable {
     public let id: UUID
     public let title: String
     public let hour: Int
