@@ -265,8 +265,10 @@ public enum PetEngine {
         // Comprehensive logging
         if pet.stageIndex != oldStage {
             let direction = pet.stageIndex > oldStage ? "evolved" : "de-evolved"
-            logger.info("Pet \(direction) from stage \(oldStage) to \(pet.stageIndex)")
-            behaviorLogger.info("Stage change: \(oldStage) -> \(pet.stageIndex), XP: \(oldXP) -> \(pet.stageXP)")
+            let newStage = pet.stageIndex
+            let newXP = pet.stageXP
+            logger.info("Pet \(direction) from stage \(oldStage) to \(newStage)")
+            behaviorLogger.info("Stage change: \(oldStage) -> \(newStage), XP: \(oldXP) -> \(newXP)")
         }
     }
 
@@ -299,8 +301,9 @@ public enum PetEngine {
 
             // Log evolution for celebration system
             if pet.stageIndex > oldStage {
-                logger.info("🎉 Pet evolved from stage \(oldStage) to stage \(pet.stageIndex)!")
-                behaviorLogger.info("Evolution milestone: stage \(oldStage) -> \(pet.stageIndex)")
+                let newStage = pet.stageIndex
+                logger.info("🎉 Pet evolved from stage \(oldStage) to stage \(newStage)!")
+                behaviorLogger.info("Evolution milestone: stage \(oldStage) -> \(newStage)")
             }
         }
     }
@@ -330,9 +333,10 @@ public enum PetEngine {
         let shouldTrigger = pet.stageIndex > pet.lastCelebratedStage
 
         if shouldTrigger && shouldMarkCelebrated {
+            let currentStage = pet.stageIndex
             pet.lastCelebratedStage = pet.stageIndex
-            logger.info("🎉 Marking stage \(pet.stageIndex) as celebrated")
-            behaviorLogger.info("Celebration triggered for stage \(pet.stageIndex)")
+            logger.info("🎉 Marking stage \(currentStage) as celebrated")
+            behaviorLogger.info("Celebration triggered for stage \(currentStage)")
         }
 
         return shouldTrigger
