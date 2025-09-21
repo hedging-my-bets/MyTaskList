@@ -122,7 +122,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onCheck execution: \(String(format: "%.3f", duration * 1000))ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onCheck execution: \(durationMs)ms")
         }
 
         // Calculate XP award with behavioral bonuses
@@ -149,7 +150,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onMiss execution: \(String(format: "%.3f", duration * 1000))ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onMiss execution: \(durationMs)ms")
         }
 
         // Calculate XP penalty with behavioral impact
@@ -206,7 +208,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onDailyCloseout execution: \(String(format: "%.3f", duration * 1000))ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onDailyCloseout execution: \(durationMs)ms")
         }
 
         // Only run closeout once per day
