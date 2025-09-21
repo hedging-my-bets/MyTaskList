@@ -69,8 +69,8 @@ public final class ProductionTelemetry {
     }
 
     private func recordMemoryWarning() {
-        memoryWarningCount += 1
-        performanceLogger.warning("Memory warning received (count: \(memoryWarningCount))")
+        self.memoryWarningCount += 1
+        performanceLogger.warning("Memory warning received (count: \(self.memoryWarningCount))")
 
         // Log current memory usage for optimization
         let memoryUsage = getCurrentMemoryUsage()
@@ -264,7 +264,7 @@ extension ProductionTelemetry {
         let level = UIDevice.current.batteryLevel
         let state = UIDevice.current.batteryState
 
-        metricsLogger.debug("Battery: \(String(format: "%.1f", level * 100))% (\(batteryStateString(state)))")
+        metricsLogger.debug("Battery: \(String(format: "%.1f", level * 100))% (\(self.batteryStateString(state)))")
     }
 
     private func batteryStateString(_ state: UIDevice.BatteryState) -> String {
