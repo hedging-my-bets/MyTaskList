@@ -154,7 +154,8 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             id: UUID(),
             title: "Focus session",
             scheduledAt: DateComponents(hour: Calendar.current.component(.hour, from: Date())),
-            isDone: false
+            isCompleted: false,
+            dayKey: TimeSlot.dayKey(for: Date())
         )
     }
 
@@ -164,7 +165,8 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             id: UUID(),
             title: "Break time",
             scheduledAt: DateComponents(hour: nextHour),
-            isDone: false
+            isCompleted: false,
+            dayKey: TimeSlot.dayKey(for: Date())
         )
     }
 

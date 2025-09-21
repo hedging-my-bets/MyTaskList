@@ -364,13 +364,15 @@ struct InteractiveLockScreenViews_Previews: PreviewProvider {
                 id: UUID(),
                 title: "Morning standup",
                 scheduledAt: DateComponents(hour: 9),
-                isDone: false
+                isCompleted: false,
+                dayKey: TimeSlot.dayKey(for: Date())
             ),
             nextTask: TaskItem(
                 id: UUID(),
                 title: "Code review",
                 scheduledAt: DateComponents(hour: 11),
-                isDone: false
+                isCompleted: false,
+                dayKey: TimeSlot.dayKey(for: Date())
             ),
             petState: PetState(stageIndex: 3, stageXP: 25, lastCloseoutDayKey: "", lastCelebratedStage: 2),
             graceMinutes: 30,

@@ -84,19 +84,24 @@ public actor SharedStoreActor {
     private var totalOperationTime: TimeInterval = 0
 
     private init() {
-        // Initialize UserDefaults with comprehensive error handling
-        guard let groupDefaults = UserDefaults(suiteName: appGroupID) else {
+        // Initialize UserDefaults with comprehensive error handling and graceful fallback
+        if let groupDefaults = UserDefaults(suiteName: appGroupID) {
+            self.userDefaults = groupDefaults
+        } else {
             logger.fault("Critical failure: Unable to create UserDefaults for App Group: \(self.appGroupID)")
-            fatalError("Failed to create UserDefaults with suite name: \(appGroupID)")
+            logger.info("Falling back to standard UserDefaults")
+            self.userDefaults = UserDefaults.standard
         }
-        self.userDefaults = groupDefaults
 
-        // Initialize container URL with fallback
-        guard let container = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
+        // Initialize container URL with fallback to documents directory
+        if let container = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
+            self.containerURL = container
+        } else {
             logger.fault("Critical failure: Unable to access App Group container: \(self.appGroupID)")
-            fatalError("Failed to access App Group container: \(appGroupID)")
+            logger.info("Falling back to Documents directory")
+            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            self.containerURL = documentsURL.appendingPathComponent("SharedData")
         }
-        self.containerURL = container
 
         // Setup encoder/decoder for optimal performance
         encoder.dateEncodingStrategy = .iso8601
