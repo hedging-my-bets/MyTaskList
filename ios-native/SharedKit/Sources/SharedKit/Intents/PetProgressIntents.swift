@@ -329,48 +329,46 @@ public enum IntentError: Swift.Error, LocalizedError {
 
 @available(iOS 17.0, *)
 public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
-    @AppShortcutsBuilder
     public static var appShortcuts: [AppShortcut] {
-        AppShortcut(
-            intent: MarkNextTaskDoneIntent(),
-            phrases: [
-                "Mark next task done in \(.applicationName)",
-                "Complete next task in \(.applicationName)",
-                "Finish next task in \(.applicationName)"
-            ],
-            shortTitle: "Mark Next Done",
-            systemImageName: "checkmark.circle"
-        )
-
-        AppShortcut(
-            intent: SkipCurrentTaskIntent(),
-            phrases: [
-                "Skip current task in \(.applicationName)",
-                "Skip task in \(.applicationName)"
-            ],
-            shortTitle: "Skip Current",
-            systemImageName: "xmark.circle"
-        )
-
-        AppShortcut(
-            intent: GoToNextTaskIntent(),
-            phrases: [
-                "Go to next task in \(.applicationName)",
-                "Next task in \(.applicationName)"
-            ],
-            shortTitle: "Next Task",
-            systemImageName: "chevron.right.circle"
-        )
-
-        AppShortcut(
-            intent: GoToPreviousTaskIntent(),
-            phrases: [
-                "Go to previous task in \(.applicationName)",
-                "Previous task in \(.applicationName)"
-            ],
-            shortTitle: "Previous Task",
-            systemImageName: "chevron.left.circle"
-        )
+        return [
+            AppShortcut(
+                intent: MarkNextTaskDoneIntent(),
+                phrases: [
+                    "Mark next task done in \(.applicationName)",
+                    "Complete next task in \(.applicationName)",
+                    "Finish next task in \(.applicationName)"
+                ],
+                shortTitle: "Mark Next Done",
+                systemImageName: "checkmark.circle"
+            ),
+            AppShortcut(
+                intent: SkipCurrentTaskIntent(),
+                phrases: [
+                    "Skip current task in \(.applicationName)",
+                    "Skip task in \(.applicationName)"
+                ],
+                shortTitle: "Skip Current",
+                systemImageName: "xmark.circle"
+            ),
+            AppShortcut(
+                intent: GoToNextTaskIntent(),
+                phrases: [
+                    "Go to next task in \(.applicationName)",
+                    "Next task in \(.applicationName)"
+                ],
+                shortTitle: "Next Task",
+                systemImageName: "chevron.right.circle"
+            ),
+            AppShortcut(
+                intent: GoToPreviousTaskIntent(),
+                phrases: [
+                    "Go to previous task in \(.applicationName)",
+                    "Previous task in \(.applicationName)"
+                ],
+                shortTitle: "Previous Task",
+                systemImageName: "chevron.left.circle"
+            )
+        ]
     }
 }
 
