@@ -22,6 +22,14 @@ jobs:
     - name: Show Xcode Version
       run: xcodebuild -version
 
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
+      run: |
+        cd ios-native
+        xcodegen generate
+
     - name: Cache Swift Packages
       uses: actions/cache@v3
       with:
@@ -32,7 +40,8 @@ jobs:
     - name: Build iOS Project
       run: |
         cd ios-native
-        xcodebuild -scheme PetProgress \
+        xcodebuild -project MyTaskList.xcodeproj \
+          -scheme PetProgress \
           -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
           -configuration Debug \
           build-for-testing
@@ -40,7 +49,8 @@ jobs:
     - name: Run Tests
       run: |
         cd ios-native
-        xcodebuild -scheme PetProgress \
+        xcodebuild -project MyTaskList.xcodeproj \
+          -scheme PetProgress \
           -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
           -configuration Debug \
           test-without-building
