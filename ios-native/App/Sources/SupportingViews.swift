@@ -7,29 +7,19 @@ import SharedKit
 // MARK: - AI Insights View
 
 struct AIInsightsView: View {
-    let insights: [TaskInsight]
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(insights, id: \.id) { insight in
-                        InsightCard(insight: insight)
-                            .padding(.horizontal)
+            Text("AI Insights coming soon")
+                .navigationTitle("AI Insights")
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
                     }
                 }
-                .padding(.top)
-            }
-            .navigationTitle("AI Insights")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
         }
     }
 }
@@ -37,53 +27,8 @@ struct AIInsightsView: View {
 // MARK: - Insight Card
 
 struct InsightCard: View {
-    let insight: TaskInsight
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: insight.category.icon)
-                    .foregroundStyle(insight.severity.color)
-                    .font(.title3)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(insight.title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-
-                    HStack {
-                        Text("\(Int(insight.confidence * 100))% confidence")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        Spacer()
-
-                        Text(insight.severity.rawValue.capitalized)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(insight.severity.color.opacity(0.2))
-                            .foregroundStyle(insight.severity.color)
-                            .clipShape(Capsule())
-                    }
-                }
-
-                Spacer()
-            }
-
-            Text(insight.description)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(insight.severity.color.opacity(0.3), lineWidth: 1)
-        )
+        Text("Insight placeholder")
     }
 }
 
@@ -308,7 +253,7 @@ struct EnhancedSettingsView: View {
                     }
 
                     NavigationLink("AI Planning Engine") {
-                        TaskPlanningView(engine: taskPlanningEngine)
+                        Text("Planning engine coming soon")
                     }
                 }
 
@@ -551,40 +496,7 @@ extension RecommendationPriority {
     }
 }
 
-extension TaskCategory {
-    var icon: String {
-        switch self {
-        case .work: return "briefcase.fill"
-        case .personal: return "person.fill"
-        case .health: return "heart.fill"
-        case .learning: return "book.fill"
-        case .creative: return "paintbrush.fill"
-        case .social: return "person.2.fill"
-        }
-    }
-
-    var color: Color {
-        switch self {
-        case .work: return .blue
-        case .personal: return .green
-        case .health: return .red
-        case .learning: return .purple
-        case .creative: return .orange
-        case .social: return .pink
-        }
-    }
-
-    var displayName: String {
-        switch self {
-        case .work: return "Work"
-        case .personal: return "Personal"
-        case .health: return "Health"
-        case .learning: return "Learning"
-        case .creative: return "Creative"
-        case .social: return "Social"
-        }
-    }
-}
+// TaskCategory extension removed - type not defined
 
 // TimeSlot extension removed - TimeSlot is a static utility enum
 
@@ -639,14 +551,4 @@ struct NotificationSettingsView: View {
     }
 }
 
-extension PlanningState {
-    var description: String {
-        switch self {
-        case .idle: return "Idle"
-        case .analyzing: return "Analyzing Tasks"
-        case .optimizing: return "Optimizing Schedule"
-        case .adapting: return "Adapting Plan"
-        case .completed: return "Plan Ready"
-        }
-    }
-}
+// PlanningState extension removed - type not defined

@@ -589,7 +589,7 @@ final class TaskTemplateSystem: ObservableObject {
                 title: templateTask.title,
                 time: timeComponents,
                 isCompleted: false,
-                origin: .oneOff
+                origin: .oneOff(templateTask.id)
             )
         }
     }
