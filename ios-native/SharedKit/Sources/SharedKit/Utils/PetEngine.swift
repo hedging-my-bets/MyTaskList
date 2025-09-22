@@ -304,6 +304,11 @@ public enum PetEngine {
                 let newStage = pet.stageIndex
                 logger.info("🎉 Pet evolved from stage \(oldStage) to stage \(newStage)!")
                 behaviorLogger.info("Evolution milestone: stage \(oldStage) -> \(newStage)")
+
+                // Trigger haptic feedback for level up
+                #if canImport(UIKit)
+                HapticManager.shared.petLevelUp(fromStage: oldStage, toStage: newStage)
+                #endif
             }
         }
     }
@@ -311,9 +316,17 @@ public enum PetEngine {
     public static func deEvolveIfNeeded(_ pet: inout PetState, cfg: StageCfg) {
         if pet.stageXP < 0 {
             if pet.stageIndex > 0 {
+                let oldStage = pet.stageIndex
                 pet.stageIndex -= 1
                 let newThreshold = max(0, threshold(for: pet.stageIndex, cfg: cfg))
                 pet.stageXP = max(0, newThreshold - 1)
+
+                // Trigger haptic feedback for de-evolution
+                #if canImport(UIKit)
+                HapticManager.shared.petDeEvolution()
+                #endif
+
+                logger.info("Pet de-evolved from stage \(oldStage) to stage \(pet.stageIndex)")
             } else {
                 pet.stageXP = 0
             }

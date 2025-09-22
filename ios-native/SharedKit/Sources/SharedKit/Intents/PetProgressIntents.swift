@@ -40,11 +40,10 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         // Mark task as completed (includes XP calculation)
         store.markTaskCompleted(nextTask.id, dayKey: dayKey)
 
-        // Trigger haptic feedback (if running in main app context)
+        // Trigger haptic feedback with enterprise-grade system
         #if canImport(UIKit)
         await MainActor.run {
-            let hapticGenerator = UINotificationFeedbackGenerator()
-            hapticGenerator.notificationOccurred(.success)
+            HapticManager.shared.taskCompleted()
         }
         #endif
 
@@ -98,11 +97,10 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         // Skip task (no XP reward)
         store.skipTask(currentTask.id, dayKey: dayKey)
 
-        // Subtle haptic feedback
+        // Subtle haptic feedback for skip action
         #if canImport(UIKit)
         await MainActor.run {
-            let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
-            hapticGenerator.impactOccurred()
+            HapticManager.shared.taskSkipped()
         }
         #endif
 
@@ -157,8 +155,7 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         // Navigation haptic feedback
         #if canImport(UIKit)
         await MainActor.run {
-            let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
-            hapticGenerator.impactOccurred()
+            HapticManager.shared.taskNavigation()
         }
         #endif
 
@@ -213,8 +210,7 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         // Navigation haptic feedback
         #if canImport(UIKit)
         await MainActor.run {
-            let hapticGenerator = UIImpactFeedbackGenerator(style: .light)
-            hapticGenerator.impactOccurred()
+            HapticManager.shared.taskNavigation()
         }
         #endif
 
