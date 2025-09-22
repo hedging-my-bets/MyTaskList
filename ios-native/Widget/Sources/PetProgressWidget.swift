@@ -10,7 +10,6 @@ struct PetProgressWidgetBundle: WidgetBundle {
     var body: some Widget {
         if #available(iOS 17.0, *) {
             PetProgressWidget()
-            TaskListWidget()
             PetProgressInteractiveLockScreenWidget()
         }
     }
