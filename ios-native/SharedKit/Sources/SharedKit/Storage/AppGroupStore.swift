@@ -300,10 +300,11 @@ public final class AppGroupStore: ObservableObject {
 /// Comprehensive app state stored in App Group
 public struct AppGroupState: Codable, Equatable {
     public var tasks: [TaskItem] = []
-    public var completions: [String: Set<UUID>] = [:] // dayKey -> completed task IDs
+    public var completions: [String: [UUID]] = [:] // dayKey -> completed task IDs (using Array for Codable)
     public var pet: PetState = PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: "", lastCelebratedStage: -1)
     public var graceMinutes: Int = 30
     public var currentPage: Int = 0 // For widget pagination
+    public var rolloverEnabled: Bool = true // Enable automatic task rollover
 
     public init() {}
 }

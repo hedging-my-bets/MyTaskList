@@ -71,6 +71,14 @@ public final class CompleteAppGroupManager: @unchecked Sendable {
         }
     }
 
+    public func getGraceMinutes() -> Int {
+        return graceMinutes
+    }
+
+    public func setGraceMinutes(_ minutes: Int) {
+        graceMinutes = minutes
+    }
+
     public var hapticsEnabled: Bool {
         get {
             if userDefaults.object(forKey: StorageKey.hapticsEnabled.rawValue) == nil {
@@ -201,6 +209,14 @@ public final class CompleteAppGroupManager: @unchecked Sendable {
             synchronize()
             logger.debug("Current page updated to \(newValue)")
         }
+    }
+
+    public func getCurrentPage() -> Int {
+        return currentPage
+    }
+
+    public func updateCurrentPage(_ page: Int) {
+        currentPage = page
     }
 
     // MARK: - Rollover Management

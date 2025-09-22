@@ -165,10 +165,9 @@ public final class ProductionErrorHandler {
         }
 
         // Strategy 2: Reset widget state
-        if let sharedStore = try? SharedStoreActor.shared {
-            Task {
-                await sharedStore.triggerWidgetReload()
-            }
+        let sharedStore = SharedStoreActor.shared
+        Task {
+            await sharedStore.triggerWidgetReload()
         }
 
         recoveryLogger.info("Widget recovery: Timeline refresh triggered")

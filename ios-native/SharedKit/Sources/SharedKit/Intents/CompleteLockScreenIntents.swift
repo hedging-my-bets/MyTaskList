@@ -81,7 +81,7 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         #endif
 
         // Force scoped widget timeline reload
-        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressInteractiveLockScreenWidget")
+        WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Task '\(nextTask.title)' completed successfully")
 
@@ -166,7 +166,7 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         #endif
 
         // Force scoped widget timeline reload
-        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressInteractiveLockScreenWidget")
+        WidgetCenter.shared.reloadAllTimelines()
 
         logger.info("Task '\(taskToSkip.title)' skipped successfully")
 
@@ -246,7 +246,7 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         #endif
 
         // Force scoped widget timeline reload
-        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressInteractiveLockScreenWidget")
+        WidgetCenter.shared.reloadAllTimelines()
 
         let nextTask = nearestTasks[nextPage]
         logger.info("Navigated to task: \(nextTask.title)")
@@ -327,7 +327,7 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         #endif
 
         // Force scoped widget timeline reload
-        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressInteractiveLockScreenWidget")
+        WidgetCenter.shared.reloadAllTimelines()
 
         let previousTask = nearestTasks[previousPage]
         logger.info("Navigated to task: \(previousTask.title)")

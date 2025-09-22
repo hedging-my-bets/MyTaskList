@@ -207,6 +207,9 @@ public final class HapticManager {
     }
 }
 
+#if canImport(SwiftUI)
+import SwiftUI
+
 // MARK: - SwiftUI Integration
 
 @available(iOS 17.0, *)
@@ -227,6 +230,7 @@ public extension View {
         }
     }
 }
+#endif
 
 @available(iOS 17.0, *)
 public enum HapticType {

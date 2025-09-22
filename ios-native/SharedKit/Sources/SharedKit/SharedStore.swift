@@ -528,7 +528,7 @@ public final class SharedStore: ObservableObject {
         var slots: [DayModel.Slot] = []
         let completedTasks = appState.completions[dayKey] ?? Set<UUID>()
 
-        for (index, task) in materializedTasks.prefix(24).enumerated() {
+        for task in materializedTasks.prefix(24) {
             let isCompleted = completedTasks.contains(task.id)
             let slot = DayModel.Slot(
                 hour: task.hourIndex,
@@ -558,7 +558,7 @@ public final class SharedStore: ObservableObject {
             var slots: [DayModel.Slot] = []
             let completedTasks = appState.completions[appState.dayKey] ?? Set<UUID>()
 
-            for (index, task) in materializedTasks.prefix(24).enumerated() {
+            for task in materializedTasks.prefix(24) {
                 let isCompleted = completedTasks.contains(task.id)
                 let slot = DayModel.Slot(
                     hour: task.hourIndex,

@@ -306,8 +306,8 @@ final class AppIntentHandlerTests: XCTestCase {
         XCTAssertEqual(mockStore.state.tasks.count, originalTaskCount, "Task count should remain the same")
 
         let dayKey = TimeSlot.dayKey(for: Date())
-        let completions = mockStore.state.completions[dayKey] ?? Set<UUID>()
-        XCTAssertTrue(completions.contains(taskToComplete.id), "Task should be in completions set")
+        let completions = mockStore.state.completions[dayKey] ?? []
+        XCTAssertTrue(completions.contains(taskToComplete.id), "Task should be in completions array")
     }
 
     func testMultipleIntentExecution() async throws {

@@ -64,7 +64,7 @@ final class DataStore: ObservableObject {
     func markDone(taskID: UUID) {
         let now = Date()
         let dayKey = state.dayKey
-        var completed = state.completions[dayKey] ?? Set<UUID>()
+        var completed = state.completions[dayKey] ?? []
         guard !completed.contains(taskID) else { return }
 
         // Find the materialized task to determine on-time status
@@ -73,7 +73,7 @@ final class DataStore: ObservableObject {
 
         let onTime = isOnTimeForMaterializedTask(task: mt, now: now)
 
-        completed.insert(taskID)
+        completed.append(taskID)
         state.completions[dayKey] = completed
 
         var petCopy = state.pet
@@ -367,7 +367,7 @@ final class DataStore: ObservableObject {
         state.tasks.removeAll { $0.id == taskID }
         // Also remove from completions if it was completed
         for dayKey in state.completions.keys {
-            state.completions[dayKey]?.remove(taskID)
+            state.completions[dayKey]?.removeAll { $0 == taskID }
         }
 
         triggerHapticFeedback(.warning)
