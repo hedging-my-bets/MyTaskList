@@ -5,7 +5,7 @@ import SharedKit
 // MARK: - App Intent Provider
 
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-struct PetProgressAppIntentProvider: AppIntentsProvider {
+struct PetProgressAppIntentProvider: AppIntentsPackage {
     static var appIntents: [any AppIntent.Type] {
         return [
             // Legacy app intents (for backwards compatibility)

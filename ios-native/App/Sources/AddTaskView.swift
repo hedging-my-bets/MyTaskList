@@ -32,7 +32,7 @@ struct AddTaskView: View {
         ])
     ]
 
-    private struct TaskTemplate {
+    struct TaskTemplate {
         let name: String
         let tasks: [(title: String, hour: Int, minute: Int)]
     }
@@ -126,9 +126,7 @@ struct AddTaskView: View {
         dataStore.addTask(newTask)
 
         // CRITICAL FIX: Sync to SharedStore for widget visibility
-        if let currentState = dataStore.state {
-            SharedStore.shared.saveAppState(currentState)
-        }
+        SharedStore.shared.saveAppState(dataStore.state)
 
         // Refresh widget timeline immediately
         WidgetCenter.shared.reloadAllTimelines()
@@ -145,9 +143,7 @@ struct AddTaskView: View {
         }
 
         // Sync to SharedStore for widget visibility
-        if let currentState = dataStore.state {
-            SharedStore.shared.saveAppState(currentState)
-        }
+        SharedStore.shared.saveAppState(dataStore.state)
 
         // Refresh widget timeline immediately
         WidgetCenter.shared.reloadAllTimelines()
@@ -161,7 +157,7 @@ struct TemplateSelectionView: View {
 
     var body: some View {
         NavigationView {
-            List(templates, id: \.name) { template in
+            List(templates, id: \.name) { (template: AddTaskView.TaskTemplate) in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(template.name)
                         .font(.headline)

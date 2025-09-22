@@ -2,6 +2,7 @@ import SwiftUI
 import SafariServices
 import SharedKit
 import os.log
+import WidgetKit
 
 /// Complete Production Settings Screen - 100% Feature Complete
 /// Built by world-class iOS engineers
@@ -106,7 +107,6 @@ struct GraceMinutesControl: View {
 
             // Force widget timeline refresh to respect new grace period
             await MainActor.run {
-                import WidgetKit
                 WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressInteractiveLockScreenWidget")
 
                 withAnimation(.easeInOut(duration: 0.2)) {

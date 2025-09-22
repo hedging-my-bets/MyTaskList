@@ -64,11 +64,11 @@ struct InteractiveCircularLockScreenView: View {
 
     @ViewBuilder
     private var petImageView: some View {
-        if let currentTask = entry.currentTask {
+        if entry.currentTask != nil {
             // Show task completion button
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(petColor)
-        } else if let nextTask = entry.nextTask {
+        } else if entry.nextTask != nil {
             // Show optimized pet image with stage
             WidgetImageOptimizer.shared.widgetImage(for: entry.petState.stageIndex)
                 .resizable()
@@ -211,7 +211,7 @@ struct InteractiveRectangularLockScreenView: View {
     }
 
     private var statusText: String {
-        if let currentTask = entry.currentTask {
+        if entry.currentTask != nil {
             return "Now"
         } else if let nextTask = entry.nextTask, let hour = nextTask.scheduledAt.hour {
             let now = Date()

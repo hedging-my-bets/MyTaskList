@@ -64,8 +64,8 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
 
         let now = Date()
         let calendar = Calendar.current
-        let currentHour = calendar.component(.hour, from: now)
-        let currentMinute = calendar.component(.minute, from: now)
+        let _ = calendar.component(.hour, from: now)
+        let _ = calendar.component(.minute, from: now)
 
         // Get grace minutes from App Group
         let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
