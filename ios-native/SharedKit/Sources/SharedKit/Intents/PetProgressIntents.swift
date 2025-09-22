@@ -32,16 +32,16 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
 
         // Get the next upcoming task
         let appGroup = CompleteAppGroupManager.shared
-        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
+        let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
-        guard let nextTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
+        guard let nextTask = currentTasks.first(where: { !appGroup.isTaskCompleted($0.id, dayKey: dayKey) }) else {
             logger.info("No incomplete tasks available")
             return .result(dialog: IntentDialog("No tasks to complete right now."))
         }
 
         // Mark task as completed (includes XP calculation)
-        store.markTaskCompleted(nextTask.id, dayKey: dayKey)
+        appGroup.markTaskCompleted(nextTask.id, dayKey: dayKey)
 
         // Trigger haptic feedback with enterprise-grade system
         #if canImport(UIKit)
@@ -83,16 +83,16 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
 
         // Get the current task that's within grace window
         let appGroup = CompleteAppGroupManager.shared
-        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
+        let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
-        guard let currentTask = currentTasks.first(where: { !store.isTaskCompleted($0.id, dayKey: dayKey) }) else {
+        guard let currentTask = currentTasks.first(where: { !appGroup.isTaskCompleted($0.id, dayKey: dayKey) }) else {
             logger.info("No current task to skip")
             return .result(dialog: IntentDialog("No current task to skip."))
         }
 
-        // Skip task (no XP reward)
-        store.skipTask(currentTask.id, dayKey: dayKey)
+        // Skip task (no XP reward) - mark as completed without XP
+        appGroup.markTaskCompleted(currentTask.id, dayKey: dayKey)
 
         // Subtle haptic feedback for skip action
         #if canImport(UIKit)
@@ -133,15 +133,15 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         CompleteRolloverManager.shared.handleIntentExecution()
 
         let appGroup = CompleteAppGroupManager.shared
-        let currentPage = store.state.currentPage
-        let totalTasks = store.getCurrentTasks().count
+        let currentPage = appGroup.getCurrentPage()
+        let totalTasks = appGroup.getTasks(dayKey: TimeSlot.dayKey(for: Date())).count
         let pageSize = 3 // Tasks per page
 
         let maxPages = max(0, (totalTasks - 1) / pageSize)
         let newPage = (currentPage + 1) % (maxPages + 1) // Wrap around
 
         // Update current page
-        store.updateCurrentPage(newPage)
+        appGroup.updateCurrentPage(newPage)
 
         // Navigation haptic feedback
         #if canImport(UIKit)
@@ -182,15 +182,15 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         CompleteRolloverManager.shared.handleIntentExecution()
 
         let appGroup = CompleteAppGroupManager.shared
-        let currentPage = store.state.currentPage
-        let totalTasks = store.getCurrentTasks().count
+        let currentPage = appGroup.getCurrentPage()
+        let totalTasks = appGroup.getTasks(dayKey: TimeSlot.dayKey(for: Date())).count
         let pageSize = 3 // Tasks per page
 
         let maxPages = max(0, (totalTasks - 1) / pageSize)
         let newPage = currentPage > 0 ? currentPage - 1 : maxPages // Wrap around
 
         // Update current page
-        store.updateCurrentPage(newPage)
+        appGroup.updateCurrentPage(newPage)
 
         // Navigation haptic feedback
         #if canImport(UIKit)
@@ -238,8 +238,9 @@ public struct PetProgressTaskQuery: EntityQuery {
     public func entities(for identifiers: [UUID]) async throws -> [PetProgressTaskEntity] {
         let appGroup = CompleteAppGroupManager.shared
         let dayKey = TimeSlot.dayKey(for: Date())
+        let tasks = appGroup.getTasks(dayKey: dayKey)
 
-        return store.state.tasks.compactMap { task in
+        return tasks.compactMap { task in
             guard identifiers.contains(task.id) else { return nil }
             guard let hour = task.scheduledAt.hour else { return nil }
 
@@ -247,15 +248,15 @@ public struct PetProgressTaskQuery: EntityQuery {
                 id: task.id,
                 title: task.title,
                 hour: hour,
-                isCompleted: store.isTaskCompleted(task.id, dayKey: dayKey)
+                isCompleted: appGroup.isTaskCompleted(task.id, dayKey: dayKey)
             )
         }
     }
 
     public func suggestedEntities() async throws -> [PetProgressTaskEntity] {
         let appGroup = CompleteAppGroupManager.shared
-        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
+        let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
         return currentTasks.prefix(5).compactMap { task in
             guard let hour = task.scheduledAt.hour else { return nil }
@@ -264,15 +265,15 @@ public struct PetProgressTaskQuery: EntityQuery {
                 id: task.id,
                 title: task.title,
                 hour: hour,
-                isCompleted: store.isTaskCompleted(task.id, dayKey: dayKey)
+                isCompleted: appGroup.isTaskCompleted(task.id, dayKey: dayKey)
             )
         }
     }
 
     public func defaultResult() async -> PetProgressTaskEntity? {
         let appGroup = CompleteAppGroupManager.shared
-        let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
+        let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
         guard let firstTask = currentTasks.first,
               let hour = firstTask.scheduledAt.hour else { return nil }
@@ -281,7 +282,7 @@ public struct PetProgressTaskQuery: EntityQuery {
             id: firstTask.id,
             title: firstTask.title,
             hour: hour,
-            isCompleted: store.isTaskCompleted(firstTask.id, dayKey: dayKey)
+            isCompleted: appGroup.isTaskCompleted(firstTask.id, dayKey: dayKey)
         )
     }
 }
