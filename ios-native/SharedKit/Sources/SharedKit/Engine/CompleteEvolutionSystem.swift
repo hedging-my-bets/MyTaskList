@@ -123,7 +123,7 @@ public final class CompleteEvolutionSystem {
         )
 
         let duration = CFAbsoluteTimeGetCurrent() - startTime
-        logger.info("Task completion processed in \(String(format: "%.3f", duration))s: \(timingType) → +\(xpGained) XP → Stage \(newStage)")
+        logger.info("Task completion processed in \(String(format: "%.3f", duration))s: \(String(describing: timingType)) → +\(xpGained) XP → Stage \(newStage)")
 
         return result
     }
@@ -332,68 +332,6 @@ public struct EvolutionResult: Sendable {
 
 // MARK: - Backward Compatibility with PetEngine
 
-@available(iOS 17.0, *)
-public extension PetEngine {
-    /// Enhanced task completion with timing analysis
-    static func onCheck(onTime: Bool, pet: inout PetState, cfg: StageCfg) {
-        let task = TaskEntity(
-            id: "legacy",
-            title: "Legacy Task",
-            dueHour: Calendar.current.component(.hour, from: Date()),
-            isDone: false,
-            dayKey: TimeSlot.dayKey(for: Date())
-        )
-
-        let result = CompleteEvolutionSystem.shared.processTaskCompletion(
-            currentPet: &pet,
-            task: task,
-            completedAt: Date()
-        )
-
-        // Legacy logging
-        let logger = Logger(subsystem: "com.petprogress.SharedKit", category: "PetEngine")
-        logger.info("Legacy onCheck: \(result.xpChange) XP → Stage \(result.newStage)")
-    }
-
-    /// Enhanced miss handling
-    static func onMiss(pet: inout PetState, cfg: StageCfg) {
-        let missedTask = TaskEntity(
-            id: "missed",
-            title: "Missed Task",
-            dueHour: Calendar.current.component(.hour, from: Date()) - 1,
-            isDone: false,
-            dayKey: TimeSlot.dayKey(for: Date())
-        )
-
-        let result = CompleteEvolutionSystem.shared.processMissedTasks(
-            currentPet: &pet,
-            missedTasks: [missedTask],
-            rolloverDate: Date()
-        )
-
-        // Legacy logging
-        let logger = Logger(subsystem: "com.petprogress.SharedKit", category: "PetEngine")
-        logger.info("Legacy onMiss: \(result.xpChange) XP → Stage \(result.newStage)")
-    }
-
-    /// Enhanced daily closeout
-    static func onDailyCloseout(
-        completedTasks: Int,
-        missedTasks: Int,
-        totalTasks: Int,
-        pet: inout PetState,
-        cfg: StageCfg,
-        dayKey: String
-    ) {
-        let result = CompleteEvolutionSystem.shared.processDailyCloseout(
-            currentPet: &pet,
-            completedTasks: completedTasks,
-            totalTasks: totalTasks,
-            dayKey: dayKey
-        )
-
-        // Legacy logging
-        let logger = Logger(subsystem: "com.petprogress.SharedKit", category: "PetEngine")
-        logger.info("Legacy onDailyCloseout: \(completedTasks)/\(totalTasks) → \(result.xpChange) XP → Stage \(result.newStage)")
-    }
-}
+// MARK: - Legacy Compatibility
+// Note: Legacy PetEngine methods are available in Utils/PetEngine.swift
+// CompleteEvolutionSystem provides the modern implementation above

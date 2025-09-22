@@ -149,29 +149,3 @@ public final class AppGroupDefaults {
     }
 }
 
-// MARK: - PetState Codable Extension
-
-extension PetState: Codable {
-    enum CodingKeys: String, CodingKey {
-        case stageIndex
-        case stageXP
-        case lastCelebratedStage
-        case lastCloseoutDayKey
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(stageIndex, forKey: .stageIndex)
-        try container.encode(stageXP, forKey: .stageXP)
-        try container.encode(lastCelebratedStage, forKey: .lastCelebratedStage)
-        try container.encode(lastCloseoutDayKey, forKey: .lastCloseoutDayKey)
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        stageIndex = try container.decode(Int.self, forKey: .stageIndex)
-        stageXP = try container.decode(Int.self, forKey: .stageXP)
-        lastCelebratedStage = try container.decode(Int.self, forKey: .lastCelebratedStage)
-        lastCloseoutDayKey = try container.decodeIfPresent(String.self, forKey: .lastCloseoutDayKey)
-    }
-}

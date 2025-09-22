@@ -122,7 +122,7 @@ public final class AppGroupStore: ObservableObject {
     /// Update completions for a specific day
     public func updateCompletions(_ completions: Set<UUID>, for dayKey: String) {
         var newState = state
-        newState.completions[dayKey] = completions
+        newState.completions[dayKey] = Array(completions)
         saveState(newState)
     }
 
@@ -130,9 +130,11 @@ public final class AppGroupStore: ObservableObject {
     public func markTaskCompleted(_ taskID: UUID, dayKey: String) {
         var newState = state
         if newState.completions[dayKey] == nil {
-            newState.completions[dayKey] = Set<UUID>()
+            newState.completions[dayKey] = []
         }
-        newState.completions[dayKey]?.insert(taskID)
+        if !(newState.completions[dayKey]?.contains(taskID) ?? false) {
+            newState.completions[dayKey]?.append(taskID)
+        }
 
         // Update pet XP
         let stageCfg = StageConfigLoader.shared.loadStageConfig()
@@ -146,9 +148,11 @@ public final class AppGroupStore: ObservableObject {
     public func skipTask(_ taskID: UUID, dayKey: String) {
         var newState = state
         if newState.completions[dayKey] == nil {
-            newState.completions[dayKey] = Set<UUID>()
+            newState.completions[dayKey] = []
         }
-        newState.completions[dayKey]?.insert(taskID) // Mark as "done" but no XP
+        if !(newState.completions[dayKey]?.contains(taskID) ?? false) {
+            newState.completions[dayKey]?.append(taskID) // Mark as "done" but no XP
+        }
 
         logger.info("Task \(taskID) skipped for day \(dayKey)")
         saveState(newState)
@@ -351,16 +355,20 @@ public final class MockAppGroupStore: StoreProtocol, ObservableObject {
 
     public func markTaskCompleted(_ taskID: UUID, dayKey: String) {
         if state.completions[dayKey] == nil {
-            state.completions[dayKey] = Set<UUID>()
+            state.completions[dayKey] = []
         }
-        state.completions[dayKey]?.insert(taskID)
+        if !(state.completions[dayKey]?.contains(taskID) ?? false) {
+            state.completions[dayKey]?.append(taskID)
+        }
     }
 
     public func skipTask(_ taskID: UUID, dayKey: String) {
         if state.completions[dayKey] == nil {
-            state.completions[dayKey] = Set<UUID>()
+            state.completions[dayKey] = []
         }
-        state.completions[dayKey]?.insert(taskID)
+        if !(state.completions[dayKey]?.contains(taskID) ?? false) {
+            state.completions[dayKey]?.append(taskID)
+        }
     }
 
     public func updateGraceMinutes(_ minutes: Int) {

@@ -1,5 +1,8 @@
 import Foundation
 import os.log
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /// Task rollover handler with grace period support
 /// Implements proper day boundary transitions with XP penalties for missed tasks
@@ -134,7 +137,6 @@ public final class TaskRolloverHandler {
 
         // Force scoped widget refresh
         #if canImport(WidgetKit)
-        import WidgetKit
         WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         #endif
 

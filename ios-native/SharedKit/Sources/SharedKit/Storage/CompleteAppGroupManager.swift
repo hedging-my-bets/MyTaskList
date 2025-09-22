@@ -53,7 +53,7 @@ public final class CompleteAppGroupManager: @unchecked Sendable {
     }
 
     private init() {
-        logger.info("Complete App Group Manager initialized with ID: \(appGroupID)")
+        logger.info("Complete App Group Manager initialized with ID: \(self.appGroupID)")
         validateAppGroupAccess()
     }
 
@@ -420,11 +420,3 @@ public final class CompleteAppGroupManager: @unchecked Sendable {
 }
 
 // MARK: - Backward Compatibility
-
-@available(iOS 17.0, *)
-public extension AppGroupDefaults {
-    /// Migration to CompleteAppGroupManager
-    static var shared: CompleteAppGroupManager {
-        return CompleteAppGroupManager.shared
-    }
-}
