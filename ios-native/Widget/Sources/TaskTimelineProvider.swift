@@ -41,17 +41,15 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
         logger.info("Building Lock Screen timeline")
 
         // Lock Screen widgets have 2-second strict budget - optimize aggressively
-        Task {
-            do {
-                let timeline = try await buildLockScreenTimeline()
-                let duration = CFAbsoluteTimeGetCurrent() - startTime
-                logger.info("Lock Screen timeline built in \(String(format: "%.3f", duration))s")
-                return timeline
-            } catch {
-                logger.error("Lock Screen timeline failed: \(error.localizedDescription)")
-                let fallbackTimeline = createLockScreenFallbackTimeline()
-                return fallbackTimeline
-            }
+        do {
+            let timeline = try await buildLockScreenTimeline()
+            let duration = CFAbsoluteTimeGetCurrent() - startTime
+            logger.info("Lock Screen timeline built in \(String(format: "%.3f", duration))s")
+            return timeline
+        } catch {
+            logger.error("Lock Screen timeline failed: \(error.localizedDescription)")
+            let fallbackTimeline = createLockScreenFallbackTimeline()
+            return fallbackTimeline
         }
     }
 

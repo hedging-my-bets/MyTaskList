@@ -33,17 +33,15 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
         let startTime = CFAbsoluteTimeGetCurrent()
         logger.info("Building task timeline")
 
-        Task {
-            do {
-                let timeline = try await buildHourlyTimeline()
-                let duration = CFAbsoluteTimeGetCurrent() - startTime
-                logger.info("Task timeline built in \(String(format: "%.3f", duration))s")
-                return timeline
-            } catch {
-                logger.error("Failed to build timeline: \(error.localizedDescription)")
-                let fallbackTimeline = createFallbackTimeline()
-                return fallbackTimeline
-            }
+        do {
+            let timeline = try await buildHourlyTimeline()
+            let duration = CFAbsoluteTimeGetCurrent() - startTime
+            logger.info("Task timeline built in \(String(format: "%.3f", duration))s")
+            return timeline
+        } catch {
+            logger.error("Failed to build timeline: \(error.localizedDescription)")
+            let fallbackTimeline = createFallbackTimeline()
+            return fallbackTimeline
         }
     }
 
