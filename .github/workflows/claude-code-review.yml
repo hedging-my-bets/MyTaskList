@@ -1,42 +1,49 @@
-name: Claude Code PR Review
+name: iOS Build
 
 on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ios-native/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [ main, develop ]
     paths:
       - 'ios-native/**'
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
-  claude-review:
-    name: Claude Code Review
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+  build:
+    name: iOS Build and Test
+    runs-on: macos-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: Claude Code Review
-      uses: anthropics/claude-code@v1
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+
+    - name: Show Xcode Version
+      run: xcodebuild -version
+
+    - name: Cache Swift Packages
+      uses: actions/cache@v3
       with:
-        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        review_level: 'comprehensive'
-        focus_areas: |
-          - iOS Swift code quality and best practices
-          - Widget and App Intents implementation
-          - SharedKit framework architecture
-          - Memory management and performance
-          - App Group configuration and security
-          - Pet evolution logic correctness
-        exclude_patterns: |
-          - "*.xcodeproj/**"
-          - "build/**"
-          - "*.DS_Store"
-          - "DerivedData/**"
+        path: ios-native/.build
+        key: ${{ runner.os }}-spm-${{ hashFiles('ios-native/**/Package.swift') }}
+        restore-keys: ${{ runner.os }}-spm-
+
+    - name: Build iOS Project
+      run: |
+        cd ios-native
+        xcodebuild -scheme PetProgress \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -configuration Debug \
+          build-for-testing
+
+    - name: Run Tests
+      run: |
+        cd ios-native
+        xcodebuild -scheme PetProgress \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.0' \
+          -configuration Debug \
+          test-without-building
