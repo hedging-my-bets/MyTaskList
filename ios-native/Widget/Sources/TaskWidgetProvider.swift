@@ -6,6 +6,9 @@ import os.log
 /// Timeline provider for Task widgets using TaskEntity and hourly refresh policy
 @available(iOS 17.0, *)
 struct TaskWidgetProvider: AppIntentTimelineProvider {
+    typealias Entry = TaskEntry
+    typealias Intent = ConfigurationAppIntent
+
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "TaskProvider")
 
     func placeholder(in context: Context) -> TaskEntry {
@@ -16,17 +19,17 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
         )
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (TaskEntry) -> ()) {
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> TaskEntry {
         // For widget gallery and preview - use placeholder data
         let entry = TaskEntry(
             date: Date(),
             tasks: createPlaceholderTasks(),
             petStage: PetStage(points: 25, stageIndex: 2)
         )
-        completion(entry)
+        return entry
     }
 
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<TaskEntry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<TaskEntry> {
         let startTime = CFAbsoluteTimeGetCurrent()
         logger.info("Building task timeline")
 
@@ -35,11 +38,11 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
                 let timeline = try await buildHourlyTimeline()
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
                 logger.info("Task timeline built in \(String(format: "%.3f", duration))s")
-                completion(timeline)
+                return timeline
             } catch {
                 logger.error("Failed to build timeline: \(error.localizedDescription)")
                 let fallbackTimeline = createFallbackTimeline()
-                completion(fallbackTimeline)
+                return fallbackTimeline
             }
         }
     }

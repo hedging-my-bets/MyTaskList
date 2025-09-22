@@ -7,6 +7,9 @@ import os.log
 /// Steve Jobs-level architecture: Separate providers for different performance requirements
 @available(iOS 17.0, *)
 struct TaskTimelineProvider: AppIntentTimelineProvider {
+    typealias Entry = TaskTimelineEntry
+    typealias Intent = ConfigurationAppIntent
+
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "TaskTimelineProvider")
 
     func placeholder(in context: Context) -> TaskTimelineEntry {
@@ -20,7 +23,7 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
         )
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (TaskTimelineEntry) -> ()) {
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> TaskTimelineEntry {
         // For widget gallery - return immediately with placeholder
         let entry = TaskTimelineEntry(
             date: Date(),
@@ -30,10 +33,10 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             graceMinutes: 30,
             emptyStateMessage: nil
         )
-        completion(entry)
+        return entry
     }
 
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<TaskTimelineEntry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<TaskTimelineEntry> {
         let startTime = CFAbsoluteTimeGetCurrent()
         logger.info("Building Lock Screen timeline")
 
@@ -43,11 +46,11 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
                 let timeline = try await buildLockScreenTimeline()
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
                 logger.info("Lock Screen timeline built in \(String(format: "%.3f", duration))s")
-                completion(timeline)
+                return timeline
             } catch {
                 logger.error("Lock Screen timeline failed: \(error.localizedDescription)")
                 let fallbackTimeline = createLockScreenFallbackTimeline()
-                completion(fallbackTimeline)
+                return fallbackTimeline
             }
         }
     }
@@ -154,8 +157,8 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             id: UUID(),
             title: "Focus session",
             scheduledAt: DateComponents(hour: Calendar.current.component(.hour, from: Date())),
-            isCompleted: false,
-            dayKey: TimeSlot.dayKey(for: Date())
+            dayKey: TimeSlot.dayKey(for: Date()),
+            isCompleted: false
         )
     }
 
@@ -165,8 +168,8 @@ struct TaskTimelineProvider: AppIntentTimelineProvider {
             id: UUID(),
             title: "Break time",
             scheduledAt: DateComponents(hour: nextHour),
-            isCompleted: false,
-            dayKey: TimeSlot.dayKey(for: Date())
+            dayKey: TimeSlot.dayKey(for: Date()),
+            isCompleted: false
         )
     }
 

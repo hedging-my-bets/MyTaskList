@@ -294,7 +294,7 @@ struct InteractiveInlineLockScreenView: View {
 
 @available(iOS 17.0, *)
 struct PetProgressLockScreenWidgetEntryView: View {
-    var entry: TaskTimelineProvider.Entry
+    var entry: TaskTimelineEntry
 
     @Environment(\.widgetFamily) var widgetFamily
 
@@ -342,15 +342,15 @@ struct InteractiveLockScreenViews_Previews: PreviewProvider {
                 id: UUID(),
                 title: "Morning standup",
                 scheduledAt: DateComponents(hour: 9),
-                isCompleted: false,
-                dayKey: TimeSlot.dayKey(for: Date())
+                dayKey: TimeSlot.dayKey(for: Date()),
+                isCompleted: false
             ),
             nextTask: TaskItem(
                 id: UUID(),
                 title: "Code review",
                 scheduledAt: DateComponents(hour: 11),
-                isCompleted: false,
-                dayKey: TimeSlot.dayKey(for: Date())
+                dayKey: TimeSlot.dayKey(for: Date()),
+                isCompleted: false
             ),
             petState: PetState(stageIndex: 3, stageXP: 25, lastCloseoutDayKey: "", lastCelebratedStage: 2),
             graceMinutes: 30,

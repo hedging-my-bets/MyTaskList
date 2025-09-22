@@ -19,7 +19,7 @@ final class ProductionWidgetSystem: Sendable {
 
     func createProductionTimeline(
         for configuration: ConfigurationAppIntent,
-        in context: Context,
+        in context: TimelineProviderContext,
         completion: @escaping (Timeline<SimpleEntry>) -> Void
     ) {
         let executionID = UUID().uuidString
@@ -64,7 +64,7 @@ final class ProductionWidgetSystem: Sendable {
     private func buildTimelineWithBudget(
         budget: TimeInterval,
         executionID: String,
-        context: Context
+        context: TimelineProviderContext
     ) async throws -> Timeline<SimpleEntry> {
 
         let budgetMonitor = ExecutionBudgetMonitor(budget: budget)
