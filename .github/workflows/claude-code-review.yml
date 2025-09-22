@@ -42,7 +42,7 @@ jobs:
         cd ios-native
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme PetProgress \
-          -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.6' \
           -configuration Debug \
           build-for-testing
 
@@ -51,6 +51,6 @@ jobs:
         cd ios-native
         xcodebuild -project MyTaskList.xcodeproj \
           -scheme PetProgress \
-          -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.6' \
           -configuration Debug \
           test-without-building
