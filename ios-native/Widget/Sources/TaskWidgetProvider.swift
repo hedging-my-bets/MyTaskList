@@ -98,7 +98,7 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
 
     private func convertTaskItemsToTaskEntities(_ taskItems: [TaskItem]) -> [TaskEntity] {
         let todayKey = TimeSlot.dayKey(for: Date())
-        return taskItems.compactMap { taskItem in
+        return taskItems.compactMap { taskItem -> TaskEntity? in
             guard let hour = taskItem.scheduledAt.hour else { return nil }
             return TaskEntity(
                 id: taskItem.id.uuidString,

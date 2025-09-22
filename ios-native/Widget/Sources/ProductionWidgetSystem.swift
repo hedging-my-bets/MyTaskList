@@ -70,14 +70,14 @@ final class ProductionWidgetSystem: Sendable {
         let budgetMonitor = ExecutionBudgetMonitor(budget: budget)
 
         // Step 1: Load current data (30% of budget)
-        budgetMonitor.checkBudget(operation: "data loading")
+        try? budgetMonitor.checkBudget(operation: "data loading")
         let currentData = try await loadCurrentDataWithTimeout(
             timeout: budget * 0.3,
             executionID: executionID
         )
 
         // Step 2: Build timeline entries (60% of budget)
-        budgetMonitor.checkBudget(operation: "entry generation")
+        try? budgetMonitor.checkBudget(operation: "entry generation")
         let entries = try await generateTimelineEntries(
             from: currentData,
             timeout: budget * 0.6,
@@ -85,7 +85,7 @@ final class ProductionWidgetSystem: Sendable {
         )
 
         // Step 3: Finalize timeline (10% of budget)
-        budgetMonitor.checkBudget(operation: "timeline finalization")
+        try? budgetMonitor.checkBudget(operation: "timeline finalization")
         let timeline = finalizeTimeline(entries: entries)
 
         return timeline
@@ -214,7 +214,7 @@ final class ProductionWidgetSystem: Sendable {
 
     // MARK: - Budget Management
 
-    private func executionBudget(for context: Context) -> TimeInterval {
+    private func executionBudget(for context: TimelineProviderContext) -> TimeInterval {
         switch context.family {
         case .accessoryCircular, .accessoryRectangular:
             return 2.0  // Lock screen widgets have tighter budgets
@@ -291,7 +291,7 @@ private final class WidgetPerformanceMonitor: Sendable {
         _operations[id] = metrics
 
         // Log performance metrics
-        logger.info("Operation completed [ID: \(id), Type: \(metrics.type), Duration: \(String(format: "%.3f", duration))s]")
+        logger.info("Operation completed [ID: \(id), Type: \(String(describing: metrics.type)), Duration: \(String(format: "%.3f", duration))s]")
 
         // Track performance trends
         trackPerformanceTrend(type: metrics.type, duration: duration)
@@ -305,7 +305,7 @@ private final class WidgetPerformanceMonitor: Sendable {
         metrics.error = error
         _operations[id] = metrics
 
-        logger.error("Operation failed [ID: \(id), Type: \(metrics.type), Duration: \(String(format: "%.3f", duration))s, Error: \(error.localizedDescription)]")
+        logger.error("Operation failed [ID: \(id), Type: \(String(describing: metrics.type)), Duration: \(String(format: "%.3f", duration))s, Error: \(error.localizedDescription)]")
     }
 
     private func trackPerformanceTrend(type: OperationType, duration: TimeInterval) {
@@ -329,7 +329,7 @@ private final class WidgetPerformanceMonitor: Sendable {
             let recent = durations.suffix(5).reduce(0, +) / 5.0
 
             if recent > average * 1.5 {
-                logger.warning("Performance degradation detected for \(type): recent=\(String(format: "%.3f", recent))s, avg=\(String(format: "%.3f", average))s")
+                logger.warning("Performance degradation detected for \(String(describing: type)): recent=\(String(format: "%.3f", recent))s, avg=\(String(format: "%.3f", average))s")
             }
         }
     }
