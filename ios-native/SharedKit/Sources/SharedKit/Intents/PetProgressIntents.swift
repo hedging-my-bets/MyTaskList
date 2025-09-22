@@ -27,6 +27,9 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
             ProductionTelemetry.shared.trackWidgetAction("MarkNextTaskDone", duration: duration)
         }
 
+        // Check for rollover before performing action
+        TaskRolloverHandler.shared.handleIntentExecution()
+
         // Get the next upcoming task
         let store = AppGroupStore.shared
         let currentTasks = store.getCurrentTasks()
@@ -83,6 +86,9 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
             logger.info("SkipCurrentTaskIntent completed in \(String(format: "%.3f", duration))s")
             ProductionTelemetry.shared.trackWidgetAction("SkipCurrentTask", duration: duration)
         }
+
+        // Check for rollover before performing action
+        TaskRolloverHandler.shared.handleIntentExecution()
 
         // Get the current task that's within grace window
         let store = AppGroupStore.shared
@@ -141,6 +147,9 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
             ProductionTelemetry.shared.trackWidgetAction("GoToNextTask", duration: duration)
         }
 
+        // Check for rollover before performing action
+        TaskRolloverHandler.shared.handleIntentExecution()
+
         let store = AppGroupStore.shared
         let currentPage = store.state.currentPage
         let totalTasks = store.getCurrentTasks().count
@@ -195,6 +204,9 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
             logger.info("GoToPreviousTaskIntent completed in \(String(format: "%.3f", duration))s")
             ProductionTelemetry.shared.trackWidgetAction("GoToPreviousTask", duration: duration)
         }
+
+        // Check for rollover before performing action
+        TaskRolloverHandler.shared.handleIntentExecution()
 
         let store = AppGroupStore.shared
         let currentPage = store.state.currentPage
@@ -336,9 +348,9 @@ public enum IntentError: Swift.Error, LocalizedError {
 
 @available(iOS 17.0, *)
 public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
+    @AppShortcutsBuilder
     public static var appShortcuts: [AppShortcut] {
-        return [
-            AppShortcut(
+        AppShortcut(
                 intent: MarkNextTaskDoneIntent(),
                 phrases: [
                     "Mark next task done in \(.applicationName)",
@@ -375,6 +387,5 @@ public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
                 shortTitle: "Previous Task",
                 systemImageName: "chevron.left.circle"
             )
-        ]
     }
 }

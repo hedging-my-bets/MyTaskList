@@ -585,13 +585,13 @@ final class PerformanceMeasurer {
             measurements[test] = []
         }
         measurements[test]?.append(time)
-        logger.info("Performance: \(test) completed in \(time * 1000, specifier: \"%.2f\")ms")
+        logger.info("Performance: \(test) completed in \(String(format: \"%.2f\", time * 1000))ms")
     }
 
     func recordMemory(test: String, bytes: Int64) {
         memoryMeasurements[test] = bytes
         let mb = Double(bytes) / (1024 * 1024)
-        logger.info("Memory: \(test) used \(mb, specifier: \"%.2f\")MB")
+        logger.info("Memory: \(test) used \(String(format: \"%.2f\", mb))MB")
     }
 
     func reset() {
@@ -612,7 +612,7 @@ final class PerformanceMeasurer {
 
         for (test, bytes) in memoryMeasurements {
             let mb = Double(bytes) / (1024 * 1024)
-            logger.info("\(test): \(mb, specifier: \"%.2f\")MB")
+            logger.info("\(test): \(String(format: \"%.2f\", mb))MB")
         }
 
         logger.info("=== End App Performance Results ===")

@@ -21,7 +21,7 @@ final class TimeSlotTests: XCTestCase {
     override func tearDown() {
         // Log performance metrics for enterprise monitoring
         for (testName, duration) in performanceMetrics {
-            testLogger.info("⏱️ \(testName): \(duration * 1000, specifier: "%.2f")ms")
+            testLogger.info("⏱️ \(testName): \(String(format: "%.2f", duration * 1000))ms")
         }
         super.tearDown()
     }

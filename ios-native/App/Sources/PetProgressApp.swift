@@ -1,6 +1,7 @@
 import SwiftUI
 import SharedKit
 import AppIntents
+import UIKit
 
 @main
 struct PetProgressApp: App {
@@ -12,6 +13,12 @@ struct PetProgressApp: App {
                 .environmentObject(dataStore)
                 .task {
                     await dataStore.launchApplyCloseoutIfNeeded()
+                    // Also check for rollover with grace period
+                    TaskRolloverHandler.shared.handleAppForeground()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                    // Check for rollover when app comes to foreground
+                    TaskRolloverHandler.shared.handleAppForeground()
                 }
                 .onOpenURL { url in
                     URLRoutes.handle(url: url)

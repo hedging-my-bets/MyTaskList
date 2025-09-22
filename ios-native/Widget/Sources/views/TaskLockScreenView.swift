@@ -54,17 +54,10 @@ struct AccessoryCircularTaskView: View {
             if let currentTask = entry.tasks.first(where: { !$0.isDone }) {
                 Button(intent: MarkNextTaskDoneIntent()) {
                     VStack(spacing: 2) {
-                        if let petImageName = petImageName {
-                            Image(petImageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 20)
-                                .clipShape(Circle())
-                        } else {
-                            Image(systemName: currentStageIcon)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(currentStageColor)
-                        }
+                        WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 20, height: 20)
 
                         // Stage indicator (S1-S16)
                         Text("S\(currentStage + 1)")
@@ -76,17 +69,10 @@ struct AccessoryCircularTaskView: View {
             } else {
                 // No active tasks - show pet only
                 VStack(spacing: 2) {
-                    if let petImageName = petImageName {
-                        Image(petImageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 20, height: 20)
-                            .clipShape(Circle())
-                    } else {
-                        Image(systemName: currentStageIcon)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(currentStageColor)
-                    }
+                    WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
 
                     Text("S\(currentStage + 1)")
                         .font(.system(size: 8, weight: .bold))
@@ -119,36 +105,9 @@ struct AccessoryCircularTaskView: View {
         return Double(progressInStage) / Double(totalNeededForStage)
     }
 
-    private var petImageName: String? {
-        let engine = PetEvolutionEngine()
-        return engine.imageName(for: entry.petStage.points)
-    }
-
     private var currentStage: Int {
         let engine = PetEvolutionEngine()
         return engine.stageIndex(for: entry.petStage.points)
-    }
-
-    private var currentStageIcon: String {
-        switch currentStage {
-        case 0...2: return "leaf.fill"      // Baby stages
-        case 3...5: return "sparkles"       // Growing stages
-        case 6...8: return "star.fill"      // Teen stages
-        case 9...11: return "crown.fill"    // Adult stages
-        case 12...14: return "diamond.fill" // Elite stages
-        default: return "trophy.fill"       // CEO stage
-        }
-    }
-
-    private var currentStageColor: Color {
-        switch currentStage {
-        case 0...2: return .green      // Baby stages
-        case 3...5: return .blue       // Growing stages
-        case 6...8: return .purple     // Teen stages
-        case 9...11: return .orange    // Adult stages
-        case 12...14: return .red      // Elite stages
-        default: return .yellow        // CEO stage
-        }
     }
 }
 
@@ -161,17 +120,10 @@ struct AccessoryRectangularTaskView: View {
     var body: some View {
         HStack(spacing: 8) {
             // Pet image at left
-            if let petImageName = petImageName {
-                Image(petImageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-            } else {
-                Image(systemName: currentStageIcon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(currentStageColor)
-                    .frame(width: 24, height: 24)
-            }
+            WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
 
             // Tasks on right
             VStack(alignment: .leading, spacing: 4) {
@@ -221,36 +173,9 @@ struct AccessoryRectangularTaskView: View {
         }
     }
 
-    private var petImageName: String? {
-        let engine = PetEvolutionEngine()
-        return engine.imageName(for: entry.petStage.points)
-    }
-
     private var currentStage: Int {
         let engine = PetEvolutionEngine()
         return engine.stageIndex(for: entry.petStage.points)
-    }
-
-    private var currentStageIcon: String {
-        switch currentStage {
-        case 0...2: return "leaf.fill"
-        case 3...5: return "sparkles"
-        case 6...8: return "star.fill"
-        case 9...11: return "crown.fill"
-        case 12...14: return "diamond.fill"
-        default: return "trophy.fill"
-        }
-    }
-
-    private var currentStageColor: Color {
-        switch currentStage {
-        case 0...2: return .green
-        case 3...5: return .blue
-        case 6...8: return .purple
-        case 9...11: return .orange
-        case 12...14: return .red
-        default: return .yellow
-        }
     }
 }
 
@@ -264,9 +189,10 @@ struct AccessoryInlineTaskView: View {
         HStack(spacing: 4) {
             if let nextTask = entry.tasks.first(where: { !$0.isDone }) {
                 // Pet glyph
-                Image(systemName: currentStageIcon)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(currentStageColor)
+                WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
 
                 Text("Next:")
                     .font(.system(size: 12, weight: .medium))
@@ -286,9 +212,10 @@ struct AccessoryInlineTaskView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             } else {
-                Image(systemName: currentStageIcon)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(currentStageColor)
+                WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
 
                 Text("No upcoming tasks")
                     .font(.system(size: 12))
@@ -304,28 +231,6 @@ struct AccessoryInlineTaskView: View {
         let engine = PetEvolutionEngine()
         return engine.stageIndex(for: entry.petStage.points)
     }
-
-    private var currentStageIcon: String {
-        switch currentStage {
-        case 0...2: return "leaf.fill"
-        case 3...5: return "sparkles"
-        case 6...8: return "star.fill"
-        case 9...11: return "crown.fill"
-        case 12...14: return "diamond.fill"
-        default: return "trophy.fill"
-        }
-    }
-
-    private var currentStageColor: Color {
-        switch currentStage {
-        case 0...2: return .green
-        case 3...5: return .blue
-        case 6...8: return .purple
-        case 9...11: return .orange
-        case 12...14: return .red
-        default: return .yellow
-        }
-    }
 }
 
 // MARK: - System Small View
@@ -338,16 +243,10 @@ struct SystemSmallTaskView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Header with pet
             HStack {
-                if let petImageName = petImageName {
-                    Image(petImageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 32, height: 32)
-                } else {
-                    Image(systemName: currentStageIcon)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(currentStageColor)
-                }
+                WidgetImageOptimizer.shared.widgetImage(for: currentStage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading) {
                     Text("Pet Progress")
@@ -390,36 +289,9 @@ struct SystemSmallTaskView: View {
         .padding()
     }
 
-    private var petImageName: String? {
-        let engine = PetEvolutionEngine()
-        return engine.imageName(for: entry.petStage.points)
-    }
-
     private var currentStage: Int {
         let engine = PetEvolutionEngine()
         return engine.stageIndex(for: entry.petStage.points)
-    }
-
-    private var currentStageIcon: String {
-        switch currentStage {
-        case 0...2: return "leaf.fill"
-        case 3...5: return "sparkles"
-        case 6...8: return "star.fill"
-        case 9...11: return "crown.fill"
-        case 12...14: return "diamond.fill"
-        default: return "trophy.fill"
-        }
-    }
-
-    private var currentStageColor: Color {
-        switch currentStage {
-        case 0...2: return .green
-        case 3...5: return .blue
-        case 6...8: return .purple
-        case 9...11: return .orange
-        case 12...14: return .red
-        default: return .yellow
-        }
     }
 }
 

@@ -46,7 +46,7 @@ struct Provider: AppIntentTimelineProvider {
         SimpleEntry(date: Date(), dayModel: createPlaceholderModel())
     }
 
-    func getSnapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         // Respect widget preview constraints - limit execution time
         let startTime = CFAbsoluteTimeGetCurrent()
         let timeout: CFAbsoluteTime = 2.0 // Shorter timeout for snapshots
@@ -63,7 +63,7 @@ struct Provider: AppIntentTimelineProvider {
         completion(entry)
     }
 
-    func getTimeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let startTime = CFAbsoluteTimeGetCurrent()
         let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
 
