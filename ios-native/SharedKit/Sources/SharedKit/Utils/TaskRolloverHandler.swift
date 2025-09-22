@@ -132,10 +132,10 @@ public final class TaskRolloverHandler {
             logger.info("Cleared data for \(previousDayKey) (rollover disabled)")
         }
 
-        // Force widget refresh
+        // Force scoped widget refresh
         #if canImport(WidgetKit)
         import WidgetKit
-        WidgetCenter.shared.reloadAllTimelines()
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
         #endif
 
         let duration = CFAbsoluteTimeGetCurrent() - startTime

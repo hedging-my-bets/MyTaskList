@@ -31,7 +31,7 @@ struct PetProgressApp: App {
 
 @available(iOS 17.0, *)
 extension PetProgressApp {
-    static var appShortcutsProvider: PetProgressAppShortcutsProvider {
-        PetProgressAppShortcutsProvider()
+    static var appShortcutsProvider: PetProgressShortcuts {
+        PetProgressShortcuts()
     }
 }

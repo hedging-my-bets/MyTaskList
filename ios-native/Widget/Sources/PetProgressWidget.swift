@@ -105,22 +105,40 @@ struct Provider: AppIntentTimelineProvider {
 
     private func loadNearestHourDayModel(for date: Date) -> DayModel {
         let dayKey = TimeSlot.dayKey(for: date)
-        let targetHour = Calendar.current.component(.hour, from: date)
+        let calendar = Calendar.current
+        let targetHour = calendar.component(.hour, from: date)
+        let targetMinute = calendar.component(.minute, from: date)
 
         // Load full day model
         guard let fullDayModel = SharedStore.shared.loadDay(key: dayKey) ?? SharedStore.shared.getCurrentDayModel() else {
             return createPlaceholderModelForDate(date)
         }
 
-        // Filter to tasks nearest to target hour (±2 hour window)
-        let nearestTasks = fullDayModel.slots.filter { slot in
-            let hourDiff = abs(slot.hour - targetHour)
-            return hourDiff <= 2 || hourDiff >= 22  // Handle 24-hour wrap-around
+        // Get grace minutes from App Group storage
+        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+
+        // Compute active slot with grace period
+        let activeSlots = fullDayModel.slots.filter { slot in
+            let slotHour = slot.hour
+            let hourDiff = abs(slotHour - targetHour)
+
+            // Current hour tasks are always active
+            if slotHour == targetHour {
+                return true
+            }
+
+            // Previous hour tasks active if within grace period
+            if slotHour == targetHour - 1 || (targetHour == 0 && slotHour == 23) {
+                // Grace period extends into next hour
+                return targetMinute <= graceMinutes
+            }
+
+            return false
         }
 
         return DayModel(
             key: fullDayModel.key,
-            slots: nearestTasks,
+            slots: activeSlots,
             points: fullDayModel.points
         )
     }

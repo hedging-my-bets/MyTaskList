@@ -50,17 +50,8 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         }
         #endif
 
-        // Force widget timeline reload for immediate visual update
-        WidgetCenter.shared.reloadAllTimelines()
-
-        // Also force immediate timeline update with current date
-        WidgetCenter.shared.getCurrentConfigurations { result in
-            if case .success(let configs) = result {
-                for config in configs {
-                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
-                }
-            }
-        }
+        // Force scoped widget timeline reload for immediate visual update
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
 
         logger.info("Task \(nextTask.id) completed successfully with XP reward")
 
@@ -110,17 +101,8 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         }
         #endif
 
-        // Force widget timeline reload
-        WidgetCenter.shared.reloadAllTimelines()
-
-        // Also force immediate timeline update
-        WidgetCenter.shared.getCurrentConfigurations { result in
-            if case .success(let configs) = result {
-                for config in configs {
-                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
-                }
-            }
-        }
+        // Force scoped widget timeline reload
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
 
         logger.info("Task \(currentTask.id) skipped successfully")
 
@@ -168,17 +150,8 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         }
         #endif
 
-        // Force widget timeline reload
-        WidgetCenter.shared.reloadAllTimelines()
-
-        // Also force immediate timeline update
-        WidgetCenter.shared.getCurrentConfigurations { result in
-            if case .success(let configs) = result {
-                for config in configs {
-                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
-                }
-            }
-        }
+        // Force scoped widget timeline reload
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
 
         logger.info("Page advanced from \(currentPage) to \(newPage)")
 
@@ -226,17 +199,8 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         }
         #endif
 
-        // Force widget timeline reload
-        WidgetCenter.shared.reloadAllTimelines()
-
-        // Also force immediate timeline update
-        WidgetCenter.shared.getCurrentConfigurations { result in
-            if case .success(let configs) = result {
-                for config in configs {
-                    WidgetCenter.shared.reloadTimelines(ofKind: config.kind)
-                }
-            }
-        }
+        // Force scoped widget timeline reload
+        WidgetCenter.shared.reloadTimelines(ofKind: "PetProgressWidget")
 
         logger.info("Page advanced from \(currentPage) to \(newPage)")
 
@@ -347,45 +311,50 @@ public enum IntentError: Swift.Error, LocalizedError {
 // MARK: - App Intent Shortcuts Provider
 
 @available(iOS 17.0, *)
-public struct PetProgressAppShortcutsProvider: AppShortcutsProvider {
+public struct PetProgressShortcuts: AppShortcutsProvider {
     @AppShortcutsBuilder
     public static var appShortcuts: [AppShortcut] {
         AppShortcut(
-                intent: MarkNextTaskDoneIntent(),
-                phrases: [
-                    "Mark next task done in \(.applicationName)",
-                    "Complete next task in \(.applicationName)",
-                    "Finish next task in \(.applicationName)"
-                ],
-                shortTitle: "Mark Next Done",
-                systemImageName: "checkmark.circle"
-            ),
-            AppShortcut(
-                intent: SkipCurrentTaskIntent(),
-                phrases: [
-                    "Skip current task in \(.applicationName)",
-                    "Skip task in \(.applicationName)"
-                ],
-                shortTitle: "Skip Current",
-                systemImageName: "xmark.circle"
-            ),
-            AppShortcut(
-                intent: GoToNextTaskIntent(),
-                phrases: [
-                    "Go to next task in \(.applicationName)",
-                    "Next task in \(.applicationName)"
-                ],
-                shortTitle: "Next Task",
-                systemImageName: "chevron.right.circle"
-            ),
-            AppShortcut(
-                intent: GoToPreviousTaskIntent(),
-                phrases: [
-                    "Go to previous task in \(.applicationName)",
-                    "Previous task in \(.applicationName)"
-                ],
-                shortTitle: "Previous Task",
-                systemImageName: "chevron.left.circle"
-            )
+            intent: MarkNextTaskDoneIntent(),
+            phrases: [
+                "Mark next task done in \(.applicationName)",
+                "Complete next task in \(.applicationName)",
+                "Finish next task in \(.applicationName)"
+            ],
+            shortTitle: "Mark Next Done",
+            systemImageName: "checkmark.circle"
+        )
+
+        AppShortcut(
+            intent: SkipCurrentTaskIntent(),
+            phrases: [
+                "Skip current task in \(.applicationName)",
+                "Skip task in \(.applicationName)"
+            ],
+            shortTitle: "Skip Current",
+            systemImageName: "xmark.circle"
+        )
+
+        AppShortcut(
+            intent: GoToNextTaskIntent(),
+            phrases: [
+                "Go to next task in \(.applicationName)",
+                "Next task in \(.applicationName)"
+            ],
+            shortTitle: "Next Task",
+            systemImageName: "chevron.right.circle"
+        )
+
+        AppShortcut(
+            intent: GoToPreviousTaskIntent(),
+            phrases: [
+                "Go to previous task in \(.applicationName)",
+                "Previous task in \(.applicationName)"
+            ],
+            shortTitle: "Previous Task",
+            systemImageName: "chevron.left.circle"
+        )
     }
+
+    public static var shortcutTileColor: ShortcutTileColor = .blue
 }
