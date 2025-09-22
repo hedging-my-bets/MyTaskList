@@ -31,14 +31,13 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         }
 
         // Check for rollover before performing action
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         let dayKey = TimeSlot.dayKey(for: Date())
-        let store = AppGroupStore.shared
-        let defaults = AppGroupDefaults.shared
+        let appGroup = CompleteAppGroupManager.shared
 
         // Get current tasks filtered by nearest-hour window
-        let allTasks = defaults.getTasks(dayKey: dayKey)
+        let allTasks = appGroup.getTasks(dayKey: dayKey)
         let nearestTasks = filterNearestHourTasks(allTasks)
 
         // Find next incomplete task
@@ -48,14 +47,10 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         }
 
         // Mark task as completed
-        var updatedTasks = defaults.getTasks(dayKey: dayKey)
-        if let index = updatedTasks.firstIndex(where: { $0.id == nextTask.id }) {
-            updatedTasks[index].isDone = true
-            defaults.setTasks(updatedTasks, dayKey: dayKey)
-        }
+        appGroup.markTaskCompleted(nextTask.id, dayKey: dayKey)
 
         // Update XP and check for evolution
-        if var petState = defaults.getPetState() {
+        if var petState = appGroup.getPetState() {
             let cfg = StageCfg.standard()
             let previousStage = petState.stageIndex
 
@@ -75,7 +70,7 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
                 #endif
             }
 
-            defaults.setPetState(petState)
+            appGroup.setPetState(petState)
         }
 
         // Haptic feedback
@@ -98,7 +93,7 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         return tasks.filter { task in
             let taskHour = task.dueHour
@@ -141,15 +136,14 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         let dayKey = TimeSlot.dayKey(for: Date())
-        let store = AppGroupStore.shared
-        let defaults = AppGroupDefaults.shared
+        let appGroup = CompleteAppGroupManager.shared
 
         // Get current task at the current page
-        let currentPage = store.state.currentPage
-        let allTasks = defaults.getTasks(dayKey: dayKey)
+        let currentPage = appGroup.getCurrentPage()
+        let allTasks = appGroup.getTasks(dayKey: dayKey)
         let nearestTasks = filterNearestHourTasks(allTasks)
 
         guard currentPage < nearestTasks.count else {
@@ -162,7 +156,7 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         // Skip task (mark as done but with skip flag if needed, or just advance page)
         // For simplicity, we'll advance to next task
         let nextPage = (currentPage + 1) % max(1, nearestTasks.count)
-        store.updateCurrentPage(nextPage)
+        appGroup.updateCurrentPage(nextPage)
 
         // Subtle haptic feedback
         #if canImport(UIKit)
@@ -184,7 +178,7 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         return tasks.filter { task in
             let taskHour = task.dueHour
@@ -225,14 +219,13 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         let dayKey = TimeSlot.dayKey(for: Date())
-        let store = AppGroupStore.shared
-        let defaults = AppGroupDefaults.shared
+        let appGroup = CompleteAppGroupManager.shared
 
         // Get current tasks in nearest-hour window
-        let allTasks = defaults.getTasks(dayKey: dayKey)
+        let allTasks = appGroup.getTasks(dayKey: dayKey)
         let nearestTasks = filterNearestHourTasks(allTasks)
 
         guard !nearestTasks.isEmpty else {
@@ -241,9 +234,9 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         }
 
         // Update page with wrap-around
-        let currentPage = store.state.currentPage
+        let currentPage = appGroup.getCurrentPage()
         let nextPage = (currentPage + 1) % nearestTasks.count
-        store.updateCurrentPage(nextPage)
+        appGroup.updateCurrentPage(nextPage)
 
         // Navigation haptic
         #if canImport(UIKit)
@@ -266,7 +259,7 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         return tasks.filter { task in
             let taskHour = task.dueHour
@@ -307,14 +300,13 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         let dayKey = TimeSlot.dayKey(for: Date())
-        let store = AppGroupStore.shared
-        let defaults = AppGroupDefaults.shared
+        let appGroup = CompleteAppGroupManager.shared
 
         // Get current tasks in nearest-hour window
-        let allTasks = defaults.getTasks(dayKey: dayKey)
+        let allTasks = appGroup.getTasks(dayKey: dayKey)
         let nearestTasks = filterNearestHourTasks(allTasks)
 
         guard !nearestTasks.isEmpty else {
@@ -323,9 +315,9 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         }
 
         // Update page with wrap-around
-        let currentPage = store.state.currentPage
+        let currentPage = appGroup.getCurrentPage()
         let previousPage = currentPage > 0 ? currentPage - 1 : nearestTasks.count - 1
-        store.updateCurrentPage(previousPage)
+        appGroup.updateCurrentPage(previousPage)
 
         // Navigation haptic
         #if canImport(UIKit)
@@ -348,7 +340,7 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         return tasks.filter { task in
             let taskHour = task.dueHour

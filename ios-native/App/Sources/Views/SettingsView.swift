@@ -94,7 +94,7 @@ struct GraceMinutesControl: View {
     }
 
     private func loadGraceMinutes() {
-        graceMinutes = Double(AppGroupDefaults.shared.graceMinutes)
+        graceMinutes = Double(CompleteAppGroupManager.shared.getGraceMinutes())
     }
 
     private func saveGraceMinutes(_ minutes: Int) {
@@ -102,7 +102,7 @@ struct GraceMinutesControl: View {
 
         Task {
             // Save to App Group for widget access
-            AppGroupDefaults.shared.graceMinutes = minutes
+            CompleteAppGroupManager.shared.setGraceMinutes(minutes)
 
             // Force widget timeline refresh to respect new grace period
             await MainActor.run {
@@ -302,7 +302,7 @@ struct PetStageInfo: View {
     }
 
     private func loadPetState() {
-        petState = AppGroupDefaults.shared.getPetState()
+        petState = CompleteAppGroupManager.shared.getPetState()
     }
 }
 
@@ -372,7 +372,7 @@ class SettingsManager: ObservableObject {
 
     @Published var graceMinutes: Int = 30 {
         didSet {
-            AppGroupDefaults.shared.graceMinutes = graceMinutes
+            CompleteAppGroupManager.shared.setGraceMinutes(graceMinutes)
         }
     }
 
@@ -387,7 +387,7 @@ class SettingsManager: ObservableObject {
     }
 
     private func loadSettings() {
-        graceMinutes = AppGroupDefaults.shared.graceMinutes
+        graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
         hapticsEnabled = HapticManager.shared.isHapticsEnabled
     }
 }

@@ -26,22 +26,22 @@ public struct StageCfg: Codable {
 
     public static func defaultConfig() -> StageCfg {
         let stageData: [(String, Int, String)] = [
-            ("Frog", 10, "pet_frog"),
+            ("Frog", 0, "pet_frog"),
             ("Hermit Crab", 25, "pet_hermit"),
-            ("Seahorse", 40, "pet_seahorse"),
-            ("Dolphin", 55, "pet_dolphin"),
-            ("Alligator", 75, "pet_alligator"),
-            ("Beaver", 95, "pet_beaver"),
-            ("Wolf", 120, "pet_wolf"),
-            ("Bear", 145, "pet_bear"),
-            ("Bison", 175, "pet_bison"),
-            ("Elephant", 205, "pet_elephant"),
-            ("Rhino", 240, "pet_rhino"),
-            ("Baby", 285, "pet_baby"),
-            ("Toddler", 335, "pet_toddler"),
-            ("Adult", 390, "pet_adult"),
-            ("CEO", 450, "pet_ceo"),
-            ("Gold", 0, "pet_gold")
+            ("Seahorse", 60, "pet_seahorse"),
+            ("Dolphin", 110, "pet_dolphin"),
+            ("Alligator", 175, "pet_alligator"),
+            ("Beaver", 255, "pet_beaver"),
+            ("Wolf", 350, "pet_wolf"),
+            ("Bear", 460, "pet_bear"),
+            ("Bison", 585, "pet_bison"),
+            ("Elephant", 725, "pet_elephant"),
+            ("Rhino", 880, "pet_rhino"),
+            ("Baby", 1050, "pet_baby"),
+            ("Toddler", 1235, "pet_toddler"),
+            ("Adult", 1435, "pet_adult"),
+            ("CEO", 1650, "pet_ceo"),
+            ("Gold", 1880, "pet_gold")
         ]
 
         let stages = stageData.enumerated().map { index, data in
@@ -49,5 +49,14 @@ public struct StageCfg: Codable {
         }
 
         return StageCfg(stages: stages)
+    }
+
+    public static func standard() -> StageCfg {
+        return defaultConfig()
+    }
+
+    public func threshold(for stage: Int) -> Int {
+        guard stage >= 0 && stage < stages.count else { return 0 }
+        return stages[stage].threshold
     }
 }

@@ -28,10 +28,10 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
         }
 
         // Check for rollover before performing action
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         // Get the next upcoming task
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
 
@@ -79,10 +79,10 @@ public struct SkipCurrentTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover before performing action
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         // Get the current task that's within grace window
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
 
@@ -130,9 +130,9 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover before performing action
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentPage = store.state.currentPage
         let totalTasks = store.getCurrentTasks().count
         let pageSize = 3 // Tasks per page
@@ -179,9 +179,9 @@ public struct GoToPreviousTaskIntent: AppIntent, Sendable {
         }
 
         // Check for rollover before performing action
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentPage = store.state.currentPage
         let totalTasks = store.getCurrentTasks().count
         let pageSize = 3 // Tasks per page
@@ -236,7 +236,7 @@ public struct PetProgressTaskQuery: EntityQuery {
     public init() {}
 
     public func entities(for identifiers: [UUID]) async throws -> [PetProgressTaskEntity] {
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let dayKey = TimeSlot.dayKey(for: Date())
 
         return store.state.tasks.compactMap { task in
@@ -253,7 +253,7 @@ public struct PetProgressTaskQuery: EntityQuery {
     }
 
     public func suggestedEntities() async throws -> [PetProgressTaskEntity] {
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
 
@@ -270,7 +270,7 @@ public struct PetProgressTaskQuery: EntityQuery {
     }
 
     public func defaultResult() async -> PetProgressTaskEntity? {
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let currentTasks = store.getCurrentTasks()
         let dayKey = TimeSlot.dayKey(for: Date())
 

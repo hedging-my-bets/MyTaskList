@@ -7,7 +7,7 @@ import os.log
 /// Production-grade widget system with comprehensive error handling,
 /// execution budget monitoring, and graceful degradation strategies
 @available(iOS 17.0, *)
-class ProductionWidgetSystem {
+final class ProductionWidgetSystem: Sendable {
     static let shared = ProductionWidgetSystem()
 
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "ProductionSystem")
@@ -230,7 +230,7 @@ class ProductionWidgetSystem {
 
 // MARK: - Execution Budget Monitor
 
-private class ExecutionBudgetMonitor {
+private final class ExecutionBudgetMonitor: Sendable {
     private let budget: TimeInterval
     private let startTime: CFAbsoluteTime
 
@@ -256,34 +256,39 @@ private class ExecutionBudgetMonitor {
 
 // MARK: - Performance Monitor
 
-private class WidgetPerformanceMonitor {
-    private var operations: [String: OperationMetrics] = [:]
+private final class WidgetPerformanceMonitor: Sendable {
+    private let operationsLock = NSLock()
+    private var _operations: [String: OperationMetrics] = [:]
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "Performance")
 
-    struct OperationMetrics {
+    struct OperationMetrics: Sendable {
         let startTime: CFAbsoluteTime
         let type: OperationType
         var duration: TimeInterval?
         var error: Error?
     }
 
-    enum OperationType {
+    enum OperationType: Sendable {
         case timelineGeneration
         case dataLoading
         case entryCreation
     }
 
     func startOperation(id: String, type: OperationType) {
-        operations[id] = OperationMetrics(
+        operationsLock.lock()
+        defer { operationsLock.unlock() }
+        _operations[id] = OperationMetrics(
             startTime: CFAbsoluteTimeGetCurrent(),
             type: type
         )
     }
 
     func completeOperation(id: String, duration: TimeInterval) {
-        guard var metrics = operations[id] else { return }
+        operationsLock.lock()
+        defer { operationsLock.unlock() }
+        guard var metrics = _operations[id] else { return }
         metrics.duration = duration
-        operations[id] = metrics
+        _operations[id] = metrics
 
         // Log performance metrics
         logger.info("Operation completed [ID: \(id), Type: \(metrics.type), Duration: \(String(format: "%.3f", duration))s]")
@@ -293,10 +298,12 @@ private class WidgetPerformanceMonitor {
     }
 
     func failOperation(id: String, error: Error, duration: TimeInterval) {
-        guard var metrics = operations[id] else { return }
+        operationsLock.lock()
+        defer { operationsLock.unlock() }
+        guard var metrics = _operations[id] else { return }
         metrics.duration = duration
         metrics.error = error
-        operations[id] = metrics
+        _operations[id] = metrics
 
         logger.error("Operation failed [ID: \(id), Type: \(metrics.type), Duration: \(String(format: "%.3f", duration))s, Error: \(error.localizedDescription)]")
     }
@@ -330,7 +337,7 @@ private class WidgetPerformanceMonitor {
 
 // MARK: - Widget Errors
 
-enum WidgetError: LocalizedError {
+enum WidgetError: LocalizedError, Sendable {
     case budgetExceeded(operation: String, elapsed: TimeInterval, budget: TimeInterval)
     case dataLoadTimeout
     case invalidData(reason: String)

@@ -29,6 +29,9 @@ struct PetProgressInteractiveLockScreenWidget: Widget {
 
 @available(iOS 17.0, *)
 struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
+    typealias Entry = InteractiveLockScreenEntry
+    typealias Intent = ConfigurationAppIntent
+
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "LockScreenProvider")
 
     func placeholder(in context: Context) -> InteractiveLockScreenEntry {
@@ -57,7 +60,7 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // Check for rollover before building timeline
-        TaskRolloverHandler.shared.handleIntentExecution()
+        CompleteRolloverManager.shared.handleIntentExecution()
 
         let now = Date()
         let calendar = Calendar.current
@@ -65,7 +68,7 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         let currentMinute = calendar.component(.minute, from: now)
 
         // Get grace minutes from App Group
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         // Calculate next refresh time (top of next hour + grace)
         let topOfNextHour = calendar.date(byAdding: .hour, value: 1, to: now.topOfHour) ?? now.addingTimeInterval(3600)
@@ -93,14 +96,14 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
 
     private func buildCurrentEntry(for date: Date = Date()) -> InteractiveLockScreenEntry {
         let dayKey = TimeSlot.dayKey(for: date)
-        let store = AppGroupStore.shared
+        let appGroup = CompleteAppGroupManager.shared
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: date)
         let currentMinute = calendar.component(.minute, from: date)
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = appGroup.getGraceMinutes()
 
         // Get all tasks for today
-        let allTasks = AppGroupDefaults.shared.getTasks(dayKey: dayKey)
+        let allTasks = appGroup.getTasks(dayKey: dayKey)
 
         // Filter to nearest-hour tasks with grace period
         let nearestTasks = allTasks.filter { task in
@@ -121,10 +124,10 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         }.sorted { $0.dueHour < $1.dueHour }
 
         // Get pet state
-        let petState = AppGroupDefaults.shared.getPetState() ?? PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: "", lastCelebratedStage: -1)
+        let petState = appGroup.getPetState() ?? PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: "", lastCelebratedStage: -1)
 
         // Get current page for pagination
-        let currentPage = store.state.currentPage
+        let currentPage = appGroup.getCurrentPage()
 
         return InteractiveLockScreenEntry(
             date: date,
@@ -400,15 +403,7 @@ struct AccessoryInlineLockScreenView: View {
     }
 }
 
-// MARK: - Date Extensions
-
-extension Date {
-    var topOfHour: Date {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.year, .month, .day, .hour], from: self)
-        return calendar.date(from: components) ?? self
-    }
-}
+// Note: topOfHour extension is defined in PetProgressWidget.swift
 
 #Preview("Circular", as: .accessoryCircular) {
     PetProgressInteractiveLockScreenWidget()

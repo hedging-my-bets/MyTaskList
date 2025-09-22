@@ -17,6 +17,9 @@ public final class HapticManager {
     private let notification = UINotificationFeedbackGenerator()
     private let selection = UISelectionFeedbackGenerator()
 
+    // Haptics enabled state
+    private var _hapticsEnabled: Bool = true
+
     private init() {
         // Prepare all generators for instant response
         impactLight.prepare()
@@ -32,6 +35,7 @@ public final class HapticManager {
 
     /// Task completed successfully - satisfying success haptic
     public func taskCompleted() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.notification.notificationOccurred(.success)
             self?.logger.debug("Task completion haptic triggered")
@@ -40,6 +44,7 @@ public final class HapticManager {
 
     /// Task skipped - subtle neutral feedback
     public func taskSkipped() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.impactLight.impactOccurred()
             self?.logger.debug("Task skip haptic triggered")
@@ -48,6 +53,7 @@ public final class HapticManager {
 
     /// Task navigation - crisp selection feedback
     public func taskNavigation() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.selection.selectionChanged()
             self?.logger.debug("Task navigation haptic triggered")
@@ -58,6 +64,7 @@ public final class HapticManager {
 
     /// Pet level up - celebratory sequence
     public func petLevelUp(fromStage: Int, toStage: Int) {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
@@ -78,6 +85,7 @@ public final class HapticManager {
 
     /// Pet de-evolution - gentle disappointment
     public func petDeEvolution() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.notification.notificationOccurred(.warning)
             self?.logger.debug("Pet de-evolution haptic triggered")
@@ -134,6 +142,7 @@ public final class HapticManager {
 
     /// Widget interaction feedback
     public func widgetInteraction() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.impactLight.impactOccurred()
             self?.logger.debug("Widget interaction haptic triggered")
@@ -144,6 +153,7 @@ public final class HapticManager {
 
     /// Settings changed feedback
     public func settingsChanged() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.impactLight.impactOccurred()
             self?.logger.debug("Settings change haptic triggered")
@@ -152,6 +162,7 @@ public final class HapticManager {
 
     /// Error or warning feedback
     public func error() {
+        guard isHapticsEnabled else { return }
         DispatchQueue.main.async { [weak self] in
             self?.notification.notificationOccurred(.error)
             self?.logger.debug("Error haptic triggered")
@@ -182,6 +193,17 @@ public final class HapticManager {
     /// Check if haptics are available on device
     public var isHapticsAvailable: Bool {
         return UIDevice.current.userInterfaceIdiom == .phone
+    }
+
+    /// Check if haptics are enabled by user
+    public var isHapticsEnabled: Bool {
+        return _hapticsEnabled && isHapticsAvailable
+    }
+
+    /// Enable or disable haptics
+    public func setHapticsEnabled(_ enabled: Bool) {
+        _hapticsEnabled = enabled
+        logger.info("Haptics \(enabled ? "enabled" : "disabled")")
     }
 }
 

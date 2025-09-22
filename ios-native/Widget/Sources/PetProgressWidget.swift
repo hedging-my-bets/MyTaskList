@@ -39,6 +39,9 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent, Sendable {
 // MARK: - Timeline Provider
 
 struct Provider: AppIntentTimelineProvider {
+    typealias Entry = SimpleEntry
+    typealias Intent = ConfigurationAppIntent
+
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "Provider")
 
     func placeholder(in context: Context) -> SimpleEntry {
@@ -62,7 +65,7 @@ struct Provider: AppIntentTimelineProvider {
         completion(entry)
     }
 
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
         let startTime = CFAbsoluteTimeGetCurrent()
         let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
 
@@ -114,7 +117,7 @@ struct Provider: AppIntentTimelineProvider {
         }
 
         // Get grace minutes from App Group storage
-        let graceMinutes = AppGroupDefaults.shared.graceMinutes
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
 
         // Compute active slot with grace period
         let activeSlots = fullDayModel.slots.filter { slot in

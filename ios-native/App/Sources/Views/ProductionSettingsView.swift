@@ -232,7 +232,7 @@ struct CelebrationSettings: View {
                     haptic.notificationOccurred(.success)
 
                     // Show confetti effect (would be implemented)
-                    print("🎉 Test celebration!")
+                    // Test celebration triggered
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.mini)

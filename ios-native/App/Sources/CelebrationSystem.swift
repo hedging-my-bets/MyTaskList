@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import AVFoundation
+import os.log
 
 // MARK: - Enhanced Haptic Feedback
 
@@ -36,6 +37,7 @@ final class CelebrationSystem: ObservableObject {
 
     private var audioPlayer: AVAudioPlayer?
     private var hapticGenerator = UINotificationFeedbackGenerator()
+    private let logger = Logger(subsystem: "com.petprogress.App", category: "Celebration")
 
     private init() {
         hapticGenerator.prepare()
@@ -186,7 +188,7 @@ final class CelebrationSystem: ObservableObject {
             audioPlayer?.volume = 0.7
             audioPlayer?.play()
         } catch {
-            print("Failed to play celebration sound: \(error)")
+            logger.error("Failed to play celebration sound: \(error.localizedDescription)")
         }
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 import SharedKit
 import WidgetKit
+import os.log
 
 @MainActor
 final class DataStore: ObservableObject {
@@ -18,6 +19,7 @@ final class DataStore: ObservableObject {
 
     private let sharedStore = SharedStore()
     private let stageLoader = StageConfigLoader()
+    private let logger = Logger(subsystem: "com.petprogress.App", category: "DataStore")
 
     init() {
         // Load or initialize
@@ -300,7 +302,7 @@ final class DataStore: ObservableObject {
                 }
 
                 // Log the achievement
-                print("Perfect day achieved! Streak: \(perfectDayResult.streakDays), Bonus XP: \(perfectDayResult.bonusXP)")
+                logger.info("Perfect day achieved! Streak: \(perfectDayResult.streakDays), Bonus XP: \(perfectDayResult.bonusXP)")
             }
         }
     }
