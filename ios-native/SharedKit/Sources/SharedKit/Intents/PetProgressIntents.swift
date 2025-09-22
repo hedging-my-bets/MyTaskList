@@ -241,13 +241,12 @@ public struct PetProgressTaskQuery: EntityQuery {
         let tasks = appGroup.getTasks(dayKey: dayKey)
 
         return tasks.compactMap { task in
-            guard identifiers.contains(task.id) else { return nil }
-            guard let hour = task.scheduledAt.hour else { return nil }
+            guard identifiers.contains(UUID(uuidString: task.id) ?? UUID()) else { return nil }
 
             return PetProgressTaskEntity(
-                id: task.id,
+                id: UUID(uuidString: task.id) ?? UUID(),
                 title: task.title,
-                hour: hour,
+                hour: task.dueHour,
                 isCompleted: appGroup.isTaskCompleted(task.id, dayKey: dayKey)
             )
         }
@@ -259,12 +258,10 @@ public struct PetProgressTaskQuery: EntityQuery {
         let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
         return currentTasks.prefix(5).compactMap { task in
-            guard let hour = task.scheduledAt.hour else { return nil }
-
             return PetProgressTaskEntity(
-                id: task.id,
+                id: UUID(uuidString: task.id) ?? UUID(),
                 title: task.title,
-                hour: hour,
+                hour: task.dueHour,
                 isCompleted: appGroup.isTaskCompleted(task.id, dayKey: dayKey)
             )
         }
@@ -275,13 +272,12 @@ public struct PetProgressTaskQuery: EntityQuery {
         let dayKey = TimeSlot.dayKey(for: Date())
         let currentTasks = appGroup.getTasks(dayKey: dayKey)
 
-        guard let firstTask = currentTasks.first,
-              let hour = firstTask.scheduledAt.hour else { return nil }
+        guard let firstTask = currentTasks.first else { return nil }
 
         return PetProgressTaskEntity(
-            id: firstTask.id,
+            id: UUID(uuidString: firstTask.id) ?? UUID(),
             title: firstTask.title,
-            hour: hour,
+            hour: firstTask.dueHour,
             isCompleted: appGroup.isTaskCompleted(firstTask.id, dayKey: dayKey)
         )
     }

@@ -261,10 +261,7 @@ public final class CompleteRolloverManager: @unchecked Sendable {
         #if canImport(UIKit)
         await MainActor.run {
             if result.didEvolve {
-                CompleteCelebrationSystem.shared.triggerLevelUpCelebration(
-                    fromStage: result.previousStage,
-                    toStage: result.newStage
-                )
+                HapticManager.shared.levelUp()
             }
         }
         #endif
@@ -335,10 +332,3 @@ private enum RolloverTrigger: String {
 
 // MARK: - Backward Compatibility
 
-@available(iOS 17.0, *)
-public extension TaskRolloverHandler {
-    /// Migration to CompleteRolloverManager
-    static var shared: CompleteRolloverManager {
-        return CompleteRolloverManager.shared
-    }
-}

@@ -65,7 +65,7 @@ public struct MarkNextTaskDoneIntent: AppIntent, Sendable {
                 // Trigger celebration system
                 #if canImport(UIKit)
                 await MainActor.run {
-                    CelebrationSystem.shared.triggerLevelUpCelebration(fromStage: previousStage, toStage: newStage)
+                    HapticManager.shared.levelUp()
                 }
                 #endif
             }
@@ -278,83 +278,3 @@ public struct GoToNextTaskIntent: AppIntent, Sendable {
     }
 }
 
-// MARK: - Go To Previous Task Intent
-
-@available(iOS 17.0, *)
-public struct GoToPreviousTaskIntent: AppIntent, Sendable {
-    public static let title: LocalizedStringResource = "Go To Previous Task"
-    public static let description = IntentDescription("Navigate to previous task in widget")
-
-    public init() {}
-
-    private let logger = Logger(subsystem: "com.petprogress.Intents", category: "GoToPreviousTask")
-
-    public func perform() async throws -> some IntentResult {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        logger.info("Executing GoToPreviousTaskIntent")
-
-        defer {
-            let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.info("GoToPreviousTaskIntent completed in \(String(format: "%.3f", duration))s")
-            ProductionTelemetry.shared.trackWidgetAction("GoToPreviousTask", duration: duration)
-        }
-
-        // Check for rollover
-        CompleteRolloverManager.shared.handleIntentExecution()
-
-        let dayKey = TimeSlot.dayKey(for: Date())
-        let appGroup = CompleteAppGroupManager.shared
-
-        // Get current tasks in nearest-hour window
-        let allTasks = appGroup.getTasks(dayKey: dayKey)
-        let nearestTasks = filterNearestHourTasks(allTasks)
-
-        guard !nearestTasks.isEmpty else {
-            logger.info("No tasks available for navigation")
-            return .result(dialog: IntentDialog("No tasks available"))
-        }
-
-        // Update page with wrap-around
-        let currentPage = appGroup.getCurrentPage()
-        let previousPage = currentPage > 0 ? currentPage - 1 : nearestTasks.count - 1
-        appGroup.updateCurrentPage(previousPage)
-
-        // Navigation haptic
-        #if canImport(UIKit)
-        await MainActor.run {
-            HapticManager.shared.taskNavigation()
-        }
-        #endif
-
-        // Force scoped widget timeline reload
-        WidgetCenter.shared.reloadAllTimelines()
-
-        let previousTask = nearestTasks[previousPage]
-        logger.info("Navigated to task: \(previousTask.title)")
-
-        return .result(dialog: IntentDialog("← \(previousTask.title)"))
-    }
-
-    private func filterNearestHourTasks(_ tasks: [TaskEntity]) -> [TaskEntity] {
-        let now = Date()
-        let calendar = Calendar.current
-        let currentHour = calendar.component(.hour, from: now)
-        let currentMinute = calendar.component(.minute, from: now)
-        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
-
-        return tasks.filter { task in
-            let taskHour = task.dueHour
-
-            if taskHour == currentHour {
-                return true
-            }
-
-            let previousHour = currentHour == 0 ? 23 : currentHour - 1
-            if taskHour == previousHour && currentMinute <= graceMinutes {
-                return true
-            }
-
-            return false
-        }.sorted { $0.dueHour < $1.dueHour }
-    }
-}
