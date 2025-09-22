@@ -342,7 +342,7 @@ final class DataStore: ObservableObject {
             existing.scheduledAt.minute == task.scheduledAt.minute
         }
 
-        if let existing = existingTask {
+        if existingTask != nil {
             showErrorMessage("A task is already scheduled at \(timeString(from: task.scheduledAt))")
             return
         }
@@ -394,7 +394,7 @@ final class DataStore: ObservableObject {
             existing.scheduledAt.minute == updatedTask.scheduledAt.minute
         }
 
-        if let existing = conflictingTask {
+        if conflictingTask != nil {
             showErrorMessage("Another task is already scheduled at \(timeString(from: updatedTask.scheduledAt))")
             return
         }
@@ -427,5 +427,15 @@ final class DataStore: ObservableObject {
             pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today)
         )
         persist()
+    }
+
+    func saveCurrentState() {
+        Task {
+            try? await sharedStore.saveState(state)
+        }
+    }
+
+    func refreshCurrentDay() async {
+        await launchApplyCloseoutIfNeeded()
     }
 }

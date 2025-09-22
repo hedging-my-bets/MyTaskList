@@ -158,7 +158,7 @@ final class CelebrationSystem: ObservableObject {
         await playHapticSequence(type.hapticPattern)
 
         // Play sound if available
-        playSound(type.soundFileName)
+        await playSound(type.soundFileName)
 
         // Hide after duration
         try? await Task.sleep(nanoseconds: UInt64(type.duration * 1_000_000_000))

@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import AVFoundation
 import os.log
+import SharedKit
 
 /// Complete Celebration System - 100% Production Implementation
 /// World-class haptics, animations, and audio feedback for pet evolution
@@ -349,7 +350,7 @@ public struct LevelUpCelebrationOverlay: View {
                         VStack {
                             WidgetImageOptimizer.shared.widgetImage(for: celebrationSystem.previousStage)
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .aspectRatio(contentMode: ContentMode.fit)
                                 .frame(width: 60, height: 60)
                                 .opacity(0.6)
 
@@ -365,7 +366,7 @@ public struct LevelUpCelebrationOverlay: View {
                         VStack {
                             WidgetImageOptimizer.shared.widgetImage(for: celebrationSystem.currentStage)
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .aspectRatio(contentMode: ContentMode.fit)
                                 .frame(width: 80, height: 80)
                                 .scaleEffect(scaleEffect)
 

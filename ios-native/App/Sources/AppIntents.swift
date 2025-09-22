@@ -33,7 +33,7 @@ struct CompleteTaskIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) {
+        if SharedStore.shared.markNextDone(for: dayKey, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable
@@ -71,7 +71,7 @@ struct MarkNextIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) {
+        if SharedStore.shared.markNextDone(for: dayKey, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable

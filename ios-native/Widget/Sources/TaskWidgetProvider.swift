@@ -81,7 +81,7 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
 
     private func createFallbackTimeline() -> Timeline<TaskEntry> {
         let now = Date()
-        let next = Calendar.current.date(byAdding: .hour, value: 1, to: now.topOfHour) ?? now.addingTimeInterval(3600)
+        let _ = Calendar.current.date(byAdding: .hour, value: 1, to: now.topOfHour) ?? now.addingTimeInterval(3600)
 
         let entry = TaskEntry(
             date: now,

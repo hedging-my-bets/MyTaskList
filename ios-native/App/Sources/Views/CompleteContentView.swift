@@ -218,7 +218,7 @@ struct TaskListSection: View {
     var body: some View {
         List {
             ForEach(currentTasks, id: \.id) { task in
-                TaskRowView(task: task) {
+                CompleteTaskRowView(task: task) {
                     markTaskCompleted(task)
                 }
             }
@@ -266,7 +266,7 @@ struct TaskListSection: View {
 }
 
 @available(iOS 17.0, *)
-struct TaskRowView: View {
+struct CompleteTaskRowView: View {
     let task: TaskEntity
     let onComplete: () -> Void
 
