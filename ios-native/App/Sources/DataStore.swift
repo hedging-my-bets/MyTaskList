@@ -17,8 +17,8 @@ final class DataStore: ObservableObject {
     @Published var showSuccess: Bool = false
     @Published var successMessage: String = ""
 
-    private let sharedStore = SharedStore()
-    private let stageLoader = StageConfigLoader()
+    private let sharedStore = SharedStore.shared
+    private let stageLoader = StageConfigLoader.shared
     private let logger = Logger(subsystem: "com.petprogress.App", category: "DataStore")
 
     init() {
@@ -64,7 +64,7 @@ final class DataStore: ObservableObject {
     func markDone(taskID: UUID) {
         let now = Date()
         let dayKey = state.dayKey
-        var completed = state.completions[dayKey] ?? []
+        var completed = state.completions[dayKey] ?? Set<UUID>()
         guard !completed.contains(taskID) else { return }
 
         // Find the materialized task to determine on-time status
@@ -73,7 +73,7 @@ final class DataStore: ObservableObject {
 
         let onTime = isOnTimeForMaterializedTask(task: mt, now: now)
 
-        completed.append(taskID)
+        completed.insert(taskID)
         state.completions[dayKey] = completed
 
         var petCopy = state.pet
@@ -248,6 +248,8 @@ final class DataStore: ObservableObject {
     private func processMissedTasks(yesterdayTasks: [TaskItem], petCopy: inout PetState, cfg: StageCfg) {
         let now = Date()
         let calendar = Calendar.current
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: now) ?? now
+        let yesterdayKey = dayKey(for: yesterday)
 
         // Find tasks that were clearly missed (not completed and time has passed)
         let missedTasks = yesterdayTasks.filter { task in
@@ -367,7 +369,7 @@ final class DataStore: ObservableObject {
         state.tasks.removeAll { $0.id == taskID }
         // Also remove from completions if it was completed
         for dayKey in state.completions.keys {
-            state.completions[dayKey]?.removeAll { $0 == taskID }
+            state.completions[dayKey]?.remove(taskID)
         }
 
         triggerHapticFeedback(.warning)

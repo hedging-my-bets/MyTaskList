@@ -52,7 +52,7 @@ struct SnoozeTaskIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.snoozeNext(for: dayKey, minutes: 60, now: now) {
+        if SharedStore.shared.snoozeNext(for: dayKey, minutes: 60, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable

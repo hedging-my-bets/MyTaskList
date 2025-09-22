@@ -1,6 +1,11 @@
 import SwiftUI
 import SharedKit
 
+extension Notification.Name {
+    static let openPlanner = Notification.Name("openPlanner")
+    static let openTask = Notification.Name("openTask")
+}
+
 struct ContentView: View {
     @StateObject private var viewModel = AppViewModel()
 

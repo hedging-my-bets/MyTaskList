@@ -1,6 +1,7 @@
 import SwiftUI
 import SharedKit
 import os.log
+import Foundation
 
 /// Complete Main Content View - 100% Production Implementation
 /// Integrates all systems: tasks, pet evolution, celebration, settings

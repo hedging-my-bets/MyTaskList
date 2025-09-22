@@ -89,7 +89,7 @@ struct GraceMinutesControl: View {
         .onAppear {
             loadGraceMinutes()
         }
-        .onChange(of: graceMinutes) { newValue in
+        .onChange(of: graceMinutes) { _, newValue in
             saveGraceMinutes(Int(newValue))
         }
     }
@@ -332,7 +332,7 @@ struct HapticsToggle: View {
         .onAppear {
             hapticsEnabled = HapticManager.shared.isHapticsEnabled
         }
-        .onChange(of: hapticsEnabled) { newValue in
+        .onChange(of: hapticsEnabled) { _, newValue in
             HapticManager.shared.setHapticsEnabled(newValue)
         }
     }

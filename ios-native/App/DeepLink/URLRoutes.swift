@@ -41,8 +41,5 @@ enum URLRoutes {
     }
 }
 
-extension Notification.Name {
-    static let openPlanner = Notification.Name("OpenPlanner")
-    static let openTask = Notification.Name("OpenTask")
-}
+// Notification names defined in ContentView.swift
 

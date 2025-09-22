@@ -252,7 +252,7 @@ struct EnhancedContentView: View {
         }
     }
 
-    private func handleTaskCompletion(_ task: Task) {
+    private func handleTaskCompletion(_ task: MaterializedTask) {
         // Trigger celebration animation
         withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
             animationPhase = .celebrating
