@@ -664,13 +664,9 @@ public final class SharedStore: ObservableObject {
                 return
             }
 
-            do {
-                result = operation()
-                let operationTime = CFAbsoluteTimeGetCurrent() - startTime
-                self.recordPerformanceMetric(operation: operationType, duration: operationTime)
-            } catch {
-                self.logger.error("\(operationType) operation failed: \(error.localizedDescription)")
-            }
+            result = operation()
+            let operationTime = CFAbsoluteTimeGetCurrent() - startTime
+            self.recordPerformanceMetric(operation: operationType, duration: operationTime)
         }
 
         return result

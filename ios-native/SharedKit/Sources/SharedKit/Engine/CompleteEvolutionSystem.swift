@@ -84,7 +84,7 @@ public final class CompleteEvolutionSystem {
         let calendar = Calendar.current
         let taskHour = task.dueHour
         let completionHour = calendar.component(.hour, from: completedAt)
-        let completionMinute = calendar.component(.minute, from: completedAt)
+        let _ = calendar.component(.minute, from: completedAt)
 
         // Determine timing and XP reward
         let xpGained: Int

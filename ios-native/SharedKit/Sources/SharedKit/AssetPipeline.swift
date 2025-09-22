@@ -73,16 +73,17 @@ public final class AssetPipeline: ObservableObject {
 
     /// Asynchronously loads optimized image with progressive enhancement
     public func loadImage(for stageIndex: Int, quality: ImageQuality = .auto) async -> Image {
-        let imageName = imageName(for: stageIndex)
+        let _ = imageName(for: stageIndex)
 
         return await withCheckedContinuation { continuation in
             loadingQueue.async { [weak self] in
-                guard let self = self else {
-                    continuation.resume(returning: self?.placeholderImage(for: stageIndex) ?? Image(systemName: "photo"))
+                guard let strongSelf = self else {
+                    let fallbackImage = Image(systemName: "photo")
+                    continuation.resume(returning: fallbackImage)
                     return
                 }
 
-                let result = self.image(for: stageIndex, quality: quality)
+                let result = strongSelf.image(for: stageIndex, quality: quality)
                 continuation.resume(returning: result)
             }
         }
@@ -175,7 +176,7 @@ public final class AssetPipeline: ObservableObject {
         var optimizationOpportunities: [OptimizationOpportunity] = []
 
         await withTaskGroup(of: (String, ValidationStatus).self) { group in
-            for (index, stageName) in stageNames.enumerated() {
+            for (_, stageName) in stageNames.enumerated() {
                 group.addTask {
                     let status = await self.validateAsset(named: stageName)
                     return (stageName, status)
@@ -375,7 +376,7 @@ public struct OptimizationResult {
 }
 
 /// Image quality levels for CDN optimization
-public enum ImageQuality {
+public enum ImageQuality: Sendable {
     case auto
     case low
     case medium

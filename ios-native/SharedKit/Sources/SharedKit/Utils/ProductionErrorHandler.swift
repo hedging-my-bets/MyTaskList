@@ -345,25 +345,21 @@ public final class ProductionErrorHandler {
     }
 
     private func recalculatePetState(for dayKey: String) -> Bool {
-        do {
-            // Recalculate pet state from task completion history
-            if let appState = SharedStore.shared.loadAppState() {
-                let stageCfg = StageConfigLoader.shared.loadStageConfig()
+        // Recalculate pet state from task completion history
+        if let appState = SharedStore.shared.loadAppState() {
+            let stageCfg = StageConfigLoader.shared.loadStageConfig()
 
-                // Reset pet to safe baseline
-                var pet = PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: "", lastCelebratedStage: -1)
+            // Reset pet to safe baseline
+            var pet = PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: "", lastCelebratedStage: -1)
 
-                // Recalculate from scratch based on completions
-                let completions = appState.completions[dayKey] ?? []
-                for _ in completions {
-                    PetEngine.onCheck(onTime: true, pet: &pet, cfg: stageCfg)
-                }
-
-                recoveryLogger.info("Pet state recalculated: stage \(pet.stageIndex), XP \(pet.stageXP)")
-                return true
+            // Recalculate from scratch based on completions
+            let completions = appState.completions[dayKey] ?? []
+            for _ in completions {
+                PetEngine.onCheck(onTime: true, pet: &pet, cfg: stageCfg)
             }
-        } catch {
-            logger.error("Pet state recalculation failed: \(error.localizedDescription)")
+
+            recoveryLogger.info("Pet state recalculated: stage \(pet.stageIndex), XP \(pet.stageXP)")
+            return true
         }
 
         return false

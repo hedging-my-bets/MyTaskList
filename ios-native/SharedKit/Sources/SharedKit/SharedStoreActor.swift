@@ -84,31 +84,41 @@ public actor SharedStoreActor {
     private var totalOperationTime: TimeInterval = 0
 
     private init() {
+        let appGroupIdentifier = appGroupID
+        let fileMgr = FileManager.default
+
         // Initialize UserDefaults with comprehensive error handling and graceful fallback
-        if let groupDefaults = UserDefaults(suiteName: appGroupID) {
+        if let groupDefaults = UserDefaults(suiteName: appGroupIdentifier) {
             self.userDefaults = groupDefaults
         } else {
-            logger.fault("Critical failure: Unable to create UserDefaults for App Group: \(self.appGroupID)")
+            let logger = Logger(subsystem: "com.petprogress.SharedStoreActor", category: "AtomicStorage")
+            logger.fault("Critical failure: Unable to create UserDefaults for App Group: \(appGroupIdentifier)")
             logger.info("Falling back to standard UserDefaults")
             self.userDefaults = UserDefaults.standard
         }
 
         // Initialize container URL with fallback to documents directory
-        if let container = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
+        if let container = fileMgr.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
             self.containerURL = container
         } else {
-            logger.fault("Critical failure: Unable to access App Group container: \(self.appGroupID)")
+            let logger = Logger(subsystem: "com.petprogress.SharedStoreActor", category: "AtomicStorage")
+            logger.fault("Critical failure: Unable to access App Group container: \(appGroupIdentifier)")
             logger.info("Falling back to Documents directory")
-            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let documentsURL = fileMgr.urls(for: .documentDirectory, in: .userDomainMask).first!
             self.containerURL = documentsURL.appendingPathComponent("SharedData")
         }
+
+        // Initialize fileManager after containerURL is set
+        self.fileManager = fileMgr
 
         // Setup encoder/decoder for optimal performance
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.sortedKeys]
         decoder.dateDecodingStrategy = .iso8601
 
-        logger.info("SharedStoreActor initialized successfully with App Group: \(self.appGroupID)")
+        // Log successful initialization
+        let initLogger = Logger(subsystem: "com.petprogress.SharedStoreActor", category: "AtomicStorage")
+        initLogger.info("SharedStoreActor initialized successfully with App Group: \(appGroupIdentifier)")
     }
 
     // MARK: - Atomic Day Operations
