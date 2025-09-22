@@ -204,7 +204,7 @@ struct AccessoryCircularLockScreenView: View {
                 .animation(.easeInOut(duration: 0.8), value: evolutionProgress)
 
             // Interactive pet center
-            if let nextTask = nextIncompleteTask {
+            if nextIncompleteTask != nil {
                 Button(intent: MarkNextTaskDoneIntent()) {
                     VStack(spacing: 1) {
                         // Pet image with current stage

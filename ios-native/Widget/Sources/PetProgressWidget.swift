@@ -67,7 +67,7 @@ struct Provider: AppIntentTimelineProvider {
 
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         let startTime = CFAbsoluteTimeGetCurrent()
-        let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
+        let _ : CFAbsoluteTime = 8.0 // Respect widget timeline budget
 
         let now = Date()
         let topOfCurrentHour = now.topOfHour
@@ -96,7 +96,7 @@ struct Provider: AppIntentTimelineProvider {
     }
 
     private func loadOrCreateDayModel() -> DayModel {
-        let todayKey = TimeSlot.dayKey(for: Date())
+        let _ = TimeSlot.dayKey(for: Date())
         return SharedStore.shared.getCurrentDayModel() ?? createPlaceholderModel()
     }
 
@@ -122,7 +122,7 @@ struct Provider: AppIntentTimelineProvider {
         // Compute active slot with grace period
         let activeSlots = fullDayModel.slots.filter { slot in
             let slotHour = slot.hour
-            let hourDiff = abs(slotHour - targetHour)
+            let _ = abs(slotHour - targetHour)
 
             // Current hour tasks are always active
             if slotHour == targetHour {

@@ -460,8 +460,8 @@ struct Card3DEffect<Content: View>: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        rotationY = value.translation.x / 10
-                        rotationX = -value.translation.y / 10
+                        rotationY = value.translation.width / 10
+                        rotationX = -value.translation.height / 10
                     }
                     .onEnded { _ in
                         withAnimation(.spring()) {

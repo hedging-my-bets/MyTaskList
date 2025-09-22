@@ -256,7 +256,7 @@ private final class ExecutionBudgetMonitor: Sendable {
 
 // MARK: - Performance Monitor
 
-private final class WidgetPerformanceMonitor: Sendable {
+private final class WidgetPerformanceMonitor: @unchecked Sendable {
     private let operationsLock = NSLock()
     private var _operations: [String: OperationMetrics] = [:]
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "Performance")

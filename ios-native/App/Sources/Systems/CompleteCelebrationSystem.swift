@@ -319,7 +319,7 @@ public struct LevelUpCelebrationOverlay: View {
                 // Celebration content
                 VStack(spacing: 20) {
                     // Confetti animation
-                    ConfettiView()
+                    CompleteConfettiView()
                         .frame(height: 100)
                         .offset(y: confettiOffset)
 
@@ -396,7 +396,7 @@ public struct LevelUpCelebrationOverlay: View {
 }
 
 @available(iOS 17.0, *)
-struct ConfettiView: View {
+struct CompleteConfettiView: View {
     @State private var confettiItems: [ConfettiItem] = []
 
     var body: some View {

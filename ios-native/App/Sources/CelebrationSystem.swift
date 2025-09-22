@@ -232,7 +232,7 @@ enum ConfettiStyle {
 struct ConfettiView: View {
     let style: ConfettiStyle
     @State private var animate = false
-    @State private var particles: [ConfettiParticle] = []
+    @State private var particles: [CelebrationConfettiParticle] = []
 
     var body: some View {
         ZStack {
@@ -258,7 +258,7 @@ struct ConfettiView: View {
 
     private func generateParticles() {
         particles = (0..<style.particleCount).map { _ in
-            ConfettiParticle(
+            CelebrationConfettiParticle(
                 color: style.colors.randomElement() ?? .yellow,
                 size: Double.random(in: 4...12),
                 startX: Double.random(in: 0...400),
@@ -271,7 +271,7 @@ struct ConfettiView: View {
     }
 }
 
-struct ConfettiParticle {
+struct CelebrationConfettiParticle {
     let color: Color
     let size: Double
     let startX: Double

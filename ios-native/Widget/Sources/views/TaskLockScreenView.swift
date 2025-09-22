@@ -51,7 +51,7 @@ struct AccessoryCircularTaskView: View {
                 .animation(.easeInOut(duration: 0.5), value: petProgressToNextStage)
 
             // Pet image in center with interactive complete button
-            if let currentTask = entry.tasks.first(where: { !$0.isDone }) {
+            if entry.tasks.first(where: { !$0.isDone }) != nil {
                 Button(intent: MarkNextTaskDoneIntent()) {
                     VStack(spacing: 2) {
                         WidgetImageOptimizer.shared.widgetImage(for: currentStage)
