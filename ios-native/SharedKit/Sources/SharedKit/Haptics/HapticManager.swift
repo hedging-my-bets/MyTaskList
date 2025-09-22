@@ -92,6 +92,15 @@ public final class HapticManager {
         }
     }
 
+    /// Generic level up haptic - simplified version for general use
+    public func levelUp() {
+        guard isHapticsEnabled else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.levelUpStandard()
+            self?.logger.debug("Generic level up haptic triggered")
+        }
+    }
+
     // MARK: - Level Up Sequences
 
     private func levelUpStandard() {
