@@ -104,7 +104,7 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
                 id: taskItem.id.uuidString,
                 title: taskItem.title,
                 dueHour: hour,
-                isDone: taskItem.isDone,
+                isDone: taskItem.isCompleted,
                 dayKey: todayKey
             )
         }
