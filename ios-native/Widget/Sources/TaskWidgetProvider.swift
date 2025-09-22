@@ -119,12 +119,6 @@ struct TaskWidgetProvider: AppIntentTimelineProvider {
 
 // MARK: - Date Extension for Hourly Alignment
 
-extension Date {
-    var topOfHour: Date {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.year, .month, .day, .hour], from: self)
-        return calendar.date(from: components) ?? self
-    }
-}
+// Note: Date.topOfHour extension is defined in PetProgressWidget.swift
 
 // Configuration intent moved to PetProgressWidget.swift to avoid duplicates

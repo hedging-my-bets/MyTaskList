@@ -289,30 +289,8 @@ struct InteractiveInlineLockScreenView: View {
     }
 }
 
-// MARK: - Widget Configuration with App Intents
-
-@available(iOS 17.0, *)
-struct PetProgressInteractiveLockScreenWidget: Widget {
-    let kind: String = "PetProgressInteractiveLockScreen"
-
-    var body: some WidgetConfiguration {
-        AppIntentConfiguration(
-            kind: kind,
-            intent: ConfigurationAppIntent.self,
-            provider: TaskTimelineProvider()
-        ) { entry in
-            PetProgressLockScreenWidgetEntryView(entry: entry)
-                .containerBackground(.clear, for: .widget)
-        }
-        .configurationDisplayName("PetProgress")
-        .description("Complete tasks and evolve your pet directly from the Lock Screen.")
-        .supportedFamilies([
-            .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline
-        ])
-    }
-}
+// MARK: - Widget Configuration
+// Note: The widget configuration is defined in PetProgressInteractiveLockScreenWidget.swift
 
 @available(iOS 17.0, *)
 struct PetProgressLockScreenWidgetEntryView: View {

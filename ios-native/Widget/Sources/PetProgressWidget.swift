@@ -48,7 +48,7 @@ struct Provider: AppIntentTimelineProvider {
         SimpleEntry(date: Date(), dayModel: createPlaceholderModel())
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (SimpleEntry) -> ()) {
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
         // Respect widget preview constraints - limit execution time
         let startTime = CFAbsoluteTimeGetCurrent()
         let timeout: CFAbsoluteTime = 2.0 // Shorter timeout for snapshots
@@ -62,10 +62,10 @@ struct Provider: AppIntentTimelineProvider {
         }
 
         let entry = SimpleEntry(date: Date(), dayModel: dayModel)
-        completion(entry)
+        return entry
     }
 
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         let startTime = CFAbsoluteTimeGetCurrent()
         let timeout: CFAbsoluteTime = 8.0 // Respect widget timeline budget
 
@@ -92,7 +92,7 @@ struct Provider: AppIntentTimelineProvider {
         let duration = CFAbsoluteTimeGetCurrent() - startTime
         logger.info("Hourly timeline built with \(entries.count) entries in \(String(format: "%.3f", duration))s, next refresh at \(topOfNextHour)")
 
-        completion(timeline)
+        return timeline
     }
 
     private func loadOrCreateDayModel() -> DayModel {

@@ -12,7 +12,7 @@ struct AccessoryInlineView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
-                Text(nextTask.title)
+                Text(nextTask.task?.title ?? "No task")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.primary)
                     .lineLimit(1)

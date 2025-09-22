@@ -44,7 +44,7 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         )
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (InteractiveLockScreenEntry) -> ()) {
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> InteractiveLockScreenEntry {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // Fast snapshot generation for Lock Screen previews
@@ -53,10 +53,10 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         let duration = CFAbsoluteTimeGetCurrent() - startTime
         logger.info("Lock Screen snapshot generated in \(String(format: "%.3f", duration))s")
 
-        completion(entry)
+        return entry
     }
 
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context, completion: @escaping (Timeline<InteractiveLockScreenEntry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<InteractiveLockScreenEntry> {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // Check for rollover before building timeline
@@ -91,7 +91,7 @@ struct InteractiveLockScreenProvider: AppIntentTimelineProvider {
         let duration = CFAbsoluteTimeGetCurrent() - startTime
         logger.info("Lock Screen timeline built in \(String(format: "%.3f", duration))s, next refresh: \(nextRefreshTime)")
 
-        completion(timeline)
+        return timeline
     }
 
     private func buildCurrentEntry(for date: Date = Date()) -> InteractiveLockScreenEntry {
