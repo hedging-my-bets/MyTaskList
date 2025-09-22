@@ -108,9 +108,6 @@ public actor SharedStoreActor {
             self.containerURL = documentsURL.appendingPathComponent("SharedData")
         }
 
-        // Initialize fileManager after containerURL is set
-        self.fileManager = fileMgr
-
         // Setup encoder/decoder for optimal performance
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.sortedKeys]

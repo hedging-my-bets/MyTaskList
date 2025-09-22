@@ -5,7 +5,7 @@ import CryptoKit
 
 /// Enterprise-grade asset pipeline with CDN optimization and intelligent caching
 @available(iOS 17.0, *)
-public final class AssetPipeline: ObservableObject {
+public final class AssetPipeline: ObservableObject, @unchecked Sendable {
     public static let shared = AssetPipeline()
 
     private let logger = Logger(subsystem: "com.mytasklist.sharedkit", category: "AssetPipeline")
