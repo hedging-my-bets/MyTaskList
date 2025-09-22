@@ -295,6 +295,7 @@ struct TaskDetailView: View {
 
 struct EnhancedSettingsView: View {
     @StateObject private var assetPipeline = AssetPipeline.shared
+    @StateObject private var taskPlanningEngine = TaskPlanningEngine.shared
     @State private var assetValidationResult: AssetValidationResult?
     @State private var isValidatingAssets = false
 
@@ -585,14 +586,7 @@ extension TaskCategory {
     }
 }
 
-extension TimeSlot {
-    var displayTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
-        return formatter.string(from: date)
-    }
-}
+// TimeSlot extension removed - TimeSlot is a static utility enum
 
 // MARK: - Placeholder Views
 

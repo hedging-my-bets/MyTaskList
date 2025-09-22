@@ -583,13 +583,13 @@ final class TaskTemplateSystem: ObservableObject {
         return template.tasks.map { templateTask in
             let scheduledTime = calendar.date(bySettingHour: templateTask.hour, minute: templateTask.minute, second: 0, of: date) ?? date
 
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: scheduledTime)
             return MaterializedTask(
-                id: templateTask.id.uuidString,
+                id: templateTask.id,
                 title: templateTask.title,
-                scheduledAt: scheduledTime,
+                time: timeComponents,
                 isCompleted: false,
-                dayKey: dayKey,
-                notes: templateTask.notes
+                origin: .oneOff
             )
         }
     }
