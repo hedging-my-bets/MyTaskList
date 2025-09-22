@@ -326,7 +326,8 @@ public enum PetEngine {
                 HapticManager.shared.petDeEvolution()
                 #endif
 
-                logger.info("Pet de-evolved from stage \(oldStage) to stage \(pet.stageIndex)")
+                let newStage = pet.stageIndex
+                logger.info("Pet de-evolved from stage \(oldStage) to stage \(newStage)")
             } else {
                 pet.stageXP = 0
             }
