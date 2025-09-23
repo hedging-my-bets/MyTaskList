@@ -108,7 +108,12 @@ struct CompleteContentView: View {
     private func handleDeepLink(_ url: URL) {
         logger.info("Handling deep link: \(url.absoluteString)")
 
-        URLRoutes.handle(url: url)
+        // Handle deep links using notification center (consistent with ContentView)
+        if url.pathComponents.contains("planner") {
+            NotificationCenter.default.post(name: .openPlanner, object: nil)
+        } else if url.pathComponents.contains("task") {
+            NotificationCenter.default.post(name: .openTask, object: nil, userInfo: ["url": url.absoluteString])
+        }
     }
 }
 

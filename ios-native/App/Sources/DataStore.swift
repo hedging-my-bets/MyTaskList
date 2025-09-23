@@ -23,7 +23,7 @@ final class DataStore: ObservableObject {
 
     init() {
         // Load or initialize
-        if let loaded = try? sharedStore.loadState() {
+        if let loaded = sharedStore.loadAppState() {
             self.state = loaded
         } else {
             let today = dayKey(for: Date())
@@ -31,7 +31,7 @@ final class DataStore: ObservableObject {
                 dayKey: today,
                 pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today)
             )
-            try? sharedStore.saveState(state)
+            sharedStore.saveAppState(state)
         }
     }
 
@@ -201,7 +201,7 @@ final class DataStore: ObservableObject {
         objectWillChange.send()
         do {
             // Save to legacy SharedStore (for main app compatibility)
-            try sharedStore.saveState(state)
+            sharedStore.saveAppState(state)
 
             // CRITICAL FIX: Also sync to unified SharedStore for widget visibility
             SharedStore.shared.saveAppState(state)
@@ -320,14 +320,14 @@ final class DataStore: ObservableObject {
 
     @available(iOS 17.0, *)
     private func convertToAppGroupState(from appState: AppState) -> AppGroupState {
-        return AppGroupState(
-            tasks: appState.tasks,
-            pet: appState.pet,
-            completions: appState.completions,
-            graceMinutes: appState.graceMinutes,
-            currentPage: 0, // Default for widget pagination
-            rolloverEnabled: appState.rolloverEnabled
-        )
+        var groupState = AppGroupState()
+        groupState.tasks = appState.tasks
+        groupState.pet = appState.pet
+        groupState.completions = appState.completions.mapValues { Array($0) }
+        groupState.graceMinutes = appState.graceMinutes
+        groupState.currentPage = 0
+        groupState.rolloverEnabled = appState.rolloverEnabled
+        return groupState
     }
 
     func addTask(_ task: TaskItem) {
@@ -433,7 +433,7 @@ final class DataStore: ObservableObject {
 
     func saveCurrentState() {
         Task {
-            try? await sharedStore.saveState(state)
+            sharedStore.saveAppState(state)
         }
     }
 
