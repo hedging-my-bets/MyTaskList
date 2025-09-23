@@ -262,8 +262,7 @@ struct EnhancedContentView: View {
                 title: feedItem.title,
                 time: DateComponents(hour: Int(feedItem.timeString.prefix(2)), minute: 0),
                 isCompleted: feedItem.isDone,
-                origin: .oneOff(UUID()), // Placeholder origin
-                isOnTime: true
+                origin: .oneOff(UUID()) // Placeholder origin
             )
         }
     }
@@ -527,7 +526,7 @@ struct EnhancedTaskRowView: View {
 
                 HStack {
                     // Time slot
-                    Label(task.scheduledTime.displayTime, systemImage: "clock")
+                    Label("\(task.time.hour ?? 0):00", systemImage: "clock")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
