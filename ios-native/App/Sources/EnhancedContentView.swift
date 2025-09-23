@@ -506,7 +506,7 @@ struct EnhancedTaskRowView: View {
 
                     if isCompleting {
                         Circle()
-                            .fill(task.difficulty.color)
+                            .fill(.green)
                             .frame(width: 24, height: 24)
                             .overlay(
                                 Image(systemName: "checkmark")
