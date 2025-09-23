@@ -4,6 +4,69 @@ import SharedKit
 /// Supporting views for the award-winning app interface
 @available(iOS 17.0, *)
 
+// MARK: - Placeholder Types for Missing Dependencies
+
+struct TaskRecommendationPlaceholder {
+    let type: RecommendationType = .timeOptimization
+    let priority: RecommendationPriority = .medium
+    let title: String = "Placeholder"
+    let description: String = "Placeholder description"
+    let estimatedImpact: Double = 0.5
+    let actionable: Bool = false
+}
+
+class TaskPlanningEnginePlaceholder: ObservableObject {
+    static let shared = TaskPlanningEnginePlaceholder()
+}
+
+struct AssetValidationResultPlaceholder {
+    let healthScore: Double = 85.0
+    let completionPercentage: Double = 90.0
+    let optimizationOpportunities: [String] = []
+    let totalOptimizationPotential: Int = 0
+    let availableAssets: [String] = []
+    let totalStages: Int = 16
+    let missingAssets: [String] = []
+}
+
+class AssetPipelinePlaceholder: ObservableObject {
+    static let shared = AssetPipelinePlaceholder()
+
+    func validate() async -> AssetValidationResultPlaceholder {
+        return AssetValidationResultPlaceholder()
+    }
+
+    func optimizeAllAssets() async -> OptimizationResultPlaceholder {
+        return OptimizationResultPlaceholder()
+    }
+
+    func preloadCriticalAssets() async {
+        // Placeholder implementation
+    }
+}
+
+struct OptimizationResultPlaceholder {
+    let optimizedAssets: Int = 0
+    let totalBytesSaved: Int = 0
+    let optimizationTimeMs: Double = 0
+}
+
+enum InsightCategory {
+    case productivity, difficulty, energy, timing, patterns
+}
+
+enum InsightSeverity {
+    case info, warning, critical
+}
+
+enum RecommendationType {
+    case timeOptimization, batching, breaks, reordering, timeBlocking, energyAlignment
+}
+
+enum RecommendationPriority: String {
+    case low, medium, high, critical
+}
+
 // MARK: - AI Insights View
 
 struct AIInsightsView: View {
@@ -35,7 +98,7 @@ struct InsightCard: View {
 // MARK: - Recommendation Card
 
 struct RecommendationCard: View {
-    let recommendation: TaskRecommendation
+    let recommendation: TaskRecommendationPlaceholder
     let onAction: () -> Void
 
     var body: some View {
@@ -239,9 +302,9 @@ struct TaskDetailView: View {
 // MARK: - Enhanced Settings View
 
 struct EnhancedSettingsView: View {
-    @StateObject private var assetPipeline = AssetPipeline.shared
-    @StateObject private var taskPlanningEngine = TaskPlanningEngine.shared
-    @State private var assetValidationResult: AssetValidationResult?
+    @StateObject private var assetPipeline = AssetPipelinePlaceholder.shared
+    @StateObject private var taskPlanningEngine = TaskPlanningEnginePlaceholder.shared
+    @State private var assetValidationResult: AssetValidationResultPlaceholder?
     @State private var isValidatingAssets = false
 
     var body: some View {
@@ -307,9 +370,9 @@ struct EnhancedSettingsView: View {
 // MARK: - Asset Pipeline View
 
 struct AssetPipelineView: View {
-    @ObservedObject var assetPipeline: AssetPipeline
-    @State private var validationResult: AssetValidationResult?
-    @State private var optimizationResult: OptimizationResult?
+    @ObservedObject var assetPipeline: AssetPipelinePlaceholder
+    @State private var validationResult: AssetValidationResultPlaceholder?
+    @State private var optimizationResult: OptimizationResultPlaceholder?
 
     var body: some View {
         List {
@@ -400,7 +463,7 @@ struct AssetPipelineView: View {
 // MARK: - Asset Validation Result View
 
 struct AssetValidationResultView: View {
-    let result: AssetValidationResult
+    let result: AssetValidationResultPlaceholder
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

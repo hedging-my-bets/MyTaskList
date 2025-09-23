@@ -578,7 +578,6 @@ final class TaskTemplateSystem: ObservableObject {
 
     func createTasksFromTemplate(_ template: TaskTemplate, for date: Date) -> [MaterializedTask] {
         let calendar = Calendar.current
-        let dayKey = dayKey(for: date)
 
         return template.tasks.map { templateTask in
             let scheduledTime = calendar.date(bySettingHour: templateTask.hour, minute: templateTask.minute, second: 0, of: date) ?? date

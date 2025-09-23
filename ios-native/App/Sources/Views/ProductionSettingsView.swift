@@ -59,7 +59,7 @@ struct ProductionSettingsView: View {
                 // MARK: - Advanced
                 Section {
                     PerformanceInsights()
-                    StorageMetrics()
+                    StorageMetricsDisplay()
                 } header: {
                     Label("Advanced", systemImage: "gear")
                 }
@@ -230,9 +230,9 @@ struct PerformanceInsights: View {
 // MARK: - Storage Metrics
 
 @available(iOS 17.0, *)
-struct StorageMetrics: View {
+struct StorageMetricsDisplay: View {
     @StateObject private var store = AppGroupStore.shared
-    @State private var storageMetrics: StorageMetrics?
+    @State private var storageMetrics: SharedKit.StorageMetrics?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
