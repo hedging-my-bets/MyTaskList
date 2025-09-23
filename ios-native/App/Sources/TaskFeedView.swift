@@ -93,7 +93,7 @@ struct TaskFeedRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(
-            isNext ? .thinMaterial : .clear,
+            isNext ? .thinMaterial : .regularMaterial.opacity(0),
             in: RoundedRectangle(cornerRadius: 8)
         )
         .animation(.easeInOut(duration: 0.3), value: task.isDone)

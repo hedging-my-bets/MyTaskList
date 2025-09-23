@@ -37,43 +37,7 @@ struct PrivacyPolicyView: View {
     }
 }
 
-struct SafariView: UIViewControllerRepresentable {
-    let url: URL
-    let onLoadFailure: ((Bool) -> Void)?
-
-    init(url: URL, onLoadFailure: ((Bool) -> Void)? = nil) {
-        self.url = url
-        self.onLoadFailure = onLoadFailure
-    }
-
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        let safari = SFSafariViewController(url: url)
-        safari.delegate = context.coordinator
-        return safari
-    }
-
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {
-        // No updates needed
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onLoadFailure: onLoadFailure)
-    }
-
-    class Coordinator: NSObject, SFSafariViewControllerDelegate {
-        let onLoadFailure: ((Bool) -> Void)?
-
-        init(onLoadFailure: ((Bool) -> Void)?) {
-            self.onLoadFailure = onLoadFailure
-        }
-
-        func safariViewController(_ controller: SFSafariViewController, didCompleteInitialLoad didLoadSuccessfully: Bool) {
-            if !didLoadSuccessfully {
-                onLoadFailure?(false)
-            }
-        }
-    }
-}
+// SafariView moved to ProductionSettingsView.swift to avoid duplicate declaration
 
 struct FallbackPrivacyView: View {
     var body: some View {
