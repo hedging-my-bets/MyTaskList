@@ -355,41 +355,7 @@ struct StorageMetrics: View {
 
 // MARK: - Privacy Policy View
 
-@available(iOS 17.0, *)
-struct PrivacyPolicyView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var showingFallback = false
-
-    var body: some View {
-        NavigationView {
-            Group {
-                if showingFallback {
-                    LocalPrivacyPolicyView()
-                } else {
-                    SafariView(url: privacyPolicyURL) { success in
-                        if !success {
-                            showingFallback = true
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Privacy Policy")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-
-    private var privacyPolicyURL: URL {
-        URL(string: "https://hedging-my-bets.github.io/MyTaskList/privacy-policy.html") ??
-        URL(string: "https://www.iubenda.com/privacy-policy/placeholder")!
-    }
-}
+// Duplicate PrivacyPolicyView removed - using dedicated PrivacyPolicyView.swift file
 
 // MARK: - Local Privacy Policy Fallback
 

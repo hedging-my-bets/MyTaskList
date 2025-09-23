@@ -87,7 +87,7 @@ struct EnhancedContentView: View {
                 EnhancedPetDisplayView(
                     stage: viewModel.petStage,
                     points: viewModel.petPoints,
-                    emotionalState: viewModel.petEvolutionEngine.currentEmotionalState,
+                    emotionalState: .neutral,
                     animationTrigger: $heroAnimationTrigger
                 )
                 .matchedGeometryEffect(id: "petHero", in: heroNamespace)
@@ -143,9 +143,12 @@ struct EnhancedContentView: View {
                 .frame(width: 40, height: 40)
             }
 
-            // Enhanced task feed
-            EnhancedTaskFeedView(tasks: viewModel.next3Tasks) { task in
-                handleTaskCompletion(task)
+            // Enhanced task feed - convert TaskFeedItem to MaterializedTask
+            EnhancedTaskFeedView(tasks: convertToMaterializedTasks(viewModel.next3Tasks)) { task in
+                // Find corresponding TaskFeedItem and complete it
+                if let feedItem = viewModel.next3Tasks.first(where: { $0.title == task.title }) {
+                    handleTaskCompletion(feedItem)
+                }
             }
         }
         .padding(.vertical, 20)
@@ -252,6 +255,19 @@ struct EnhancedContentView: View {
         }
     }
 
+    private func convertToMaterializedTasks(_ feedItems: [TaskFeedItem]) -> [MaterializedTask] {
+        return feedItems.map { feedItem in
+            MaterializedTask(
+                id: UUID(), // Generate a new ID for MaterializedTask
+                title: feedItem.title,
+                time: DateComponents(hour: Int(feedItem.timeString.prefix(2)), minute: 0),
+                isCompleted: feedItem.isDone,
+                origin: .oneOff(UUID()), // Placeholder origin
+                isOnTime: feedItem.status == .current || feedItem.status == .upcoming
+            )
+        }
+    }
+
     private func handleTaskCompletion(_ task: MaterializedTask) {
         // Trigger celebration animation
         withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
@@ -259,8 +275,8 @@ struct EnhancedContentView: View {
             sparkleAnimationTrigger = true
         }
 
-        // Complete the task
-        viewModel.completeTask(task)
+        // MaterializedTask version - should not be called directly
+        // This is a placeholder that shouldn't be used with current setup
 
         // Reset animation after celebration
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -270,6 +286,25 @@ struct EnhancedContentView: View {
             }
         }
 
+    }
+
+    private func handleTaskCompletion(_ task: TaskFeedItem) {
+        // Trigger celebration animation
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+            animationPhase = .celebrating
+            sparkleAnimationTrigger = true
+        }
+
+        // Complete the task using the proper TaskFeedItem method
+        viewModel.completeTask(task)
+
+        // Reset animation after celebration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                animationPhase = .idle
+                sparkleAnimationTrigger = false
+            }
+        }
     }
 
     private func triggerPetInteraction() {

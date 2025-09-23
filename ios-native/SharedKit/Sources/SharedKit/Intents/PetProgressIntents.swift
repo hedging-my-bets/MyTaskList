@@ -309,6 +309,7 @@ public enum IntentError: Swift.Error, LocalizedError {
 
 @available(iOS 17.0, *)
 public struct PetProgressShortcuts: AppShortcutsProvider {
+    public init() {}
     @AppShortcutsBuilder
     public static var appShortcuts: [AppShortcut] {
         AppShortcut(

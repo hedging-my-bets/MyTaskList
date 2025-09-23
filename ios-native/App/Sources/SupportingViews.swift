@@ -103,7 +103,7 @@ struct RecommendationCard: View {
 // MARK: - Task Detail View
 
 struct TaskDetailView: View {
-    let task: Task
+    let task: MaterializedTask
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
