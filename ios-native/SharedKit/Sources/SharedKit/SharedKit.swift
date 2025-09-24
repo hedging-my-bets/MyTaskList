@@ -2,18 +2,8 @@ import Foundation
 
 // MARK: - Public API Exports
 
-// Export all public types and functions from SharedKit
-public typealias TimeSlot = TimeSlot
-public typealias DayModel = DayModel
-public typealias StageConfig = StageConfig
-public typealias PetEvolutionEngine = PetEvolutionEngine
-public typealias SharedStore = SharedStore
-public typealias TimeSlot = TimeSlot
-public typealias TaskFeedItem = TaskFeedItem
-public typealias TaskLocation = TaskLocation
-public typealias TaskStatus = TaskStatus
-public typealias AssetPipeline = AssetPipeline
-public typealias AssetValidationResult = AssetValidationResult
+// All types are already public through their individual declarations
+// No typealiases needed - Swift modules export public types automatically
 
 // MARK: - Module Info
 

@@ -13,6 +13,9 @@ public enum SharedStoreError: Error, LocalizedError {
     case concurrencyConflict
     case insufficientDiskSpace
     case appGroupUnavailable
+    case stateNotFound
+    case saveFailed
+    case loadFailed
 
     public var errorDescription: String? {
         switch self {
@@ -36,6 +39,12 @@ public enum SharedStoreError: Error, LocalizedError {
             return "Insufficient disk space"
         case .appGroupUnavailable:
             return "App Group storage unavailable"
+        case .stateNotFound:
+            return "Application state not found"
+        case .saveFailed:
+            return "Failed to save application state"
+        case .loadFailed:
+            return "Failed to load application state"
         }
     }
 
@@ -53,6 +62,10 @@ public enum SharedStoreError: Error, LocalizedError {
             return "Free up storage space"
         case .appGroupUnavailable:
             return "Restart app or check device storage"
+        case .stateNotFound:
+            return "App will initialize with default state"
+        case .saveFailed, .loadFailed:
+            return "Try again or restart app if problem persists"
         }
     }
 }

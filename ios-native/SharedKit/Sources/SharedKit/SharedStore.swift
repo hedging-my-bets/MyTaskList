@@ -2,12 +2,7 @@ import Foundation
 import os.log
 import Combine
 
-/// SharedStore error types for throwing API compatibility
-public enum SharedStoreError: Error {
-    case stateNotFound
-    case saveFailed
-    case loadFailed
-}
+// SharedStoreError is defined in SharedStoreActor.swift
 
 /// Enterprise-grade shared storage system with atomic operations, crash recovery, and comprehensive error handling
 @available(iOS 17.0, *)
