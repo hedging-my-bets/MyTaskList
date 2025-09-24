@@ -27,7 +27,7 @@ final class DataStore: ObservableObject {
             try sharedStore.saveState(state)
         } catch {
             logger.error("Failed to save state: \(error.localizedDescription)")
-            setError("Failed to save data")
+            showErrorMessage("Failed to save data")
         }
     }
 
