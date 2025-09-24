@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 public struct MaterializedTask: Identifiable, Hashable {
     public let id: UUID
@@ -74,5 +75,99 @@ extension MaterializedTask {
     /// Scheduled hour compatibility property
     public var scheduledHour: Int {
         return time.hour ?? 0
+    }
+
+    /// Difficulty property for compatibility
+    public var difficulty: TaskDifficulty {
+        return .medium
+    }
+
+    /// Scheduled time with display time property
+    public var scheduledTime: ScheduledTimeDisplay {
+        return ScheduledTimeDisplay(hour: time.hour ?? 0, minute: time.minute ?? 0)
+    }
+
+    /// Category property for compatibility
+    public var category: TaskCategory {
+        return .personal
+    }
+
+    /// Notes property for compatibility
+    public var notes: String? {
+        return nil
+    }
+
+    /// Keywords property for compatibility
+    public var keywords: [String]? {
+        return nil
+    }
+
+    /// AI estimated difficulty for compatibility
+    public var aiEstimatedDifficulty: TaskDifficulty? {
+        return nil
+    }
+}
+
+// MARK: - Supporting Types
+
+public enum TaskDifficulty: String, CaseIterable {
+    case easy = "Easy"
+    case medium = "Medium"
+    case hard = "Hard"
+
+    public var color: Color {
+        switch self {
+        case .easy: return .green
+        case .medium: return .blue
+        case .hard: return .red
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .easy: return "easy"
+        case .medium: return "medium"
+        case .hard: return "hard"
+        }
+    }
+}
+
+public enum TaskCategory: String, CaseIterable {
+    case work = "Work"
+    case personal = "Personal"
+    case health = "Health"
+
+    public var icon: String {
+        switch self {
+        case .work: return "briefcase.fill"
+        case .personal: return "person.fill"
+        case .health: return "heart.fill"
+        }
+    }
+
+    public var color: Color {
+        switch self {
+        case .work: return .blue
+        case .personal: return .green
+        case .health: return .red
+        }
+    }
+
+    public var displayName: String {
+        return rawValue
+    }
+}
+
+public struct ScheduledTimeDisplay {
+    public let hour: Int
+    public let minute: Int
+
+    public var displayTime: String {
+        return String(format: "%02d:%02d", hour, minute)
+    }
+
+    public init(hour: Int, minute: Int) {
+        self.hour = hour
+        self.minute = minute
     }
 }

@@ -15,6 +15,10 @@ struct TaskRecommendationPlaceholder {
     let actionable: Bool = false
 }
 
+// Import TaskTemplateSystem types
+typealias TemplateCategory = TaskTemplateSystem.TemplateCategory
+typealias TaskTemplate = TaskTemplateSystem.TaskTemplate
+
 class TaskPlanningEnginePlaceholder: ObservableObject {
     static let shared = TaskPlanningEnginePlaceholder()
 }
