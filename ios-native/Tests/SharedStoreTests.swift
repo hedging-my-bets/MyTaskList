@@ -22,7 +22,9 @@ final class SharedStoreTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        store = SharedStore()
+        store = SharedStore.shared
+        // Reset for testing
+        store.resetForTesting()
         testLogger = Logger(subsystem: "com.petprogress.Tests", category: "SharedStore")
         performanceMetrics.removeAll()
         testLogger.info("🧪 Starting SharedStore enterprise test suite")

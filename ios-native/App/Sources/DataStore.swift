@@ -21,16 +21,28 @@ final class DataStore: ObservableObject {
     private let stageLoader = StageConfigLoader.shared
     private let logger = Logger(subsystem: "com.petprogress.App", category: "DataStore")
 
+    /// Save state using new throwing API with error handling
+    private func saveState() {
+        do {
+            try sharedStore.saveState(state)
+        } catch {
+            logger.error("Failed to save state: \(error.localizedDescription)")
+            setError("Failed to save data")
+        }
+    }
+
     init() {
-        // Load or initialize
-        if let loaded = sharedStore.loadAppState() {
-            self.state = loaded
-        } else {
+        // Load or initialize using throwing API
+        do {
+            self.state = try sharedStore.loadState()
+        } catch {
+            logger.info("No existing state found, creating new state")
             let today = dayKey(for: Date())
             self.state = AppState(
                 dayKey: today,
                 pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today)
             )
+            // Save initial state using non-throwing API since we just created it
             sharedStore.saveAppState(state)
         }
     }
@@ -201,7 +213,7 @@ final class DataStore: ObservableObject {
         objectWillChange.send()
         do {
             // Save to legacy SharedStore (for main app compatibility)
-            sharedStore.saveAppState(state)
+            saveState()
 
             // CRITICAL FIX: Also sync to unified SharedStore for widget visibility
             SharedStore.shared.saveAppState(state)
@@ -433,7 +445,7 @@ final class DataStore: ObservableObject {
 
     func saveCurrentState() {
         Task {
-            sharedStore.saveAppState(state)
+            saveState()
         }
     }
 

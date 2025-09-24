@@ -77,6 +77,16 @@ extension MaterializedTask {
         return time.hour ?? 0
     }
 
+    /// Hour component from time for SharedStore/TimeSlot compatibility
+    public var hour: Int {
+        return time.hour ?? 0
+    }
+
+    /// Minute component from time for SharedStore/TimeSlot compatibility
+    public var minute: Int {
+        return time.minute ?? 0
+    }
+
     /// Difficulty property for compatibility
     public var difficulty: TaskDifficulty {
         return .medium

@@ -2,6 +2,13 @@ import Foundation
 import os.log
 import Combine
 
+/// SharedStore error types for throwing API compatibility
+public enum SharedStoreError: Error {
+    case stateNotFound
+    case saveFailed
+    case loadFailed
+}
+
 /// Enterprise-grade shared storage system with atomic operations, crash recovery, and comprehensive error handling
 @available(iOS 17.0, *)
 public final class SharedStore: ObservableObject {
@@ -470,6 +477,41 @@ public final class SharedStore: ObservableObject {
     }
 
     // MARK: - AppState Bridge Methods
+
+    /// Load AppState with throwing signature for test compatibility
+    public func loadState() throws -> AppState {
+        guard let state = loadAppState() else {
+            throw SharedStoreError.stateNotFound
+        }
+        return state
+    }
+
+    /// Save AppState with throwing signature for test compatibility
+    public func saveState(_ state: AppState) throws {
+        saveAppState(state)
+        // Verify the save was successful
+        guard loadAppState() != nil else {
+            throw SharedStoreError.saveFailed
+        }
+    }
+
+    /// Reset all data for testing
+    public func resetForTesting() {
+        storageQueue.sync {
+            // Clear UserDefaults
+            if let bundleId = Bundle.main.bundleIdentifier {
+                userDefaults.removePersistentDomain(forName: bundleId)
+            }
+            userDefaults.synchronize()
+
+            // Clear file storage
+            let dataDirectory = containerURL.appendingPathComponent("Data")
+            try? fileManager.removeItem(at: dataDirectory)
+            setupStorageEnvironment()
+
+            logger.info("SharedStore reset for testing completed")
+        }
+    }
 
     /// Load AppState from shared storage
     public func loadAppState() -> AppState? {

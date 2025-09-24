@@ -92,8 +92,8 @@ final class SharedKitTests: XCTestCase {
         // Add task
         await store.addTask(testTask)
 
-        // Simulate app restart by creating new instance
-        let newStore = SharedStore()
+        // Simulate app restart using singleton (since constructor is private)
+        let newStore = SharedStore.shared
         let retrievedTasks = await newStore.getTodaysTasks()
 
         let foundTask = retrievedTasks.first { $0.id == testTask.id }

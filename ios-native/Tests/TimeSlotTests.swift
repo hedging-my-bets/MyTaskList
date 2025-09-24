@@ -49,7 +49,7 @@ final class TimeSlotTests: XCTestCase {
             let result = TimeSlot.findNearestHourTask(from: tasks, referenceTime: referenceTime)
 
             XCTAssertNotNil(result, "Should find a nearest task")
-            XCTAssertEqual(result?.timeSlot?.hour, 9, "Should find 9 AM task as nearest")
+            XCTAssertEqual(result?.hour, 9, "Should find 9 AM task as nearest")
             XCTAssertEqual(result?.title, "Morning Task", "Should return correct task")
 
             testLogger.info("✅ Basic nearest hour functionality validated")
@@ -68,7 +68,7 @@ final class TimeSlotTests: XCTestCase {
             let result = TimeSlot.findNearestHourTask(from: tasks, referenceTime: lateNightTime)
 
             XCTAssertNotNil(result, "Should handle day boundary wrapping")
-            XCTAssertEqual(result?.timeSlot?.hour, 6, "Should wrap to 6 AM next day")
+            XCTAssertEqual(result?.hour, 6, "Should wrap to 6 AM next day")
 
             testLogger.info("✅ Edge case handling validated")
         }
