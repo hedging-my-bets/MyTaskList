@@ -1,7 +1,7 @@
 import XCTest
 import SwiftUI
 import OSLog
-@testable import App
+@testable import PetProgress
 @testable import SharedKit
 
 /// Comprehensive App layer tests with UI testing and integration coverage
