@@ -1,7 +1,6 @@
 import XCTest
 import WidgetKit
 @testable import SharedKit
-@testable import Widget
 
 /// Comprehensive test suite for Lock Screen widget functionality
 /// Validates all requirements from the blueprint analysis

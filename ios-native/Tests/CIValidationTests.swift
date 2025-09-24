@@ -1,7 +1,6 @@
 import XCTest
 import WidgetKit
 @testable import SharedKit
-@testable import Widget
 
 /// CI validation tests for green build requirements
 @available(iOS 17.0, *)

@@ -2,7 +2,6 @@ import XCTest
 import SwiftUI
 import WidgetKit
 import OSLog
-@testable import Widget
 @testable import SharedKit
 
 /// Comprehensive Widget tests with timeline and interaction coverage
