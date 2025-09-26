@@ -17,9 +17,9 @@ final class AppIntentHandlerTests: XCTestCase {
 
         // Setup test tasks
         testTasks = [
-            TaskItem(id: UUID(), title: "Morning Task", scheduledAt: DateComponents(hour: 9), isDone: false),
-            TaskItem(id: UUID(), title: "Lunch Task", scheduledAt: DateComponents(hour: 12), isDone: false),
-            TaskItem(id: UUID(), title: "Evening Task", scheduledAt: DateComponents(hour: 18), isDone: false)
+            TaskItem(id: UUID(), title: "Morning Task", scheduledAt: DateComponents(hour: 9), dayKey: TimeSlot.dayKey(for: Date()), isCompleted: false, completedAt: nil, snoozedUntil: nil),
+            TaskItem(id: UUID(), title: "Lunch Task", scheduledAt: DateComponents(hour: 12), dayKey: TimeSlot.dayKey(for: Date()), isCompleted: false, completedAt: nil, snoozedUntil: nil),
+            TaskItem(id: UUID(), title: "Evening Task", scheduledAt: DateComponents(hour: 18), dayKey: TimeSlot.dayKey(for: Date()), isCompleted: false, completedAt: nil, snoozedUntil: nil)
         ]
 
         mockStore.state.tasks = testTasks
@@ -273,7 +273,10 @@ final class AppIntentHandlerTests: XCTestCase {
                 id: UUID(),
                 title: "Task \(index)",
                 scheduledAt: DateComponents(hour: index % 24),
-                isDone: false
+                dayKey: TimeSlot.dayKey(for: Date()),
+                isCompleted: false,
+                completedAt: nil,
+                snoozedUntil: nil
             )
         }
 
