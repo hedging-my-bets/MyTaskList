@@ -46,7 +46,7 @@ public final class CDNManager: ObservableObject {
         priority: CDNPriority = .normal
     ) async throws -> Data {
         let startTime = CFAbsoluteTimeGetCurrent()
-        logger.debug("Loading asset: \(assetName) with quality: \(quality)")
+        logger.debug("Loading asset: \(assetName) with quality: \(String(describing: quality))")
 
         // Check cache first
         if let cachedData = await cache.getData(for: assetName, quality: quality) {
@@ -73,7 +73,8 @@ public final class CDNManager: ObservableObject {
             source: .cdn
         )
 
-        logger.debug("Asset loaded: \(assetName) (\(data.count) bytes, \(loadTime, specifier: "%.1f")ms)")
+        let ms = String(format: "%.1f", loadTime)
+        logger.debug("Asset loaded: \(assetName) (\(data.count) bytes, \(ms)ms)")
         return data
     }
 
@@ -557,7 +558,7 @@ final class CDNAnalyticsCollector {
             loadTimes.removeFirst(100)
         }
 
-        logger.debug("Asset load recorded: \(assetName), \(loadTimeMs)ms, \(source)")
+        logger.debug("Asset load recorded: \(assetName), \(loadTimeMs)ms, \(String(describing: source))")
     }
 
     func recordCacheHit(assetName: String) {

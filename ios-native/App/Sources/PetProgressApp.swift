@@ -1,17 +1,22 @@
 import SwiftUI
 import SharedKit
+import AppIntents
+import UIKit
 
 @main
 struct PetProgressApp: App {
-    @StateObject private var dataStore = DataStore()
-
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(dataStore)
-                .task {
-                    await dataStore.launchApplyCloseoutIfNeeded()
-                }
+            CompleteContentView()
         }
+    }
+}
+
+// MARK: - App Shortcuts Configuration
+
+@available(iOS 17.0, *)
+extension PetProgressApp {
+    static var appShortcutsProvider: PetProgressShortcuts {
+        PetProgressShortcuts()
     }
 }

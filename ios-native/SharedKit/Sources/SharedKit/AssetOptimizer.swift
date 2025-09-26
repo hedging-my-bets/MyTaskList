@@ -66,7 +66,7 @@ public final class AssetOptimizer: ObservableObject {
         let optimizationTime = CFAbsoluteTimeGetCurrent() - startTime
         let savings = Double(imageData.count - optimizedData.count) / Double(imageData.count) * 100
 
-        logger.info("Optimization complete: \(savings, specifier: "%.1f")% size reduction, quality: \(qualityScore, specifier: "%.3f")")
+        logger.info("Optimization complete: \(String(format: "%.1f", savings))% size reduction, quality: \(String(format: "%.3f", qualityScore))")
 
         return OptimizedAsset(
             data: optimizedData,
@@ -84,21 +84,40 @@ public final class AssetOptimizer: ObservableObject {
         logger.info("Starting batch optimization of \(assets.count) assets")
 
         return try await withThrowingTaskGroup(of: (String, OptimizedAsset).self, returning: [String: OptimizedAsset].self) { group in
-            let semaphore = DispatchSemaphore(value: maxConcurrency)
+            var activeTasks = 0
+            let assetEntries = Array(assets)
+            var assetIndex = 0
 
-            for (name, data) in assets {
+            // Start initial batch of tasks
+            while activeTasks < maxConcurrency && assetIndex < assetEntries.count {
+                let (name, data) = assetEntries[assetIndex]
                 group.addTask {
-                    semaphore.wait()
-                    defer { semaphore.signal() }
-
                     let optimized = try await self.optimize(imageData: data)
                     return (name, optimized)
                 }
+                activeTasks += 1
+                assetIndex += 1
             }
 
             var results: [String: OptimizedAsset] = [:]
-            for try await (name, optimized) in group {
-                results[name] = optimized
+
+            // Process results and start new tasks as others complete
+            while results.count < assetEntries.count && activeTasks > 0 {
+                if let (name, optimized) = try await group.next() {
+                    results[name] = optimized
+                    activeTasks -= 1
+
+                    // Start next task if available
+                    if assetIndex < assetEntries.count {
+                        let (nextName, nextData) = assetEntries[assetIndex]
+                        group.addTask {
+                            let optimized = try await self.optimize(imageData: nextData)
+                            return (nextName, optimized)
+                        }
+                        activeTasks += 1
+                        assetIndex += 1
+                    }
+                }
             }
 
             return results
@@ -145,6 +164,9 @@ public final class AssetOptimizer: ObservableObject {
             recommendedFormat = .heic
         case .webp:
             recommendedFormat = .webp
+        case .unknown:
+            // Default to PNG for unknown formats
+            recommendedFormat = .png
         }
 
         let compressionSettings = CompressionSettings(
@@ -337,7 +359,7 @@ final class QualityAnalyzer {
         // Higher compression = lower quality score, but not linearly
         let qualityScore = min(1.0, max(0.0, 0.5 + compressionRatio * 0.5))
 
-        logger.debug("Quality assessment: \(qualityScore, specifier: "%.3f")")
+        logger.debug("Quality assessment: \(String(format: "%.3f", qualityScore))")
         return qualityScore
     }
 }

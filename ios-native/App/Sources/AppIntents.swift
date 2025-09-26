@@ -5,13 +5,19 @@ import SharedKit
 // MARK: - App Intent Provider
 
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-struct PetProgressAppIntentProvider: AppIntentsProvider {
+struct PetProgressAppIntentProvider: AppIntentsPackage {
     static var appIntents: [any AppIntent.Type] {
         return [
+            // Legacy app intents (for backwards compatibility)
             CompleteTaskIntent.self,
             SnoozeTaskIntent.self,
             MarkNextIntent.self,
-            AdminRegressIntent.self
+            AdminRegressIntent.self,
+            // Widget Lock Screen intents (CRITICAL for widget functionality)
+            MarkNextTaskDoneIntent.self,
+            SkipCurrentTaskIntent.self,
+            GoToNextTaskIntent.self,
+            GoToPreviousTaskIntent.self
         ]
     }
 }
@@ -27,7 +33,7 @@ struct CompleteTaskIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) {
+        if SharedStore.shared.markNextDone(for: dayKey, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable
@@ -46,7 +52,7 @@ struct SnoozeTaskIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.snoozeNext(for: dayKey, minutes: 60, now: now) {
+        if SharedStore.shared.snoozeNext(for: dayKey, minutes: 60, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable
@@ -65,7 +71,7 @@ struct MarkNextIntent: AppIntent {
         let now = Date()
         let dayKey = TimeSlot.dayKey(for: now)
 
-        if let updatedDay = SharedStore.shared.markNextDone(for: dayKey, now: now) {
+        if SharedStore.shared.markNextDone(for: dayKey, now: now) != nil {
             return .result()
         } else {
             throw IntentError.noTasksAvailable

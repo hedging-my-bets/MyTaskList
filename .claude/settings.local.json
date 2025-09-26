@@ -17,7 +17,12 @@
       "Bash(python:*)",
       "Bash(find:*)",
       "Bash(swift:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(sed:*)",
+      "Bash(git reset:*)",
+      "Bash(grep:*)",
+      "Bash(bash:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

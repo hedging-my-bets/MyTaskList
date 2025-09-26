@@ -31,7 +31,7 @@ struct TaskFeedView: View {
             } else {
                 LazyVStack(spacing: 6) {
                     ForEach(Array(tasks.enumerated()), id: \.offset) { index, task in
-                        TaskRowView(
+                        TaskFeedRowView(
                             task: task,
                             isNext: index == 0,
                             onComplete: { onComplete(task) }
@@ -44,7 +44,7 @@ struct TaskFeedView: View {
     }
 }
 
-struct TaskRowView: View {
+struct TaskFeedRowView: View {
     let task: TaskFeedItem
     let isNext: Bool
     let onComplete: () -> Void
@@ -93,7 +93,7 @@ struct TaskRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(
-            isNext ? .thinMaterial : .clear,
+            isNext ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(.clear),
             in: RoundedRectangle(cornerRadius: 8)
         )
         .animation(.easeInOut(duration: 0.3), value: task.isDone)

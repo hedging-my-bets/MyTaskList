@@ -147,7 +147,8 @@ public final class PetEvolutionEngine: ObservableObject {
             milestoneAchievements: calculateMilestoneAchievements(points: points)
         )
 
-        logger.info("Generated evolution analysis: Stage \(currentStage), Progress: \(progressInCurrentStage * 100, specifier: "%.1f")%")
+        let pct = String(format: "%.1f", progressInCurrentStage * 100)
+        logger.info("Generated evolution analysis: Stage \(currentStage), Progress: \(pct)%")
         return analysis
     }
 
@@ -586,7 +587,7 @@ public final class PetEvolutionEngine: ObservableObject {
         let averageTime = totalCalculationTime / Double(calculationCount)
 
         if duration > 0.01 { // Log operations > 10ms
-            performanceLogger.warning("\(operation) took \(duration * 1000, specifier: "%.3f")ms (avg: \(averageTime * 1000, specifier: "%.3f")ms)")
+            performanceLogger.warning("\(operation) took \(String(format: "%.3f", duration * 1000))ms (avg: \(String(format: "%.3f", averageTime * 1000))ms)")
         }
     }
 
@@ -605,6 +606,25 @@ public final class PetEvolutionEngine: ObservableObject {
     private func saveBehaviorMetrics() {
         // Implementation would save to persistent storage
         logger.debug("Behavior metrics saved")
+    }
+
+    // MARK: - Threshold API for Widget Integration
+
+    /// Get the XP threshold for a specific stage index
+    /// - Parameter stageIndex: The stage index (0-based)
+    /// - Returns: XP threshold required to reach that stage
+    public func threshold(for stageIndex: Int) -> Int {
+        guard stageIndex >= 0 && stageIndex < config.stages.count else {
+            logger.warning("Invalid stage index: \(stageIndex), returning 0")
+            return 0
+        }
+        return config.stages[stageIndex].threshold
+    }
+
+    /// Get all stage thresholds for testing and validation
+    /// - Returns: Array of all stage thresholds
+    public func allThresholds() -> [Int] {
+        return config.stages.map { $0.threshold }
     }
 
     // MARK: - Supporting Types
@@ -632,10 +652,4 @@ public final class PetEvolutionEngine: ObservableObject {
     }
 }
 
-// MARK: - Array Extension
-
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        return (0..<count).contains(index) ? self[index] : nil
-    }
-}
+// Array extension moved to Extensions.swift to avoid duplicates

@@ -73,6 +73,16 @@ struct SparkleParticle {
     private var scaleSpeed: Double = Double.random(in: 0.02...0.05)
     private var life: Double = 1.0
 
+    init(id: Int, position: CGPoint, scale: Double, rotation: Double, opacity: Double, color: Color, animationDelay: Double) {
+        self.id = id
+        self.position = position
+        self.scale = scale
+        self.rotation = rotation
+        self.opacity = opacity
+        self.color = color
+        self.animationDelay = animationDelay
+    }
+
     mutating func update() {
         position.x += velocity.x
         position.y += velocity.y
@@ -450,8 +460,8 @@ struct Card3DEffect<Content: View>: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        rotationY = value.translation.x / 10
-                        rotationX = -value.translation.y / 10
+                        rotationY = value.translation.width / 10
+                        rotationX = -value.translation.height / 10
                     }
                     .onEnded { _ in
                         withAnimation(.spring()) {

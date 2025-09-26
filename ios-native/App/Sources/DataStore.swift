@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 import SharedKit
 import WidgetKit
+import os.log
 
 @MainActor
 final class DataStore: ObservableObject {
@@ -16,20 +17,33 @@ final class DataStore: ObservableObject {
     @Published var showSuccess: Bool = false
     @Published var successMessage: String = ""
 
-    private let sharedStore = SharedStore()
-    private let stageLoader = StageConfigLoader()
+    private let sharedStore = SharedStore.shared
+    private let stageLoader = StageConfigLoader.shared
+    private let logger = Logger(subsystem: "com.petprogress.App", category: "DataStore")
+
+    /// Save state using new throwing API with error handling
+    private func saveState() {
+        do {
+            try sharedStore.saveState(state)
+        } catch {
+            logger.error("Failed to save state: \(error.localizedDescription)")
+            showErrorMessage("Failed to save data")
+        }
+    }
 
     init() {
-        // Load or initialize
-        if let loaded = try? sharedStore.loadState() {
-            self.state = loaded
-        } else {
+        // Load or initialize using throwing API
+        do {
+            self.state = try sharedStore.loadState()
+        } catch {
+            logger.info("No existing state found, creating new state")
             let today = dayKey(for: Date())
             self.state = AppState(
                 dayKey: today,
                 pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today)
             )
-            try? sharedStore.saveState(state)
+            // Save initial state using non-throwing API since we just created it
+            sharedStore.saveAppState(state)
         }
     }
 
@@ -91,8 +105,11 @@ final class DataStore: ObservableObject {
             showSuccessMessage("Task completed")
         }
 
-        // Level up celebration
+        // Level up celebration with advanced celebration system
         if petCopy.stageIndex > oldStage {
+            if #available(iOS 17.0, *) {
+                CelebrationSystem.shared.celebrateLevelUp(from: oldStage, to: petCopy.stageIndex)
+            }
             triggerHapticFeedback(.success)
             showSuccessMessage("🎉 Your pet leveled up to Stage \(petCopy.stageIndex)!")
         }
@@ -196,10 +213,16 @@ final class DataStore: ObservableObject {
         objectWillChange.send()
         do {
             // Save to legacy SharedStore (for main app compatibility)
-            try sharedStore.saveState(state)
+            saveState()
 
             // CRITICAL FIX: Also sync to unified SharedStore for widget visibility
             SharedStore.shared.saveAppState(state)
+
+            // CRITICAL FIX: Ensure AppGroupStore is synced for widget intents
+            if #available(iOS 17.0, *) {
+                let appGroupState = convertToAppGroupState(from: state)
+                AppGroupStore.shared.saveState(appGroupState)
+            }
 
             // Refresh widget timeline immediately to show changes
             WidgetCenter.shared.reloadAllTimelines()
@@ -237,6 +260,8 @@ final class DataStore: ObservableObject {
     private func processMissedTasks(yesterdayTasks: [TaskItem], petCopy: inout PetState, cfg: StageCfg) {
         let now = Date()
         let calendar = Calendar.current
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: now) ?? now
+        let yesterdayKey = dayKey(for: yesterday)
 
         // Find tasks that were clearly missed (not completed and time has passed)
         let missedTasks = yesterdayTasks.filter { task in
@@ -269,6 +294,31 @@ final class DataStore: ObservableObject {
                 triggerHapticFeedback(.warning)
             }
         }
+
+        // Check for perfect day celebration with streak tracking
+        if #available(iOS 17.0, *) {
+            let perfectDayResult = PerfectDayTracker.shared.checkPerfectDay(for: yesterdayKey)
+
+            if perfectDayResult.isPerfect {
+                // Award bonus XP
+                if perfectDayResult.bonusXP > 0 {
+                    petCopy.stageXP += perfectDayResult.bonusXP
+                    state.pet = petCopy
+                }
+
+                // Trigger celebration with streak info
+                let streakAchievement = StreakAchievement(streakDays: perfectDayResult.streakDays)
+                if !streakAchievement.emoji.isEmpty {
+                    CelebrationSystem.shared.celebrate(.perfectDay,
+                        message: "🌟 Perfect day! \(streakAchievement.emoji) \(streakAchievement.title)")
+                } else {
+                    CelebrationSystem.shared.celebrate(.perfectDay)
+                }
+
+                // Log the achievement
+                logger.info("Perfect day achieved! Streak: \(perfectDayResult.streakDays), Bonus XP: \(perfectDayResult.bonusXP)")
+            }
+        }
     }
 
     public func replaceState(_ newState: AppState) {
@@ -277,6 +327,20 @@ final class DataStore: ObservableObject {
     }
 
     func routeToPlanner() { showPlanner = true }
+
+    // MARK: - AppGroup Synchronization
+
+    @available(iOS 17.0, *)
+    private func convertToAppGroupState(from appState: AppState) -> AppGroupState {
+        var groupState = AppGroupState()
+        groupState.tasks = appState.tasks
+        groupState.pet = appState.pet
+        groupState.completions = appState.completions.mapValues { Array($0) }
+        groupState.graceMinutes = appState.graceMinutes
+        groupState.currentPage = 0
+        groupState.rolloverEnabled = appState.rolloverEnabled
+        return groupState
+    }
 
     func addTask(_ task: TaskItem) {
         // Validate task before adding
@@ -292,7 +356,7 @@ final class DataStore: ObservableObject {
             existing.scheduledAt.minute == task.scheduledAt.minute
         }
 
-        if let existing = existingTask {
+        if existingTask != nil {
             showErrorMessage("A task is already scheduled at \(timeString(from: task.scheduledAt))")
             return
         }
@@ -344,7 +408,7 @@ final class DataStore: ObservableObject {
             existing.scheduledAt.minute == updatedTask.scheduledAt.minute
         }
 
-        if let existing = conflictingTask {
+        if conflictingTask != nil {
             showErrorMessage("Another task is already scheduled at \(timeString(from: updatedTask.scheduledAt))")
             return
         }
@@ -377,5 +441,15 @@ final class DataStore: ObservableObject {
             pet: PetState(stageIndex: 0, stageXP: 0, lastCloseoutDayKey: today)
         )
         persist()
+    }
+
+    func saveCurrentState() {
+        Task {
+            saveState()
+        }
+    }
+
+    func refreshCurrentDay() async {
+        await launchApplyCloseoutIfNeeded()
     }
 }

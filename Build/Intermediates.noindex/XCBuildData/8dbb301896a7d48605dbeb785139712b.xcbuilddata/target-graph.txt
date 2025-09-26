@@ -1,0 +1,7 @@
+Target dependency graph (3 targets)
+Target 'PetProgress' in project 'MyTaskList'
+➜ Explicit dependency on target 'SharedKit' in project 'MyTaskList'
+➜ Explicit dependency on target 'PetProgressWidget' in project 'MyTaskList'
+Target 'PetProgressWidget' in project 'MyTaskList'
+➜ Explicit dependency on target 'SharedKit' in project 'MyTaskList'
+Target 'SharedKit' in project 'MyTaskList' (no dependencies)

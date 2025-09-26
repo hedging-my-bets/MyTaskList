@@ -5,7 +5,7 @@ import CryptoKit
 
 /// Enterprise-grade asset pipeline with CDN optimization and intelligent caching
 @available(iOS 17.0, *)
-public final class AssetPipeline: ObservableObject {
+public final class AssetPipeline: ObservableObject, @unchecked Sendable {
     public static let shared = AssetPipeline()
 
     private let logger = Logger(subsystem: "com.mytasklist.sharedkit", category: "AssetPipeline")
@@ -73,16 +73,17 @@ public final class AssetPipeline: ObservableObject {
 
     /// Asynchronously loads optimized image with progressive enhancement
     public func loadImage(for stageIndex: Int, quality: ImageQuality = .auto) async -> Image {
-        let imageName = imageName(for: stageIndex)
+        let _ = imageName(for: stageIndex)
 
         return await withCheckedContinuation { continuation in
             loadingQueue.async { [weak self] in
-                guard let self = self else {
-                    continuation.resume(returning: self?.placeholderImage(for: stageIndex) ?? Image(systemName: "photo"))
+                guard let strongSelf = self else {
+                    let fallbackImage = Image(systemName: "photo")
+                    continuation.resume(returning: fallbackImage)
                     return
                 }
 
-                let result = self.image(for: stageIndex, quality: quality)
+                let result = strongSelf.image(for: stageIndex, quality: quality)
                 continuation.resume(returning: result)
             }
         }
@@ -175,7 +176,7 @@ public final class AssetPipeline: ObservableObject {
         var optimizationOpportunities: [OptimizationOpportunity] = []
 
         await withTaskGroup(of: (String, ValidationStatus).self) { group in
-            for (index, stageName) in stageNames.enumerated() {
+            for (_, stageName) in stageNames.enumerated() {
                 group.addTask {
                     let status = await self.validateAsset(named: stageName)
                     return (stageName, status)
@@ -198,7 +199,7 @@ public final class AssetPipeline: ObservableObject {
         }
 
         let validationTime = CFAbsoluteTimeGetCurrent() - startTime
-        logger.info("Asset validation completed in \(validationTime * 1000, specifier: "%.2f")ms")
+        logger.info("Asset validation completed in \(validationTime * 1000)))ms")
 
         return AssetValidationResult(
             totalStages: stageNames.count,
@@ -375,7 +376,7 @@ public struct OptimizationResult {
 }
 
 /// Image quality levels for CDN optimization
-public enum ImageQuality {
+public enum ImageQuality: Sendable {
     case auto
     case low
     case medium
@@ -418,8 +419,10 @@ final class AssetCacheManager {
     func cacheImage(_ image: Image, named name: String) {
         cacheQueue.async(flags: .barrier) {
             if self.imageCache.count >= self.maxCacheSize {
-                // LRU eviction would go here
-                self.imageCache.removeFirst()
+                // LRU eviction - remove a random entry since we don't track access order
+                if let firstKey = self.imageCache.keys.first {
+                    self.imageCache.removeValue(forKey: firstKey)
+                }
             }
             self.imageCache[name] = image
         }
@@ -493,7 +496,7 @@ final class PerformanceMonitor {
 
         // Log slow loads
         if loadTimeMs > 100 {
-            logger.warning("Slow image load: \(imageName) took \(loadTimeMs, specifier: "%.2f")ms")
+            logger.warning("Slow image load: \(imageName) took \(loadTimeMs)))ms")
         }
     }
 

@@ -1,13 +1,17 @@
 import WidgetKit
 import SwiftUI
 import SharedKit
+import AppIntents
 import os.log
 
-/// Pet Progress Widget - Simple and Functional
+/// Pet Progress Widget Bundle - All Widgets in One Bundle (Steve Jobs Architecture)
 @main
 struct PetProgressWidgetBundle: WidgetBundle {
     var body: some Widget {
-        PetProgressWidget()
+        if #available(iOS 17.0, *) {
+            PetProgressWidget()
+            PetProgressInteractiveLockScreenWidget()
+        }
     }
 }
 
@@ -15,50 +19,135 @@ struct PetProgressWidget: Widget {
     let kind: String = "PetProgressWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             PetProgressWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Pet Progress")
         .description("Track your tasks and watch your pet evolve")
-        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .systemSmall, .systemMedium])
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline, .systemSmall, .systemMedium])
     }
+}
+
+// MARK: - Configuration Intent
+
+struct ConfigurationAppIntent: WidgetConfigurationIntent, Sendable {
+    static var title: LocalizedStringResource = "Configuration"
+    static var description = IntentDescription("This is an example widget.")
 }
 
 // MARK: - Timeline Provider
 
-struct Provider: TimelineProvider {
+struct Provider: AppIntentTimelineProvider {
+    typealias Entry = SimpleEntry
+    typealias Intent = ConfigurationAppIntent
+
     private let logger = Logger(subsystem: "com.petprogress.Widget", category: "Provider")
 
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(), dayModel: createPlaceholderModel())
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), dayModel: loadOrCreateDayModel())
-        completion(entry)
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
+        // Respect widget preview constraints - limit execution time
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let timeout: CFAbsoluteTime = 2.0 // Shorter timeout for snapshots
+
+        let dayModel: DayModel
+        if CFAbsoluteTimeGetCurrent() - startTime > timeout {
+            logger.warning("Snapshot generation exceeded time budget, using placeholder")
+            dayModel = createPlaceholderModel()
+        } else {
+            dayModel = loadOrCreateDayModel()
+        }
+
+        let entry = SimpleEntry(date: Date(), dayModel: dayModel)
+        return entry
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let _ : CFAbsoluteTime = 8.0 // Respect widget timeline budget
+
         let now = Date()
-        let dayModel = loadOrCreateDayModel()
-        let entries: [SimpleEntry] = [SimpleEntry(date: now, dayModel: dayModel)]
+        let topOfCurrentHour = now.topOfHour
+        let topOfNextHour = topOfCurrentHour.addingTimeInterval(3600)
 
-        // Refresh at next hour
-        let nextHour = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
-        let timeline = Timeline(entries: entries, policy: .after(nextHour))
+        logger.info("Building hourly timeline: current hour \(topOfCurrentHour), next hour \(topOfNextHour)")
 
-        completion(timeline)
+        // Build exactly 2 entries: current hour and next hour
+        var entries: [SimpleEntry] = []
+
+        // Entry for current hour (shows nearest-hour filtered tasks)
+        let currentHourModel = loadNearestHourDayModel(for: topOfCurrentHour)
+        entries.append(SimpleEntry(date: topOfCurrentHour, dayModel: currentHourModel))
+
+        // Entry for next hour
+        let nextHourModel = loadNearestHourDayModel(for: topOfNextHour)
+        entries.append(SimpleEntry(date: topOfNextHour, dayModel: nextHourModel))
+
+        // Timeline policy: refresh at top of next hour
+        let timeline = Timeline(entries: entries, policy: .after(topOfNextHour))
+
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        logger.info("Hourly timeline built with \(entries.count) entries in \(String(format: "%.3f", duration))s, next refresh at \(topOfNextHour)")
+
+        return timeline
     }
 
     private func loadOrCreateDayModel() -> DayModel {
-        let todayKey = TimeSlot.todayKey()
+        let _ = TimeSlot.dayKey(for: Date())
         return SharedStore.shared.getCurrentDayModel() ?? createPlaceholderModel()
+    }
+
+    private func loadDayModelForDate(_ date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        return SharedStore.shared.loadDay(key: dayKey) ?? createPlaceholderModelForDate(date)
+    }
+
+    private func loadNearestHourDayModel(for date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        let calendar = Calendar.current
+        let targetHour = calendar.component(.hour, from: date)
+        let targetMinute = calendar.component(.minute, from: date)
+
+        // Load full day model
+        guard let fullDayModel = SharedStore.shared.loadDay(key: dayKey) ?? SharedStore.shared.getCurrentDayModel() else {
+            return createPlaceholderModelForDate(date)
+        }
+
+        // Get grace minutes from App Group storage
+        let graceMinutes = CompleteAppGroupManager.shared.getGraceMinutes()
+
+        // Compute active slot with grace period
+        let activeSlots = fullDayModel.slots.filter { slot in
+            let slotHour = slot.hour
+            let _ = abs(slotHour - targetHour)
+
+            // Current hour tasks are always active
+            if slotHour == targetHour {
+                return true
+            }
+
+            // Previous hour tasks active if within grace period
+            if slotHour == targetHour - 1 || (targetHour == 0 && slotHour == 23) {
+                // Grace period extends into next hour
+                return targetMinute <= graceMinutes
+            }
+
+            return false
+        }
+
+        return DayModel(
+            key: fullDayModel.key,
+            slots: activeSlots,
+            points: fullDayModel.points
+        )
     }
 
     private func createPlaceholderModel() -> DayModel {
         return DayModel(
-            key: TimeSlot.todayKey(),
+            key: TimeSlot.dayKey(for: Date()),
             slots: [
                 DayModel.Slot(hour: 9, title: "Morning task", isDone: false),
                 DayModel.Slot(hour: 14, title: "Afternoon task", isDone: true),
@@ -67,9 +156,23 @@ struct Provider: TimelineProvider {
             points: 25
         )
     }
+
+    private func createPlaceholderModelForDate(_ date: Date) -> DayModel {
+        let dayKey = TimeSlot.dayKey(for: date)
+        let hour = Calendar.current.component(.hour, from: date)
+
+        // Create a single task for the current hour
+        return DayModel(
+            key: dayKey,
+            slots: [
+                DayModel.Slot(hour: hour, title: "Task at \(hour):00", isDone: false)
+            ],
+            points: 25
+        )
+    }
 }
 
-struct SimpleEntry: TimelineEntry {
+struct SimpleEntry: TimelineEntry, Sendable {
     let date: Date
     let dayModel: DayModel
 }
@@ -83,111 +186,35 @@ struct PetProgressWidgetEntryView: View {
     var body: some View {
         switch widgetFamily {
         case .accessoryCircular:
-            CircularLockScreenView(entry: entry)
+            AccessoryCircularView(entry: entry)
+                .widgetURL(deepLinkURL)
         case .accessoryRectangular:
-            RectangularLockScreenView(entry: entry)
+            AccessoryRectangularView(entry: entry)
+                .widgetURL(deepLinkURL)
+        case .accessoryInline:
+            AccessoryInlineView(entry: entry)
+                .widgetURL(deepLinkURL)
         case .systemSmall, .systemMedium:
             StandardWidgetView(entry: entry)
+                .widgetURL(deepLinkURL)
         default:
             StandardWidgetView(entry: entry)
-        }
-    }
-}
-
-// MARK: - Circular Lock Screen
-
-struct CircularLockScreenView: View {
-    let entry: SimpleEntry
-    private let engine = PetEvolutionEngine()
-
-    var body: some View {
-        ZStack {
-            // Progress ring
-            Circle()
-                .stroke(.tertiary, lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: progressToNextStage)
-                .stroke(.blue, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-
-            // Pet stage number
-            Text("\(currentStage + 1)")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.primary)
+                .widgetURL(deepLinkURL)
         }
     }
 
-    private var currentStage: Int {
-        engine.stageIndex(for: entry.dayModel.points)
-    }
+    private var deepLinkURL: URL? {
+        guard let currentTask = nextIncompleteTask else { return nil }
 
-    private var progressToNextStage: Double {
-        // Simplified progress calculation
-        let stage = currentStage
-        if stage >= 15 { return 1.0 }
-
-        let progress = Double(entry.dayModel.points % 50) / 50.0
-        return max(0.0, min(1.0, progress))
-    }
-}
-
-// MARK: - Rectangular Lock Screen with Working Buttons
-
-struct RectangularLockScreenView: View {
-    let entry: SimpleEntry
-
-    var body: some View {
-        VStack(spacing: 4) {
-            // Pet status
-            HStack {
-                Text("Stage \(currentStage + 1)")
-                    .font(.system(size: 14, weight: .semibold))
-                Spacer()
-                Text("\(entry.dayModel.points) XP")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-
-            // Next task
-            if let nextTask = nextIncompleteTask {
-                HStack {
-                    Text(nextTask.title)
-                        .font(.system(size: 12))
-                        .lineLimit(1)
-                    Spacer()
-                    Text("\(nextTask.hour):00")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            // Action buttons - THESE ACTUALLY WORK
-            if nextIncompleteTask != nil {
-                HStack(spacing: 8) {
-                    Button(intent: CompleteTaskIntent()) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.green)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Button(intent: SkipTaskIntent()) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
-                }
-            }
-        }
-        .padding(.horizontal, 8)
-    }
-
-    private var currentStage: Int {
-        let engine = PetEvolutionEngine()
-        return engine.stageIndex(for: entry.dayModel.points)
+        var components = URLComponents()
+        components.scheme = "petprogress"
+        components.host = "task"
+        components.queryItems = [
+            URLQueryItem(name: "dayKey", value: entry.dayModel.key),
+            URLQueryItem(name: "hour", value: String(currentTask.hour)),
+            URLQueryItem(name: "title", value: currentTask.title)
+        ]
+        return components.url
     }
 
     private var nextIncompleteTask: DayModel.Slot? {
@@ -197,6 +224,7 @@ struct RectangularLockScreenView: View {
         }
     }
 }
+
 
 // MARK: - Standard Widget
 
@@ -239,4 +267,14 @@ struct StandardWidgetView: View {
         ],
         points: 35
     ))
+}
+
+// MARK: - Date Extensions
+
+extension Date {
+    var topOfHour: Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour], from: self)
+        return calendar.date(from: components) ?? self
+    }
 }

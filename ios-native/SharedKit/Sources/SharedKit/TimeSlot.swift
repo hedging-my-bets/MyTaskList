@@ -46,7 +46,7 @@ public enum TimeSlot {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("findNearestHourTask: \(duration * 1000, specifier: "%.3f")ms")
+            performanceLogger.debug("findNearestHourTask: \(String(format: "%.3f", duration * 1000))ms")
         }
 
         logger.info("Finding nearest hour task from \(tasks.count) candidates")
@@ -60,8 +60,6 @@ public enum TimeSlot {
 
         // Calculate current hour and upcoming top-of-hour times
         let calendar = Calendar.autoupdatingCurrent
-        let currentHour = calendar.component(.hour, from: referenceTime)
-        let currentMinute = calendar.component(.minute, from: referenceTime)
 
         // Generate upcoming top-of-hour timestamps within look-ahead window
         var upcomingHours: [Date] = []
@@ -79,11 +77,10 @@ public enum TimeSlot {
         var nearestHourDistance = Double.greatestFiniteMagnitude
 
         for task in incompleteTasks {
-            guard let timeSlot = task.timeSlot else { continue }
+            let timeSlot = task.time
 
             // Calculate task's on-time window end
-            let taskHour = timeSlot.hour
-            let taskMinute = timeSlot.minute
+            let taskHour = timeSlot.hour ?? 0
 
             // Find which upcoming hour this task's window closes at
             for upcomingHour in upcomingHours {
@@ -109,13 +106,14 @@ public enum TimeSlot {
             logger.info("No task found in \(lookAheadHours)h window, falling back to next upcoming task")
             bestTask = incompleteTasks
                 .filter { task in
-                    guard let timeSlot = task.timeSlot else { return false }
-                    let taskTime = calendar.date(bySettingHour: timeSlot.hour, minute: timeSlot.minute, second: 0, of: referenceTime) ?? referenceTime
+                    let timeSlot = task.time
+                    let taskTime = calendar.date(bySettingHour: timeSlot.hour ?? 0, minute: timeSlot.minute ?? 0, second: 0, of: referenceTime) ?? referenceTime
                     return taskTime >= referenceTime
                 }
                 .min { task1, task2 in
-                    guard let slot1 = task1.timeSlot, let slot2 = task2.timeSlot else { return false }
-                    return slot1.hour < slot2.hour || (slot1.hour == slot2.hour && slot1.minute < slot2.minute)
+                    let slot1 = task1.time
+                    let slot2 = task2.time
+                    return (slot1.hour ?? 0) < (slot2.hour ?? 0) || ((slot1.hour ?? 0) == (slot2.hour ?? 0) && (slot1.minute ?? 0) < (slot2.minute ?? 0))
                 }
         }
 
@@ -165,7 +163,7 @@ public enum TimeSlot {
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
             if duration > 0.001 { // Log operations > 1ms
-                performanceLogger.debug("dayKey calculation: \(duration * 1000, specifier: "%.3f")ms")
+                performanceLogger.debug("dayKey calculation: \(String(format: "%.3f", duration * 1000))ms")
             }
         }
 
@@ -202,7 +200,7 @@ public enum TimeSlot {
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
             if duration > 0.001 {
-                performanceLogger.debug("hourIndex calculation: \(duration * 1000, specifier: "%.3f")ms")
+                performanceLogger.debug("hourIndex calculation: \(String(format: "%.3f", duration * 1000))ms")
             }
         }
 
@@ -236,7 +234,7 @@ public enum TimeSlot {
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
             if duration > 0.005 { // Log operations > 5ms
-                performanceLogger.warning("nextHour calculation: \(duration * 1000, specifier: "%.3f")ms")
+                performanceLogger.warning("nextHour calculation: \(String(format: "%.3f", duration * 1000))ms")
             }
         }
 
@@ -273,7 +271,6 @@ public enum TimeSlot {
     ///   - tz: Timezone to analyze
     /// - Returns: Diagnostic information about potential issues
     public static func diagnoseTimezoneIssues(for date: Date, tz: TimeZone = TimeZone.current) -> TimezoneeDiagnosticInfo {
-        let calendar = getCachedCalendar(for: tz)
         let isProblematic = problematicTimezones.contains(tz.identifier)
         let isDSTTransition = isDSTTransitionPeriod(date: date, timezone: tz)
         let nextTransition = findNextDSTTransition(after: date, timezone: tz)

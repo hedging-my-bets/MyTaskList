@@ -2,13 +2,15 @@ import Foundation
 import os.log
 import Combine
 
+// SharedStoreError is defined in SharedStoreActor.swift
+
 /// Enterprise-grade shared storage system with atomic operations, crash recovery, and comprehensive error handling
 @available(iOS 17.0, *)
 public final class SharedStore: ObservableObject {
     public static let shared = SharedStore()
 
     // MARK: - Configuration
-    private let appGroupID = "group.hedging-my-bets.mytasklist"
+    private let appGroupID = "group.com.hedgingmybets.PetProgress"
     private let backupSuffix = ".backup"
     private let tempSuffix = ".tmp"
     private let maxRetryAttempts = 3
@@ -120,7 +122,7 @@ public final class SharedStore: ObservableObject {
             let validationTime = CFAbsoluteTimeGetCurrent() - startTime
 
             if validationIssues.isEmpty {
-                logger.info("Storage integrity validation passed in \(validationTime * 1000, specifier: "%.2f")ms")
+                logger.info("Storage integrity validation passed in \(validationTime * 1000)))ms")
             } else {
                 logger.warning("Storage integrity issues found: \(validationIssues.joined(separator: ", "))")
             }
@@ -345,9 +347,9 @@ public final class SharedStore: ObservableObject {
         let averageTime = totalOperationTime / Double(operationCount)
 
         if duration > 0.1 { // Log slow operations
-            performanceLogger.warning("\(operation) took \(duration * 1000, specifier: "%.2f")ms (avg: \(averageTime * 1000, specifier: "%.2f")ms)")
+            performanceLogger.warning("\(operation) took \(String(format: "%.2f", duration * 1000))ms (avg: \(String(format: "%.2f", averageTime * 1000))ms)")
         } else {
-            performanceLogger.debug("\(operation) completed in \(duration * 1000, specifier: "%.2f")ms")
+            performanceLogger.debug("\(operation) completed in \(String(format: "%.2f", duration * 1000))ms")
         }
     }
 
@@ -368,11 +370,35 @@ public final class SharedStore: ObservableObject {
             return day // No incomplete tasks found
         }
 
+        let task = day.slots[slotIndex]
+
+        // Check grace period from current app state
+        guard let currentState = loadAppState() else {
+            // Fallback to immediate completion if state unavailable
+            day.slots[slotIndex].isDone = true
+            day.points += 5
+            saveDay(day)
+            return day
+        }
+
+        // Determine if task completion is within grace period
+        let isWithinGrace = isOnTime(task: TaskItem(
+            id: UUID(),
+            title: task.title,
+            scheduledAt: DateComponents(hour: task.hour),
+            dayKey: currentState.dayKey,
+            isCompleted: false
+        ), now: now, graceMinutes: currentState.graceMinutes)
+
         // Mark the task as done
         day.slots[slotIndex].isDone = true
 
-        // Award points for completion (basic +5 points)
-        day.points += 5
+        // Award points: full points if within grace period, reduced otherwise
+        if isWithinGrace {
+            day.points += 5 // Full points for on-time completion
+        } else {
+            day.points += 2 // Reduced points for late completion
+        }
 
         saveDay(day)
         return day
@@ -447,6 +473,41 @@ public final class SharedStore: ObservableObject {
 
     // MARK: - AppState Bridge Methods
 
+    /// Load AppState with throwing signature for test compatibility
+    public func loadState() throws -> AppState {
+        guard let state = loadAppState() else {
+            throw SharedStoreError.stateNotFound
+        }
+        return state
+    }
+
+    /// Save AppState with throwing signature for test compatibility
+    public func saveState(_ state: AppState) throws {
+        saveAppState(state)
+        // Verify the save was successful
+        guard loadAppState() != nil else {
+            throw SharedStoreError.saveFailed
+        }
+    }
+
+    /// Reset all data for testing
+    public func resetForTesting() {
+        storageQueue.sync {
+            // Clear UserDefaults
+            if let bundleId = Bundle.main.bundleIdentifier {
+                userDefaults.removePersistentDomain(forName: bundleId)
+            }
+            userDefaults.synchronize()
+
+            // Clear file storage
+            let dataDirectory = containerURL.appendingPathComponent("Data")
+            try? fileManager.removeItem(at: dataDirectory)
+            setupStorageEnvironment()
+
+            logger.info("SharedStore reset for testing completed")
+        }
+    }
+
     /// Load AppState from shared storage
     public func loadAppState() -> AppState? {
         return performAtomicOperation(operationType: "loadAppState") { [weak self] in
@@ -484,6 +545,9 @@ public final class SharedStore: ObservableObject {
                 // Also update the DayModel representation for widget consumption
                 self.updateDayModelFromAppState(state)
 
+                // Sync grace minutes to the key that SharedStoreActor reads
+                self.userDefaults.set(state.graceMinutes, forKey: "grace_minutes")
+
             } catch {
                 self.logger.error("Failed to encode AppState: \(error.localizedDescription)")
             }
@@ -495,21 +559,16 @@ public final class SharedStore: ObservableObject {
         let dayKey = appState.dayKey
 
         // Get materialized tasks for today
-        let materializedTasks = TaskMaterialization.materializeTasks(
-            tasks: appState.tasks,
-            series: appState.series,
-            overrides: appState.overrides,
-            dayKey: dayKey
-        )
+        let materializedTasks = materializeTasks(for: dayKey, in: appState)
 
         // Create slots from materialized tasks (limit to 24 for widget)
         var slots: [DayModel.Slot] = []
         let completedTasks = appState.completions[dayKey] ?? Set<UUID>()
 
-        for (index, task) in materializedTasks.prefix(24).enumerated() {
+        for task in materializedTasks.prefix(24) {
             let isCompleted = completedTasks.contains(task.id)
             let slot = DayModel.Slot(
-                hour: task.timeSlot?.hour ?? index,
+                hour: task.hourIndex,
                 title: task.title,
                 isDone: isCompleted
             )
@@ -531,20 +590,15 @@ public final class SharedStore: ObservableObject {
     public func getCurrentDayModel() -> DayModel? {
         // First try to get from AppState (authoritative)
         if let appState = loadAppState() {
-            let materializedTasks = TaskMaterialization.materializeTasks(
-                tasks: appState.tasks,
-                series: appState.series,
-                overrides: appState.overrides,
-                dayKey: appState.dayKey
-            )
+            let materializedTasks = materializeTasks(for: appState.dayKey, in: appState)
 
             var slots: [DayModel.Slot] = []
             let completedTasks = appState.completions[appState.dayKey] ?? Set<UUID>()
 
-            for (index, task) in materializedTasks.prefix(24).enumerated() {
+            for task in materializedTasks.prefix(24) {
                 let isCompleted = completedTasks.contains(task.id)
                 let slot = DayModel.Slot(
-                    hour: task.timeSlot?.hour ?? index,
+                    hour: task.hourIndex,
                     title: task.title,
                     isDone: isCompleted
                 )
@@ -559,7 +613,7 @@ public final class SharedStore: ObservableObject {
         }
 
         // Fallback to DayModel storage
-        let todayKey = TimeSlot.todayKey()
+        let todayKey = TimeSlot.dayKey(for: Date())
         return loadDay(key: todayKey)
     }
 
@@ -571,12 +625,7 @@ public final class SharedStore: ObservableObject {
         }
 
         let targetDayKey = dayKey ?? appState.dayKey
-        let materializedTasks = TaskMaterialization.materializeTasks(
-            tasks: appState.tasks,
-            series: appState.series,
-            overrides: appState.overrides,
-            dayKey: targetDayKey
-        )
+        let materializedTasks = materializeTasks(for: targetDayKey, in: appState)
 
         guard taskIndex < materializedTasks.count else {
             logger.error("Task index \(taskIndex) out of bounds")
@@ -632,7 +681,7 @@ public final class SharedStore: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
         var result: T?
 
-        let operationComplete = storageQueue.sync {
+        storageQueue.sync {
             // Timeout protection
             let timeoutSource = DispatchSource.makeTimerSource(queue: storageQueue)
             var isTimedOut = false
@@ -652,13 +701,9 @@ public final class SharedStore: ObservableObject {
                 return
             }
 
-            do {
-                result = operation()
-                let operationTime = CFAbsoluteTimeGetCurrent() - startTime
-                self.recordPerformanceMetric(operation: operationType, duration: operationTime)
-            } catch {
-                self.logger.error("\(operationType) operation failed: \(error.localizedDescription)")
-            }
+            result = operation()
+            let operationTime = CFAbsoluteTimeGetCurrent() - startTime
+            self.recordPerformanceMetric(operation: operationType, duration: operationTime)
         }
 
         return result

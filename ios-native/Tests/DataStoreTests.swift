@@ -79,7 +79,7 @@ final class DataStoreTests: XCTestCase {
         dataStore.markDone(taskID: task.id)
 
         let dayKey = dataStore.state.dayKey
-        let completedTasks = dataStore.state.completions[dayKey] ?? Set<UUID>()
+        let completedTasks = dataStore.state.completions[dayKey] ?? []
         XCTAssertTrue(completedTasks.contains(task.id))
     }
 

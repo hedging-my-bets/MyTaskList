@@ -2,7 +2,6 @@ import XCTest
 import SwiftUI
 import WidgetKit
 import OSLog
-@testable import Widget
 @testable import SharedKit
 
 /// Comprehensive Widget tests with timeline and interaction coverage
@@ -657,13 +656,13 @@ final class WidgetPerformanceMeasurer {
             measurements[test] = []
         }
         measurements[test]?.append(time)
-        logger.info("Widget Performance: \(test) completed in \(time * 1000, specifier: \"%.2f\")ms")
+        logger.info("Widget Performance: \(test) completed in \(String(format: "%.2f", time * 1000))ms")
     }
 
     func recordMemory(test: String, bytes: Int64) {
         memoryMeasurements[test] = bytes
         let mb = Double(bytes) / (1024 * 1024)
-        logger.info("Widget Memory: \(test) used \(mb, specifier: \"%.2f\")MB")
+        logger.info("Widget Memory: \(test) used \(String(format: "%.2f", mb))MB")
     }
 
     func reset() {
@@ -679,12 +678,12 @@ final class WidgetPerformanceMeasurer {
             let minTime = times.min() ?? 0
             let maxTime = times.max() ?? 0
 
-            logger.info("Widget \(test): avg=\(avgTime * 1000, specifier: \"%.2f\")ms, min=\(minTime * 1000, specifier: \"%.2f\")ms, max=\(maxTime * 1000, specifier: \"%.2f\")ms")
+            logger.info("Widget \(test): avg=\(String(format: "%.2f", avgTime * 1000))ms, min=\(String(format: "%.2f", minTime * 1000))ms, max=\(String(format: "%.2f", maxTime * 1000))ms")
         }
 
         for (test, bytes) in memoryMeasurements {
             let mb = Double(bytes) / (1024 * 1024)
-            logger.info("Widget \(test): \(mb, specifier: \"%.2f\")MB")
+            logger.info("Widget \(test): \(String(format: "%.2f", mb))MB")
         }
 
         logger.info("=== End Widget Performance Results ===")

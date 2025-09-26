@@ -2,14 +2,14 @@ import Foundation
 
 /// Simple test runner for manual validation
 public struct TestValidation {
-    public static func runBasicTests() {
+    public static func runBasicTests() async {
         print("🧪 Running SharedKit validation tests...")
 
         testTimeSlot()
         testPetEvolution()
         testSharedStore()
         testTaskPlanner()
-        testAssetPipeline()
+        await testAssetPipeline()
 
         print("✅ All validation tests passed!")
     }
@@ -70,13 +70,13 @@ public struct TestValidation {
         print("✓ TaskPlanner tests passed")
     }
 
-    private static func testAssetPipeline() {
+    private static func testAssetPipeline() async {
         let pipeline = AssetPipeline.shared
 
         assert(pipeline.imageName(for: 0) == "pet_baby", "Baby stage failed")
         assert(pipeline.imageName(for: 15) == "pet_gold", "Gold stage failed")
 
-        let validation = pipeline.validate()
+        let validation = await pipeline.validate()
         assert(validation.totalStages == 16, "Stage count incorrect")
 
         print("✓ AssetPipeline tests passed")

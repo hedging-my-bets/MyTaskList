@@ -225,9 +225,9 @@ class SharedKitTests: XCTestCase {
         XCTAssertEqual(pipeline.imageName(for: 20), "pet_gold") // Should clamp to 15
     }
 
-    func testAssetPipelineValidation() {
+    func testAssetPipelineValidation() async {
         let pipeline = AssetPipeline.shared
-        let result = pipeline.validate()
+        let result = await pipeline.validate()
 
         XCTAssertEqual(result.totalStages, 16)
         XCTAssertEqual(result.availableAssets.count + result.missingAssets.count, 16)

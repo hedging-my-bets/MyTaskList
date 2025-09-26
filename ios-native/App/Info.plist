@@ -2,6 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Core Bundle Information -->
 	<key>CFBundleDisplayName</key>
 	<string>PetProgress</string>
 	<key>CFBundleExecutable</key>
@@ -18,25 +19,32 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+
+	<!-- App Store Metadata -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>CFBundleGetInfoString</key>
+	<string>PetProgress - Transform tasks into pet evolution. Gamify your productivity with Lock Screen widgets and celebrate every achievement.</string>
+
+	<!-- Platform Requirements -->
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UILaunchScreen</key>
-	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
 	</array>
+
+	<!-- Interface Orientations (iPhone Only) -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+
+	<!-- Launch Configuration -->
+	<key>UILaunchScreen</key>
+	<dict/>
+
+	<!-- Deep Linking Support -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -48,5 +56,145 @@
 			</array>
 		</dict>
 	</array>
+
+	<!-- App Intents & Activities -->
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>CompleteTaskIntent</string>
+		<string>SkipTaskIntent</string>
+		<string>ShowNextTaskIntent</string>
+		<string>ShowPreviousTaskIntent</string>
+		<string>AddTaskIntent</string>
+		<string>ViewProgressIntent</string>
+	</array>
+
+	<!-- Privacy & Security -->
+	<key>NSPrivacyTrackingUsage</key>
+	<string>This app does not track users</string>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
+	<!-- Background Capabilities -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-app-refresh</string>
+	</array>
+
+	<!-- Widget Support -->
+	<key>NSSupportsLiveActivities</key>
+	<false/>
+
+	<!-- Accessibility & User Experience -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+
+	<!-- App Store Connect Metadata -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict/>
+	</dict>
+
+	<!-- Core Data / CloudKit (if needed) -->
+	<key>NSUbiquitousContainers</key>
+	<dict/>
+
+	<!-- Permissions (Future-proofing) -->
+	<key>NSCameraUsageDescription</key>
+	<string>PetProgress can use the camera to add photos to your achievements and milestones.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PetProgress can access your photo library to add images to your tasks and celebrate your achievements.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>PetProgress sends notifications to remind you about scheduled tasks and celebrate your pet's evolution milestones.</string>
+
+	<!-- File Sharing & Document Support -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>PetProgress Task List</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.petprogress.tasklist</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Exported UTI -->
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.content</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>PetProgress Task List</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.petprogress.tasklist</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>petprogress</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/x-petprogress-tasklist</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+
+	<!-- Scene Configuration -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
+	<!-- App Store Optimization -->
+	<key>LSMinimumSystemVersion</key>
+	<string>17.0</string>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+	</array>
+
+	<!-- Haptic Feedback Support -->
+	<key>UIFeedbackSupportLevel</key>
+	<string>2</string>
+
+	<!-- Widget Extension Points -->
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.widgetkit-extension</string>
+	</dict>
 </dict>
 </plist>

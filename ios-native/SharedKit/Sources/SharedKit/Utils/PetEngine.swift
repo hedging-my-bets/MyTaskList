@@ -32,8 +32,6 @@ public enum PetEngine {
         let recoveryGracePeriod: Int
     }
 
-    private static var behaviorAnalysis = BehaviorAnalysis()
-
     private class BehaviorAnalysis {
         private var performanceHistory: [String: [TaskPerformance]] = [:]
         private var lastAnalysisDate: Date?
@@ -124,7 +122,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onCheck execution: \(duration * 1000, specifier: "%.3f")ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onCheck execution: \(durationMs)ms")
         }
 
         // Calculate XP award with behavioral bonuses
@@ -151,7 +150,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onMiss execution: \(duration * 1000, specifier: "%.3f")ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onMiss execution: \(durationMs)ms")
         }
 
         // Calculate XP penalty with behavioral impact
@@ -208,7 +208,8 @@ public enum PetEngine {
 
         defer {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            performanceLogger.debug("onDailyCloseout execution: \(duration * 1000, specifier: "%.3f")ms")
+            let durationMs = String(format: "%.3f", duration * 1000)
+            performanceLogger.debug("onDailyCloseout execution: \(durationMs)ms")
         }
 
         // Only run closeout once per day
@@ -264,8 +265,10 @@ public enum PetEngine {
         // Comprehensive logging
         if pet.stageIndex != oldStage {
             let direction = pet.stageIndex > oldStage ? "evolved" : "de-evolved"
-            logger.info("Pet \(direction) from stage \(oldStage) to \(pet.stageIndex)")
-            behaviorLogger.info("Stage change: \(oldStage) -> \(pet.stageIndex), XP: \(oldXP) -> \(pet.stageXP)")
+            let newStage = pet.stageIndex
+            let newXP = pet.stageXP
+            logger.info("Pet \(direction) from stage \(oldStage) to \(newStage)")
+            behaviorLogger.info("Stage change: \(oldStage) -> \(newStage), XP: \(oldXP) -> \(newXP)")
         }
     }
 
@@ -292,20 +295,111 @@ public enum PetEngine {
         let thresholdValue = threshold(for: pet.stageIndex, cfg: cfg)
         guard thresholdValue > 0 else { return }
         if pet.stageXP >= thresholdValue {
+            let oldStage = pet.stageIndex
             pet.stageIndex = min(pet.stageIndex + 1, cfg.stages.count - 1)
             pet.stageXP = 0
+
+            // Log evolution for celebration system
+            if pet.stageIndex > oldStage {
+                let newStage = pet.stageIndex
+                logger.info("🎉 Pet evolved from stage \(oldStage) to stage \(newStage)!")
+                behaviorLogger.info("Evolution milestone: stage \(oldStage) -> \(newStage)")
+
+                // Trigger haptic feedback for level up
+                #if canImport(UIKit)
+                HapticManager.shared.petLevelUp(fromStage: oldStage, toStage: newStage)
+                #endif
+            }
         }
     }
 
     public static func deEvolveIfNeeded(_ pet: inout PetState, cfg: StageCfg) {
         if pet.stageXP < 0 {
             if pet.stageIndex > 0 {
+                let oldStage = pet.stageIndex
                 pet.stageIndex -= 1
                 let newThreshold = max(0, threshold(for: pet.stageIndex, cfg: cfg))
                 pet.stageXP = max(0, newThreshold - 1)
+
+                // Trigger haptic feedback for de-evolution
+                #if canImport(UIKit)
+                HapticManager.shared.petDeEvolution()
+                #endif
+
+                let newStage = pet.stageIndex
+                logger.info("Pet de-evolved from stage \(oldStage) to stage \(newStage)")
             } else {
                 pet.stageXP = 0
             }
         }
+    }
+
+    // MARK: - Celebration Management
+
+    /// Check if a celebration should be triggered for the current stage
+    /// Prevents duplicate celebrations for the same evolution level
+    /// - Parameters:
+    ///   - pet: Current pet state
+    ///   - shouldMarkCelebrated: Whether to mark this stage as celebrated
+    /// - Returns: True if celebration should be shown
+    public static func shouldCelebrate(pet: inout PetState, markAsCelebrated shouldMarkCelebrated: Bool = true) -> Bool {
+        // Only celebrate if we've reached a new stage that hasn't been celebrated
+        let shouldTrigger = pet.stageIndex > pet.lastCelebratedStage
+
+        if shouldTrigger && shouldMarkCelebrated {
+            let currentStage = pet.stageIndex
+            pet.lastCelebratedStage = pet.stageIndex
+            logger.info("🎉 Marking stage \(currentStage) as celebrated")
+            behaviorLogger.info("Celebration triggered for stage \(currentStage)")
+        }
+
+        return shouldTrigger
+    }
+
+    /// Reset celebration state (useful for testing or debugging)
+    /// - Parameter pet: Pet state to reset
+    public static func resetCelebrationState(_ pet: inout PetState) {
+        pet.lastCelebratedStage = -1
+        logger.debug("Reset celebration state - all stages can now trigger celebrations")
+    }
+
+    /// Get celebration message for the current stage
+    /// - Parameters:
+    ///   - pet: Current pet state
+    ///   - cfg: Stage configuration
+    /// - Returns: Celebration message and stage name
+    public static func getCelebrationInfo(for pet: PetState, cfg: StageCfg) -> (title: String, message: String, stageName: String)? {
+        guard pet.stageIndex < cfg.stages.count else { return nil }
+
+        let stage = cfg.stages[pet.stageIndex]
+        let stageName = stage.name
+
+        // Generate contextual celebration messages
+        let celebrationTitles = [
+            "Level Up!",
+            "Evolution!",
+            "Great Progress!",
+            "Achievement Unlocked!",
+            "Well Done!",
+            "Milestone Reached!"
+        ]
+
+        let messages = [
+            "Your pet has evolved to \(stageName)!",
+            "\(stageName) unlocked through consistent effort!",
+            "Amazing! You've reached the \(stageName) stage!",
+            "Your dedication paid off - welcome to \(stageName)!",
+            "Fantastic progress! \(stageName) achieved!",
+            "Congratulations on reaching \(stageName)!"
+        ]
+
+        let titleIndex = min(pet.stageIndex, celebrationTitles.count - 1)
+        let messageIndex = min(pet.stageIndex, messages.count - 1)
+
+        return (
+            title: celebrationTitles[titleIndex],
+            message: messages[messageIndex],
+            stageName: stageName
+        )
     }
 }

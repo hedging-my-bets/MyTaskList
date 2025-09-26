@@ -22,6 +22,7 @@ settings:
     SWIFT_VERSION: "5.10"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     SUPPORTS_MACCATALYST: false
+    SUPPORTED_PLATFORMS: iphoneos iphonesimulator
     TARGETED_DEVICE_FAMILY: "1"  # iPhone only (1=iPhone, 2=iPad, 1,2=Universal)
 
     # Code Signing & Security
@@ -121,6 +122,9 @@ targets:
         embed: true
     entitlements:
       path: App/PetProgress.entitlements
+    attributes:
+      SystemCapabilities:
+        com.apple.ApplicationGroups.iOS: true
     settings:
       base:
         PRODUCT_NAME: PetProgress
@@ -145,6 +149,9 @@ targets:
       - target: SharedKit
     entitlements:
       path: Widget/PetProgressWidget.entitlements
+    attributes:
+      SystemCapabilities:
+        com.apple.ApplicationGroups.iOS: true
     settings:
       base:
         PRODUCT_NAME: PetProgressWidget
@@ -152,6 +159,7 @@ targets:
         INFOPLIST_FILE: Widget/Info.plist
         ENABLE_TESTING_SEARCH_PATHS: false
         SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1"  # iPhone only
 
   PetProgressTests:
     type: bundle.unit-test

@@ -1,12 +1,22 @@
 import Foundation
 
-public struct DayModel: Codable, Equatable {
-    public struct Slot: Codable, Equatable {
+public struct DayModel: Codable, Equatable, Sendable {
+    public struct Slot: Codable, Equatable, Identifiable, Sendable {
+        public var id: String
         public var hour: Int
         public var title: String
         public var isDone: Bool
 
+        public init(id: String? = nil, title: String, hour: Int, isDone: Bool = false) {
+            self.id = id ?? UUID().uuidString
+            self.hour = hour
+            self.title = title
+            self.isDone = isDone
+        }
+
+        // Legacy constructor for backward compatibility
         public init(hour: Int, title: String, isDone: Bool = false) {
+            self.id = UUID().uuidString
             self.hour = hour
             self.title = title
             self.isDone = isDone
